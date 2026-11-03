@@ -45,9 +45,12 @@ erDiagram
 4. **Invoice Audit Compliance PODs:**
    - **Auditable Invoices POD:** 1,925 tickets (₹29.72 Cr | 73.4% revenue share)
    - **Non-Auditable Invoices POD:** 763 tickets (₹10.78 Cr | 26.6% revenue share)
-4. **L2 Reviewers (`L2 Assign`):** Kushal (Lead/Top volume), Tanmoy, Dhriti, Nabonita, Sayan, Arnab, Manika, Pallabi.
-5. **L1 Reviewers (`l1 Approved User`):** Manika Chakraborty, Nandan Saha, Arnab Chakladar, Sayan Banik, Pallabi Banerjee, Arindam Mitra, Subir Halder.
-6. **Data Sources:** `CenturyJoy` (Web/Internal) and `CenturyJoyApp` (Mobile).
+5. **Financial Monetary Bifurcation Matrix:**
+   - Replaced raw transaction explorer with executive audit bifurcation across Senior Managers, Streams (Digital vs Physical), 11 Teams, and 8 Approvers.
+   - 1-click CSV export of full aggregated audit reconciliation.
+6. **L2 Reviewers (`L2 Assign`):** Kushal (Lead/Top volume), Tanmoy, Dhriti, Nabonita, Sayan, Arnab, Manika, Pallabi.
+7. **L1 Reviewers (`l1 Approved User`):** Manika Chakraborty, Nandan Saha, Arnab Chakladar, Sayan Banik, Pallabi Banerjee, Arindam Mitra, Subir Halder.
+8. **Data Sources:** `CenturyJoy` (Web/Internal) and `CenturyJoyApp` (Mobile).
 
 ## Security & Guardrails
 - Watermark Protocol: All generated UI components will enforce `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` with hover-only visibility and background integrity kill switch.

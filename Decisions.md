@@ -78,3 +78,26 @@
 - **Consequences:**
   - High-impact institutional corporate UI with instant stream segregation and compliance visibility.
   - 100% verified against Rule 19 watermark integrity.
+
+## Decision 007: Drop Raw Transaction Ledger & Implement Financial Monetary Bifurcation Matrix
+- **Date:** 2026-11-03
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User directed:
+  1. Drop the "L2 Transaction Ledger & Data Explore" (the raw, 2,688-row ticket table).
+  2. Show monetary values bifurcated between Auditable and Non-Auditable.
+  3. Default to Option 2: CenturyPly Enterprise Clean Light / Hybrid Theme.
+  4. Generate a complete image of the generated UI.
+- **Decision:**
+  - Replace `<TicketExplorer />` with `<MonetaryBifurcationSection />`, presenting executive financial matrices:
+    - Overall Monetary Reconciliation: ₹40.50 Cr total = ₹29.72 Cr Auditable (73.4%) + ₹10.78 Cr Non-Auditable (26.6%).
+    - Senior Management Bifurcation Matrix: Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal with exact monetary and percentage splits.
+    - Stream Bifurcation: Digital Teams (₹18.82 Cr Aud / ₹7.38 Cr Non-Aud) vs Physical Teams (₹10.90 Cr Aud / ₹3.40 Cr Non-Aud).
+    - 11 Team / Pod Captain Breakdown with Auditable vs Non-Auditable amounts and compliance share bars.
+    - 8 L2 Approvers Breakdown with Auditable vs Non-Auditable signed-off amounts.
+    - CSV Export for the aggregated financial bifurcation.
+  - Set default theme to `light` (CenturyPly Enterprise Clean Light / Hybrid Theme) in `DataContext.jsx` and `index.html`.
+  - Capture pixel-perfect high-resolution screenshot using headless browser automation and render mockup artifact.
+- **Consequences:**
+  - Eliminates low-density transaction noise and elevates dashboard to an executive financial audit and governance reporting platform.

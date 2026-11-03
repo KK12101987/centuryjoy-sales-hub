@@ -8,7 +8,7 @@ import DigitalPodsSection from './components/DigitalPodsSection';
 import PhysicalTeamsSection from './components/PhysicalTeamsSection';
 import L2ApproverOperations from './components/L2ApproverOperations';
 import AnalyticsCharts from './components/AnalyticsCharts';
-import TicketExplorer from './components/TicketExplorer';
+import MonetaryBifurcationSection from './components/MonetaryBifurcationSection';
 import UploadModal from './components/UploadModal';
 import Watermark from './components/Watermark';
 
@@ -49,8 +49,8 @@ export default function App() {
           {/* Daily Velocity & Approval Cadence Timeline */}
           <AnalyticsCharts />
 
-          {/* Searchable Ledger & Data Explorer */}
-          <TicketExplorer />
+          {/* Monetary Value Bifurcation (Auditable vs Non-Auditable) */}
+          <MonetaryBifurcationSection />
 
         </main>
 
