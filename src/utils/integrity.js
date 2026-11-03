@@ -10,6 +10,13 @@ let observer = null;
 let integrityInterval = null;
 let isInitialized = false;
 
+function normalizeString(str) {
+  return (str || '')
+    .replace(/\ufe0f/g, '')  // Normalize emoji variation selector-16
+    .replace(/\s+/g, ' ')     // Normalize multiple whitespace/newlines
+    .trim();
+}
+
 function triggerCatastrophicFailure(reason) {
   console.error(`[CRITICAL SECURITY ALERT] Integrity violation: ${reason}`);
   try {
@@ -38,9 +45,11 @@ export function verifyWatermarkIntegrity() {
     return false;
   }
 
-  const text = (el.textContent || el.innerText || '').trim();
-  if (text !== WATERMARK_TEXT) {
-    triggerCatastrophicFailure("Watermark text altered or corrupted");
+  const foundText = normalizeString(el.textContent || el.innerText || '');
+  const expectedText = normalizeString(WATERMARK_TEXT);
+
+  if (foundText !== expectedText) {
+    triggerCatastrophicFailure(`Watermark text altered: expected '${expectedText}', found '${foundText}'`);
     return false;
   }
 
@@ -102,7 +111,6 @@ export function initAntiTamperWatcher(onViolation) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(runWatcher, 100));
   } else {
-    // Allow React initial mount tick
     setTimeout(runWatcher, 100);
   }
 }
