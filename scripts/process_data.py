@@ -51,6 +51,27 @@ def run_processing():
             'member': row['team_member_clean']
         }
         
+    # Add verified team members from organizational mapping
+    extra_members = [
+        {'member': 'Silpa Palchina', 'captain': 'Silpa Palchina', 'manager': 'Arijit Nath'},
+        {'member': 'Ronika Banerjee', 'captain': 'Silpa Palchina', 'manager': 'Arijit Nath'}
+    ]
+    for em in extra_members:
+        mgr = em['manager']
+        cap = em['captain']
+        mem = em['member']
+        if mgr not in hierarchy_tree:
+            hierarchy_tree[mgr] = {}
+        if cap not in hierarchy_tree[mgr]:
+            hierarchy_tree[mgr][cap] = []
+        if mem not in hierarchy_tree[mgr][cap]:
+            hierarchy_tree[mgr][cap].append(mem)
+        lookup_map[normalize_name(mem)] = {
+            'manager': mgr,
+            'captain': cap,
+            'member': mem
+        }
+        
     custom_aliases = {
         'swastika kolla': 'swasitka kolla',
         'shaik nagur shariff': 'shaikh nagur shariff',

@@ -34,12 +34,12 @@ erDiagram
 
 ## Key Entities & Roles
 1. **Senior Managers (`Manager`):**
-   - Surajit Laha (1,029 tickets | ₹13.26 Cr)
-   - Niladri Bhadra (969 tickets | ₹14.97 Cr)
-   - Arijit Nath (632 tickets | ₹11.01 Cr)
-   - Amit Singal (56 tickets | ₹1.24 Cr)
-2. **Captains (`Captains`):** 10 Pod Captains (Niladri Bhadra, Pallabi Chura, Shiuli Bhattacharjee, Nasima Banu, Arshi Afreen Jamal, Surajit Laha, Mousumi Chakraborty, Ranjana Mohajan, Arijit Nath, Amit Singal).
-3. **Relationship Managers (`Team Members`):** 84 RMs.
+   - Surajit Laha (1,029 tickets | ₹13.26 Cr | 32.7%)
+   - Niladri Bhadra (969 tickets | ₹14.97 Cr | 37.0%)
+   - Arijit Nath (634 tickets | ₹11.03 Cr | 27.2%)
+   - Amit Singal (56 tickets | ₹1.24 Cr | 3.1%)
+2. **Captains (`Captains`):** 11 Pod Captains (Niladri Bhadra, Pallabi Chura, Shiuli Bhattacharjee, Nasima Banu, Arshi Afreen Jamal, Surajit Laha, Mousumi Chakraborty, Ranjana Mohajan, Arijit Nath, Silpa Palchina, Amit Singal).
+3. **Relationship Managers (`Team Members`):** 86 RMs (including Silpa Palchina and Ronika Banerjee).
 4. **L2 Reviewers (`L2 Assign`):** Kushal (Lead/Top volume), Tanmoy, Dhriti, Nabonita, Sayan, Arnab, Manika, Pallabi.
 5. **L1 Reviewers (`l1 Approved User`):** Manika Chakraborty, Nandan Saha, Arnab Chakladar, Sayan Banik, Pallabi Banerjee, Arindam Mitra, Subir Halder.
 6. **Data Sources:** `CenturyJoy` (Web/Internal) and `CenturyJoyApp` (Mobile).

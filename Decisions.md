@@ -46,3 +46,16 @@
   - Zero ongoing server hosting fees.
   - Immediate local development and testing.
   - Secure offline processing of uploaded Excel files without uploading sensitive CRM data to external cloud parsers.
+
+## Decision 005: 100% Hierarchy Reconciliation (Silpa Palchina Pod)
+- **Date:** 2026-11-03
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  Two tickets (totaling ₹2.13 L) were under "Unassigned / Other" because `Silpa Palchina` and `RONIKA BANERJEE` were not listed in the 84-member `RM_Cap_MGR.xlsx` table.
+- **Decision:**
+  - Map `Silpa Palchina` as Pod Captain and `RONIKA BANERJEE` as Relationship Manager under Senior Manager **Arijit Nath**, as confirmed by the organizational team structure in `New JOY Digital and Physical Team Mapping wef 1st October 2026.xlsx`.
+- **Consequences:**
+  - Achieved a **100.00% complete match (2,688 / 2,688 tickets)**.
+  - Completely eliminated the "Unassigned / Other" card from the executive dashboard.
+  - Arijit Nath's verified totals updated to 634 tickets | ₹11.03 Cr (27.2% revenue share).

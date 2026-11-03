@@ -27,6 +27,10 @@
         "Jaysingh Yadav",
         "Shaikh Nagur Shariff",
         "Subhash Yadav"
+      ],
+      "Silpa Palchina": [
+        "Silpa Palchina",
+        "Ronika Banerjee"
       ]
     },
     "Niladri Bhadra": {
@@ -533,6 +537,16 @@
       "manager": "Surajit Laha",
       "captain": "Surajit Laha",
       "member": "Syed Mueen"
+    },
+    "silpa palchina": {
+      "manager": "Arijit Nath",
+      "captain": "Silpa Palchina",
+      "member": "Silpa Palchina"
+    },
+    "ronika banerjee": {
+      "manager": "Arijit Nath",
+      "captain": "Silpa Palchina",
+      "member": "Ronika Banerjee"
     }
   },
   "aliases": {

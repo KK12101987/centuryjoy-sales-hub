@@ -21,6 +21,7 @@
 - [x] Implemented full executive dashboard views: KPIs, Senior Management breakdown, Pod Captains drawer, L2 Approver SLA & Workloads, Daily Approval Surge timeline, and Searchable/Exportable Ticket Explorer.
 - [x] Verified build (`npm run build`) and launched local server on `http://localhost:5173/`.
 - [x] Resolved initial mount race condition in Rule 19 watermark integrity check (documented in `Bug.md`).
+- [x] Reconciled 100% of L2 tickets: mapped Silpa Palchina & Ronika Banerjee under Arijit Nath, eliminating "Unassigned / Other".
 - [ ] User review and local testing.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 

@@ -19,7 +19,7 @@ def verify():
     
     matched_hierarchy = sum(1 for r in records if r['manager'] != 'Unassigned / Other')
     print(f"Hierarchy matched tickets: {matched_hierarchy}/{len(records)} ({matched_hierarchy/len(records)*100:.2f}%)")
-    assert matched_hierarchy >= 2686, f"Expected at least 2686 matches, got {matched_hierarchy}"
+    assert matched_hierarchy == 2688, f"Expected exactly 2688 matches, got {matched_hierarchy}"
     
     managers = list(hierarchy['tree'].keys())
     print(f"Managers ({len(managers)}): {managers}")
@@ -29,7 +29,7 @@ def verify():
     for m, caps in hierarchy['tree'].items():
         all_captains.update(caps.keys())
     print(f"Captains ({len(all_captains)}): {sorted(list(all_captains))}")
-    assert len(all_captains) == 10, f"Expected 10 captains, got {len(all_captains)}"
+    assert len(all_captains) == 11, f"Expected 11 captains, got {len(all_captains)}"
     
     print("\nALL VERIFICATION TESTS PASSED SUCCESSFULLY!")
 
