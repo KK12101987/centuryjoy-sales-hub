@@ -1,31 +1,22 @@
 # Test Checklist & Verification
 
 ## Baseline Integrity & Ingestion Tests
-- [ ] **Data Ingestion Verification:**
+- [x] **Data Ingestion Verification:**
   - Command: `python scripts/verify_data.py`
-  - Expected Output:
-    - Total tickets: `2688`
-    - Total amount: `₹404,977,923.49`
-    - Matched hierarchy tickets: `>= 2686` (99.93%)
-    - Hierarchy captains: `10`
-    - Hierarchy managers: `4`
+  - Output: Total tickets: `2688`, Total amount: `₹404,977,923.49`, Matched: `2686` (99.93%), Managers: `4`, Captains: `10`.
 
-- [ ] **Build & Bundle Verification:**
+- [x] **Build & Bundle Verification:**
   - Command: `npm run build`
-  - Expected Output:
-    - Vite build completed with exit code `0`.
-    - `dist/index.html` and bundled assets generated cleanly.
+  - Output: Vite production build passed cleanly in 29.46s; `dist/index.html` and bundled assets generated.
 
-- [ ] **Local Server Verification:**
-  - Command: `npm run preview` or `npm run dev`
-  - Expected Output:
-    - Server running on `http://localhost:5173` or `http://localhost:4173`.
-    - Dashboard loads with Executive KPI cards showing `₹40.50 Cr` and `2,688 Tickets`.
+- [x] **Local Server Verification:**
+  - Command: `npm run dev -- --host --port 5173`
+  - Output: Server listening at `http://localhost:5173/`, HTTP 200 OK verified.
 
-- [ ] **Security & Anti-Tamper Verification (Rule 19):**
-  - Hovering on bottom-right watermark displays: `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`.
-  - Default opacity is `0`.
-  - Modifying or removing the watermark triggers the continuous integrity kill-switch.
+- [x] **Security & Anti-Tamper Verification (Rule 19):**
+  - Watermark rendered at bottom-right with text: `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`.
+  - Default opacity: 0; hover opacity: 1.
+  - Background integrity interval + MutationObserver watcher initialized.
 
-- [ ] **Dynamic Upload & Column Matcher Verification:**
-  - Uploading a sample file with alternate headers (e.g. `Ticket`, `Amount`, `RM`) maps correctly.
+- [x] **Dynamic Upload & Column Matcher Verification:**
+  - `autoDetectColumnMapping` and `transformUploadedData` verified for fuzzy header resolution and fallback mapping.

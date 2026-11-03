@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor & System
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Excel Lock & Scratch files
+~$*
+*.tmp
+__pycache__
+*.pyc

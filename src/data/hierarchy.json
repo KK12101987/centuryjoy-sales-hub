@@ -1,0 +1,546 @@
+{
+  "tree": {
+    "Arijit Nath": {
+      "Arshi Afreen Jamal": [
+        "Anusrita Sircar",
+        "Arshi Afreen Jamal",
+        "Debapriya Basu",
+        "Md Sadik",
+        "Pritha Bhattacharya",
+        "Shalini Bose",
+        "Sujita Hazra",
+        "Suvra Sen"
+      ],
+      "Mousumi Chakraborty": [
+        "Aparna Biswas",
+        "Chandrima Bhattacharya",
+        "Mousumi Chakraborty",
+        "Naga Sindhuja",
+        "Rajrupa Dey",
+        "Sk Shamsher Ali",
+        "Somashree Saha",
+        "Srabani Chakraborti",
+        "SWASITKA KOLLA"
+      ],
+      "Arijit Nath": [
+        "Aishwarya Tripathy",
+        "Jaysingh Yadav",
+        "Shaikh Nagur Shariff",
+        "Subhash Yadav"
+      ]
+    },
+    "Niladri Bhadra": {
+      "Ranjana Mohajan": [
+        "Alisha Jaiswal",
+        "Bondita Borkotoky",
+        "Hemant Sharma",
+        "Koyel Bhandari",
+        "Ranjana Mohajan",
+        "Sudeshna Das",
+        "Taniya Bhattacharjee",
+        "Vinayak Burman"
+      ],
+      "Shiuli Bhattacharjee": [
+        "Ananya Dhara",
+        "Arunraj Singh Rehal",
+        "Jutirmoy Mazumder",
+        "Krupa Joshi",
+        "Laxmi Sharma",
+        "Pritam Mondal",
+        "Ria Majumdar",
+        "Satashri Roy",
+        "Shiuli Bhattacharjee",
+        "SNEHA BISWAS MUKHERJEE",
+        "Sraboni Roy"
+      ],
+      "Niladri Bhadra": [
+        "Amit Prakash Meshram",
+        "Antara Goswami",
+        "Mr Shubham Jalodiya",
+        "Pathan Farhan Gulfam Khan",
+        "Peous Patra",
+        "Prateek Halder",
+        "Preetam Saha",
+        "RAJNI PRASAD",
+        "Shubham Singh",
+        "SK Shadab",
+        "Tushar Anand Dedge"
+      ]
+    },
+    "Surajit Laha": {
+      "Nasima Banu": [
+        "Akash Kumar Shaw",
+        "Anjali Sahani",
+        "Anubha Arora",
+        "Ishika Shyamal",
+        "Jyotirmayee Sardar",
+        "Kaushani Saha",
+        "Nasima Banu",
+        "Payal Bhattacharya",
+        "Rajeswari Mondal"
+      ],
+      "Pallabi Chura": [
+        "Abhishek Chatterjee",
+        "Aiswarya K",
+        "Jerry Jose",
+        "MD Essam",
+        "Pallabi Chura",
+        "Rishita Hazra",
+        "Saheli Roy",
+        "Sanhita Dutta",
+        "Sanjukta Biswas",
+        "Solanki Tapadar",
+        "Uma Beriwal"
+      ],
+      "Surajit Laha": [
+        "Dinesh Kumar",
+        "Mathavan Sekar",
+        "Md. Shahid Akbar",
+        "Nitish Khatua",
+        "Ram Kumar",
+        "Shibin Francis",
+        "Syed Mueen"
+      ]
+    },
+    "Amit Singal": {
+      "Amit Singal": [
+        "Bhim Singh",
+        "Charanjeet Singh",
+        "Deepak Rai",
+        "Gagandeep Kaur",
+        "Poonam Painuly",
+        "Prince Pandey"
+      ]
+    }
+  },
+  "lookup": {
+    "anusrita sircar": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Anusrita Sircar"
+    },
+    "arshi afreen jamal": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Arshi Afreen Jamal"
+    },
+    "debapriya basu": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Debapriya Basu"
+    },
+    "md sadik": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Md Sadik"
+    },
+    "pritha bhattacharya": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Pritha Bhattacharya"
+    },
+    "shalini bose": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Shalini Bose"
+    },
+    "sujita hazra": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Sujita Hazra"
+    },
+    "suvra sen": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Suvra Sen"
+    },
+    "aparna biswas": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Aparna Biswas"
+    },
+    "chandrima bhattacharya": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Chandrima Bhattacharya"
+    },
+    "mousumi chakraborty": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Mousumi Chakraborty"
+    },
+    "naga sindhuja": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Naga Sindhuja"
+    },
+    "rajrupa dey": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Rajrupa Dey"
+    },
+    "sk shamsher ali": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Sk Shamsher Ali"
+    },
+    "somashree saha": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Somashree Saha"
+    },
+    "srabani chakraborti": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "Srabani Chakraborti"
+    },
+    "swasitka kolla": {
+      "manager": "Arijit Nath",
+      "captain": "Mousumi Chakraborty",
+      "member": "SWASITKA KOLLA"
+    },
+    "alisha jaiswal": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Alisha Jaiswal"
+    },
+    "bondita borkotoky": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Bondita Borkotoky"
+    },
+    "hemant sharma": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Hemant Sharma"
+    },
+    "koyel bhandari": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Koyel Bhandari"
+    },
+    "ranjana mohajan": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Ranjana Mohajan"
+    },
+    "sudeshna das": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Sudeshna Das"
+    },
+    "taniya bhattacharjee": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Taniya Bhattacharjee"
+    },
+    "vinayak burman": {
+      "manager": "Niladri Bhadra",
+      "captain": "Ranjana Mohajan",
+      "member": "Vinayak Burman"
+    },
+    "ananya dhara": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Ananya Dhara"
+    },
+    "arunraj singh rehal": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Arunraj Singh Rehal"
+    },
+    "jutirmoy mazumder": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Jutirmoy Mazumder"
+    },
+    "krupa joshi": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Krupa Joshi"
+    },
+    "laxmi sharma": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Laxmi Sharma"
+    },
+    "pritam mondal": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Pritam Mondal"
+    },
+    "ria majumdar": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Ria Majumdar"
+    },
+    "satashri roy": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Satashri Roy"
+    },
+    "shiuli bhattacharjee": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Shiuli Bhattacharjee"
+    },
+    "sneha biswas mukherjee": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "SNEHA BISWAS MUKHERJEE"
+    },
+    "sraboni roy": {
+      "manager": "Niladri Bhadra",
+      "captain": "Shiuli Bhattacharjee",
+      "member": "Sraboni Roy"
+    },
+    "akash kumar shaw": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Akash Kumar Shaw"
+    },
+    "anjali sahani": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Anjali Sahani"
+    },
+    "anubha arora": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Anubha Arora"
+    },
+    "ishika shyamal": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Ishika Shyamal"
+    },
+    "jyotirmayee sardar": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Jyotirmayee Sardar"
+    },
+    "kaushani saha": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Kaushani Saha"
+    },
+    "nasima banu": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Nasima Banu"
+    },
+    "payal bhattacharya": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Payal Bhattacharya"
+    },
+    "rajeswari mondal": {
+      "manager": "Surajit Laha",
+      "captain": "Nasima Banu",
+      "member": "Rajeswari Mondal"
+    },
+    "abhishek chatterjee": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Abhishek Chatterjee"
+    },
+    "aiswarya k": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Aiswarya K"
+    },
+    "jerry jose": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Jerry Jose"
+    },
+    "md essam": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "MD Essam"
+    },
+    "pallabi chura": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Pallabi Chura"
+    },
+    "rishita hazra": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Rishita Hazra"
+    },
+    "saheli roy": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Saheli Roy"
+    },
+    "sanhita dutta": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Sanhita Dutta"
+    },
+    "sanjukta biswas": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Sanjukta Biswas"
+    },
+    "solanki tapadar": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Solanki Tapadar"
+    },
+    "uma beriwal": {
+      "manager": "Surajit Laha",
+      "captain": "Pallabi Chura",
+      "member": "Uma Beriwal"
+    },
+    "bhim singh": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Bhim Singh"
+    },
+    "charanjeet singh": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Charanjeet Singh"
+    },
+    "deepak rai": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Deepak Rai"
+    },
+    "gagandeep kaur": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Gagandeep Kaur"
+    },
+    "poonam painuly": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Poonam Painuly"
+    },
+    "prince pandey": {
+      "manager": "Amit Singal",
+      "captain": "Amit Singal",
+      "member": "Prince Pandey"
+    },
+    "aishwarya tripathy": {
+      "manager": "Arijit Nath",
+      "captain": "Arijit Nath",
+      "member": "Aishwarya Tripathy"
+    },
+    "jaysingh yadav": {
+      "manager": "Arijit Nath",
+      "captain": "Arijit Nath",
+      "member": "Jaysingh Yadav"
+    },
+    "shaikh nagur shariff": {
+      "manager": "Arijit Nath",
+      "captain": "Arijit Nath",
+      "member": "Shaikh Nagur Shariff"
+    },
+    "subhash yadav": {
+      "manager": "Arijit Nath",
+      "captain": "Arijit Nath",
+      "member": "Subhash Yadav"
+    },
+    "amit prakash meshram": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Amit Prakash Meshram"
+    },
+    "antara goswami": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Antara Goswami"
+    },
+    "shubham jalodiya": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Mr Shubham Jalodiya"
+    },
+    "pathan farhan gulfam khan": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Pathan Farhan Gulfam Khan"
+    },
+    "peous patra": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Peous Patra"
+    },
+    "prateek halder": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Prateek Halder"
+    },
+    "preetam saha": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Preetam Saha"
+    },
+    "rajni prasad": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "RAJNI PRASAD"
+    },
+    "shubham singh": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Shubham Singh"
+    },
+    "sk shadab": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "SK Shadab"
+    },
+    "tushar anand dedge": {
+      "manager": "Niladri Bhadra",
+      "captain": "Niladri Bhadra",
+      "member": "Tushar Anand Dedge"
+    },
+    "dinesh kumar": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Dinesh Kumar"
+    },
+    "mathavan sekar": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Mathavan Sekar"
+    },
+    "md. shahid akbar": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Md. Shahid Akbar"
+    },
+    "nitish khatua": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Nitish Khatua"
+    },
+    "ram kumar": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Ram Kumar"
+    },
+    "shibin francis": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Shibin Francis"
+    },
+    "syed mueen": {
+      "manager": "Surajit Laha",
+      "captain": "Surajit Laha",
+      "member": "Syed Mueen"
+    }
+  },
+  "aliases": {
+    "swastika kolla": "swasitka kolla",
+    "shaik nagur shariff": "shaikh nagur shariff",
+    "ria majumder": "ria majumdar",
+    "aishwrya tripathy": "aishwarya tripathy",
+    "ch naga sindhuja": "naga sindhuja",
+    "abhishek chatterje": "abhishek chatterjee"
+  }
+}

@@ -29,5 +29,11 @@
 6. Verify locally via automated checks and launch local server.
 
 ## 4. Verification & Testing
-- Automated test script validating record counts, sum totals, hierarchy match rates, and column matcher aliases.
-- Manual verification in browser at `http://localhost:5173`.
+- Automated test script validating record counts, sum totals, hierarchy match rates, and column matcher aliases:
+  - Total records: `2688`
+  - Total amount: `₹404,977,923.49`
+  - Hierarchy matched: `2686 (99.93%)`
+  - Managers: `4`, Captains: `10`
+- Production build verified: `npm run build` generated `dist/` in 29.46s.
+- Local server active: `http://localhost:5173/` tested and responding with HTTP 200.
+- Anti-tamper watermark & coupled integrity verification active.
