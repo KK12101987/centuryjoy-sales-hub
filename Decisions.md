@@ -101,3 +101,20 @@
   - Capture pixel-perfect high-resolution screenshot using headless browser automation and render mockup artifact.
 - **Consequences:**
   - Eliminates low-density transaction noise and elevates dashboard to an executive financial audit and governance reporting platform.
+
+## Decision 008: Brand Re-titling to Century Joy Sales & Revenue Hub & Hero Capsule Redesign
+- **Date:** 2026-11-03
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User directed:
+  1. Rename dashboard from `L2 Operations & Revenue Hub` to `Century Joy Sales & Revenue Hub`.
+  2. "Hero this area and make the capsules big to accommodate all texts": Upgrade the top KPI cards and Senior Management leadership section into a flagship executive hero section with large, comfortable, non-cramped capsules (pills).
+  3. "Manager Amit Singal only has physical team under him": Explicitly remove the redundant `Digital Stream: ₹0 (0)` from Amit Singal's card and replace it with a dedicated `Physical Team Only` capsule, `Direct Field Supervision` badge, and 100% solid physical operations meter.
+- **Decision:**
+  - Update `Navbar.jsx`, `index.html`, and documentation with the new title `Century Joy Sales & Revenue Hub` and `CJ` monogram.
+  - Refactor `KPICards.jsx` with spacious, multi-pill capsules (`px-3 py-1.5 rounded-xl`) with icons, full labels, and percentage shares.
+  - Refactor `ManagerBreakdown.jsx` with prominent capsules (`px-3.5 py-2 rounded-xl`), giving Niladri, Surajit, and Arijit clean dual Digital/Physical capsules and Amit Singal a dedicated `Physical Team Only: ₹1.24 Cr (56 tix)` badge without zero-stream clutter.
+- **Consequences:**
+  - Zero text truncation or cramping across all screen resolutions.
+  - Accurate operational representation of Amit Singal's team scope.

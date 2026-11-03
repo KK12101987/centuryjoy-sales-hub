@@ -30,6 +30,11 @@
 - [x] Enhanced Monetary Value Bifurcation with comprehensive Relationship Manager (RM) level audit breakdown: 82 active RMs ranked by monetary value with Auditable vs Non-Auditable values, quick search, and expandable drawers under Managers & Teams.
 - [x] Verified automated headless browser test (`isFailed: false`, `hasRMs: true`, `hasAuditablePod: true`).
 - [x] Captured high-resolution RM monetary bifurcation screen capture (`centuryjoy_l2_rm_monetary_bifurcation.png`).
+- [x] Renamed dashboard branding from `L2 Operations & Revenue Hub` to `Century Joy Sales & Revenue Hub` (with `CJ` monogram).
+- [x] Elevated KPI Cards and Senior Management Leadership into a unified flagship Executive Hero section.
+- [x] Upgraded sub-metric pills into large, spacious, high-contrast capsules (`rounded-xl` with icons and complete labels) preventing text truncation.
+- [x] Configured Amit Singal's card to explicitly display `Physical Team Only: ₹1.24 Cr (56 tix)` with a 100% solid physical operations meter, eliminating the redundant zero digital stream display.
+- [x] Captured high-resolution verification screenshot (`centuryjoy_hero_cards_comparison.png`).
 - [ ] User review and local testing.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 

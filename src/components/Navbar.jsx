@@ -53,19 +53,19 @@ export default function Navbar({ onOpenUpload }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#e31e24] text-white flex items-center justify-center font-black text-lg tracking-wider shadow-md shadow-red-600/20">
-                L2
+                CJ
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    L2 Operations & Revenue Hub
+                    Century Joy Sales & Revenue Hub
                   </h1>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900/60">
                     October 2026 Live
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  CenturyJoy Executive Governance & Audit Tracking
+                  Executive Governance, Sales Approvals & Revenue Audit Tracking
                 </p>
               </div>
             </div>
