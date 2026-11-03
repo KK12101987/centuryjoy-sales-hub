@@ -27,8 +27,9 @@
 - [x] Delivered Option 2 CenturyPly Enterprise Theme with 1-click Light/Dark Mode toggle in the navbar.
 - [x] Dropped raw "L2 Transaction Ledger & Data Explore" table in favor of high-level financial analysis.
 - [x] Implemented dedicated Monetary Value Bifurcation (Auditable vs. Non-Auditable) Matrix (`src/components/MonetaryBifurcationSection.jsx`).
-- [x] Verified automated headless browser test (`isFailed: false`, `bodyLength: 116,588`).
-- [x] Captured high-resolution pixel-perfect full-page UI image artifacts (`centuryjoy_l2_complete_ui.png`, `centuryjoy_l2_light_executive_view.png`, `centuryjoy_l2_monetary_bifurcation_detail.png`).
+- [x] Enhanced Monetary Value Bifurcation with comprehensive Relationship Manager (RM) level audit breakdown: 82 active RMs ranked by monetary value with Auditable vs Non-Auditable values, quick search, and expandable drawers under Managers & Teams.
+- [x] Verified automated headless browser test (`isFailed: false`, `hasRMs: true`, `hasAuditablePod: true`).
+- [x] Captured high-resolution RM monetary bifurcation screen capture (`centuryjoy_l2_rm_monetary_bifurcation.png`).
 - [ ] User review and local testing.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 

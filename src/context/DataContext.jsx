@@ -7,7 +7,8 @@ const DataContext = createContext(null);
 export function DataProvider({ children }) {
   const [tickets, setTickets] = useState(initialTickets);
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('century_theme') || 'light';
+    // Default to Option 2 CenturyPly Enterprise Clean Light theme
+    return localStorage.getItem('century_theme_v2') || 'light';
   });
 
   // Filter States
@@ -21,7 +22,7 @@ export function DataProvider({ children }) {
 
   // Handle Theme switching
   useEffect(() => {
-    localStorage.setItem('century_theme', theme);
+    localStorage.setItem('century_theme_v2', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
