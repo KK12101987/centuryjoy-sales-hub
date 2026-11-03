@@ -20,6 +20,7 @@
 - [x] Implemented Resilient Upload & Column Matcher Engine (`src/utils/columnMatcher.js`, `src/components/UploadModal.jsx`) handling arbitrary Excel/CSV schemas.
 - [x] Implemented full executive dashboard views: KPIs, Senior Management breakdown, Pod Captains drawer, L2 Approver SLA & Workloads, Daily Approval Surge timeline, and Searchable/Exportable Ticket Explorer.
 - [x] Verified build (`npm run build`) and launched local server on `http://localhost:5173/`.
+- [x] Resolved initial mount race condition in Rule 19 watermark integrity check (documented in `Bug.md`).
 - [ ] User review and local testing.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 
