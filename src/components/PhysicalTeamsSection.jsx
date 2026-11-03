@@ -112,10 +112,10 @@ export default function PhysicalTeamsSection() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                     isSelected ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}>
-                    {team.monogram}
+                    <Building2 className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-[#e31e24] transition-colors">

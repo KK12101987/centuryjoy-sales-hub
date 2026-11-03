@@ -6,6 +6,15 @@ const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
   const [tickets, setTickets] = useState(initialTickets);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('century_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [theme, setTheme] = useState(() => {
     // Default to Option 2 CenturyPly Enterprise Clean Light theme
     return localStorage.getItem('century_theme_v2') || 'light';
@@ -19,6 +28,38 @@ export function DataProvider({ children }) {
   const [selectedL2Assign, setSelectedL2Assign] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // Handle Authentication login / logout
+  const login = (user) => {
+    try {
+      sessionStorage.setItem('century_auth_user', JSON.stringify(user));
+    } catch (e) {}
+    setCurrentUser(user);
+    if (user.role === 'manager') {
+      setSelectedManager(user.managerKey);
+    } else {
+      setSelectedManager('all');
+    }
+    resetFilters();
+  };
+
+  const logout = () => {
+    try {
+      sessionStorage.removeItem('century_auth_user');
+    } catch (e) {}
+    setCurrentUser(null);
+    setSelectedManager('all');
+    resetFilters();
+  };
+
+  // Base tickets dynamically scoped to the logged in user
+  const scopedTickets = useMemo(() => {
+    if (!currentUser) return tickets;
+    if (currentUser.role === 'manager') {
+      return tickets.filter(t => t.manager === currentUser.managerKey);
+    }
+    return tickets;
+  }, [tickets, currentUser]);
 
   // Handle Theme switching
   useEffect(() => {
@@ -56,7 +97,7 @@ export function DataProvider({ children }) {
 
   // Memoized Filtered Dataset
   const filteredTickets = useMemo(() => {
-    return tickets.filter((t) => {
+    return scopedTickets.filter((t) => {
       // Stream Filter (Digital vs Physical)
       if (streamFilter === 'digital' && t.isPhysical) return false;
       if (streamFilter === 'physical' && !t.isPhysical) return false;
@@ -99,7 +140,7 @@ export function DataProvider({ children }) {
 
       return true;
     });
-  }, [tickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
+  }, [scopedTickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
 
   // Aggregate Key Metrics
   const metrics = useMemo(() => {
@@ -199,8 +240,12 @@ export function DataProvider({ children }) {
     <DataContext.Provider
       value={{
         tickets,
+        scopedTickets,
         filteredTickets,
         metrics,
+        currentUser,
+        login,
+        logout,
         theme,
         toggleTheme,
         streamFilter,

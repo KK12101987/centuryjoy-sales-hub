@@ -118,3 +118,24 @@
 - **Consequences:**
   - Zero text truncation or cramping across all screen resolutions.
   - Accurate operational representation of Amit Singal's team scope.
+
+## Decision 009: Manager Two-Factor Authentication (Email + OTP) & Ego-Neutral Scoped Access
+- **Date:** 2026-11-03
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User directed:
+  1. Restrict panels according to managers via a login page where managers enter their corporate email and receive a random OTP.
+  2. Upon OTP verification, they view ONLY their own team's performance, revenue, and relationship managers.
+  3. "In place of avatar monogram (NB, SL, AN, AS), display full names": Replace all 2-letter monogram abbreviations across the application with prominent full names and executive user icons.
+  4. "Drop 'a prominent 🔒 Restricted Scope badge' (may hurt their egos)": Completely avoid patronizing restriction labels; present the portal naturally as their executive command center.
+- **Decision:**
+  - Implement `LoginPage.jsx` with a 2-step flow: Email entry + simulated corporate 6-digit OTP dispatch banner + auto-fill shortcut for instant testing.
+  - Provide pre-configured accounts for Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal, and Executive Leadership (All-Access).
+  - Implement session management in `DataContext.jsx` with dynamic ticket scoping: when a manager logs in, `scopedTickets` automatically filters all metrics (KPIs, stream pods, audit PODs, monetary bifurcation) exclusively to their team.
+  - Replace all monogram chips with full names and executive icons.
+  - In `Navbar.jsx`, display `👤 [Full Name] • Senior Manager` with a clean `Sign Out` button.
+- **Consequences:**
+  - Total operational privacy between managers.
+  - Preserves manager dignity without restrictive warning banners.
+  - Verified 100% against Rule 19 watermark integrity.

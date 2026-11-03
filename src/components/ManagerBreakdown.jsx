@@ -1,6 +1,6 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, CheckCircle2, User } from 'lucide-react';
 
 function formatINR(val) {
   if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
@@ -8,23 +8,18 @@ function formatINR(val) {
   return `₹${Math.round(val).toLocaleString('en-IN')}`;
 }
 
-const MONOGRAMS = {
-  'Niladri Bhadra': 'NB',
-  'Surajit Laha': 'SL',
-  'Arijit Nath': 'AN',
-  'Amit Singal': 'AS'
-};
-
 export default function ManagerBreakdown() {
-  const { tickets, selectedManager, setSelectedManager } = useData();
+  const { tickets, selectedManager, setSelectedManager, currentUser } = useData();
 
   const managerStats = React.useMemo(() => {
-    const managers = ['Niladri Bhadra', 'Surajit Laha', 'Arijit Nath', 'Amit Singal'];
+    const managers = currentUser?.role === 'manager'
+      ? [currentUser.managerKey]
+      : ['Niladri Bhadra', 'Surajit Laha', 'Arijit Nath', 'Amit Singal'];
+
     const map = {};
     for (const m of managers) {
       map[m] = {
         name: m,
-        monogram: MONOGRAMS[m] || m.substring(0, 2).toUpperCase(),
         totalAmount: 0,
         totalCount: 0,
         digitalAmount: 0,
@@ -81,15 +76,19 @@ export default function ManagerBreakdown() {
               <Shield className="w-4 h-4" />
             </div>
             <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Senior Management Leadership • 4 Senior Managers
+              {currentUser?.role === 'manager'
+                ? `Senior Management Operations • ${currentUser.name}`
+                : 'Senior Management Leadership • 4 Senior Managers'}
             </h2>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Executive supervisors overseeing both <strong>Digital Pods (Captain-Led)</strong> and <strong>Physical Teams (Direct Supervision)</strong>.
+            {currentUser?.role === 'manager'
+              ? `Operational performance and revenue breakdown for ${currentUser.name}'s teams.`
+              : 'Executive supervisors overseeing both Digital Pods (Captain-Led) and Physical Teams (Direct Supervision).'}
           </p>
         </div>
 
-        {selectedManager !== 'all' && (
+        {selectedManager !== 'all' && currentUser?.role === 'admin' && (
           <button
             onClick={() => setSelectedManager('all')}
             className="text-xs text-[#e31e24] dark:text-red-400 font-bold hover:underline underline-offset-4 self-start sm:self-center"
@@ -99,8 +98,8 @@ export default function ManagerBreakdown() {
         )}
       </div>
 
-      {/* 4 Senior Manager Hero Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Senior Manager Hero Cards */}
+      <div className={`grid gap-4 ${managerStats.length === 1 ? 'grid-cols-1 max-w-xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
         {managerStats.map((mgr) => {
           const isSelected = selectedManager === mgr.name;
           const isAmitSingal = mgr.name === 'Amit Singal';
@@ -108,28 +107,28 @@ export default function ManagerBreakdown() {
           return (
             <div
               key={mgr.name}
-              onClick={() => setSelectedManager(isSelected ? 'all' : mgr.name)}
-              className={`p-5 rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between ${
+              onClick={() => currentUser?.role === 'admin' && setSelectedManager(isSelected ? 'all' : mgr.name)}
+              className={`p-5 rounded-2xl border transition-all relative group flex flex-col justify-between ${
+                currentUser?.role === 'admin' ? 'cursor-pointer' : ''
+              } ${
                 isSelected
                   ? 'bg-red-50/80 dark:bg-red-950/40 border-[#e31e24] ring-2 ring-red-500/20 shadow-md'
                   : 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm'
               }`}
             >
               <div>
-                {/* Header: Monogram Avatar & Manager Info */}
+                {/* Header: Full Name & Manager Info (No Monogram Avatars) */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs tracking-wider transition-colors shadow-2xs ${
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-2xs ${
                       isSelected
                         ? 'bg-[#e31e24] text-white'
-                        : isAmitSingal
-                        ? 'bg-slate-800 text-white dark:bg-slate-700'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 group-hover:bg-[#e31e24] group-hover:text-white'
+                        : 'bg-slate-900 text-white dark:bg-slate-800 group-hover:bg-[#e31e24]'
                     }`}>
-                      {mgr.monogram}
+                      <User className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-slate-900 dark:text-white group-hover:text-[#e31e24] dark:group-hover:text-red-400 transition-colors">
+                      <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#e31e24] dark:group-hover:text-red-400 transition-colors tracking-tight">
                         {mgr.name}
                       </h3>
                       <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -142,11 +141,13 @@ export default function ManagerBreakdown() {
                     </div>
                   </div>
 
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-                    isSelected ? 'bg-[#e31e24] text-white' : 'text-slate-400 group-hover:text-slate-600'
-                  }`}>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </div>
+                  {currentUser?.role === 'admin' && (
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                      isSelected ? 'bg-[#e31e24] text-white' : 'text-slate-400 group-hover:text-slate-600'
+                    }`}>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Primary Financial Metric */}

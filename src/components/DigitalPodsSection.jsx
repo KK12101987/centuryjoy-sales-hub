@@ -106,18 +106,17 @@ export default function DigitalPodsSection() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  {/* Monogram Badge */}
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                     isSelected ? 'bg-[#e31e24] text-white' : 'bg-red-100 text-[#e31e24] dark:bg-red-950/80 dark:text-red-300'
                   }`}>
-                    {pod.monogram}
+                    <Smartphone className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-[#e31e24] transition-colors">
                       {pod.name}
                     </h3>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                      Mgr: {pod.manager}
+                      Senior Manager: {pod.manager}
                     </div>
                   </div>
                 </div>

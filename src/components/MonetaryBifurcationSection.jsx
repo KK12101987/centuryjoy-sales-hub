@@ -13,7 +13,8 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  User
 } from 'lucide-react';
 
 function formatINR(val) {
@@ -525,8 +526,8 @@ export default function MonetaryBifurcationSection() {
                       </td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                            {initials}
+                          <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+                            <User className="w-3.5 h-3.5 text-[#e31e24]" />
                           </div>
                           <div>
                             <span className="font-bold text-slate-900 dark:text-white block">{rm.name}</span>
@@ -613,8 +614,8 @@ export default function MonetaryBifurcationSection() {
                           <button className="text-slate-400 hover:text-slate-600">
                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </button>
-                          <div className="w-7 h-7 rounded-lg bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-bold text-[11px] border border-slate-700">
-                            {initials}
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                            <User className="w-3.5 h-3.5 text-[#e31e24]" />
                           </div>
                           <div>
                             <span className="font-bold text-slate-900 dark:text-white block">{m.name}</span>

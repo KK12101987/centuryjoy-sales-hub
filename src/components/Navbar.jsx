@@ -10,7 +10,9 @@ import {
   ShieldCheck, 
   ShieldAlert,
   Building2,
-  Smartphone
+  Smartphone,
+  User,
+  LogOut
 } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload }) {
@@ -29,7 +31,9 @@ export default function Navbar({ onOpenUpload }) {
     resetFilters,
     selectedManager,
     selectedCaptain,
-    selectedL2Assign
+    selectedL2Assign,
+    currentUser,
+    logout
   } = useData();
 
   const isFiltered = 
@@ -139,11 +143,39 @@ export default function Navbar({ onOpenUpload }) {
             {/* Upload L2 Data Button */}
             <button
               onClick={onOpenUpload}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#e31e24] hover:bg-[#c4161c] active:bg-[#991b1b] rounded-lg shadow-sm shadow-red-600/30 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xs transition-all cursor-pointer"
             >
-              <UploadCloud className="w-4 h-4" />
+              <UploadCloud className="w-3.5 h-3.5 text-[#e31e24]" />
               <span>Upload L2 Data</span>
             </button>
+
+            {/* Authenticated Manager Profile (Full Name, No Monograms, No Restricted Badge) */}
+            {currentUser && (
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:border-l border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                  <div className="w-5 h-5 rounded-full bg-slate-900 dark:bg-slate-700 text-white flex items-center justify-center">
+                    <User className="w-3 h-3 text-[#e31e24]" />
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-1.5">
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
+                      {currentUser.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
+                      • {currentUser.designation}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sign Out Button */}
+                <button
+                  onClick={logout}
+                  title="Sign Out"
+                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-[#e31e24] dark:bg-slate-800 dark:hover:bg-red-950/40 dark:text-slate-300 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
           </div>
 

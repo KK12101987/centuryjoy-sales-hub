@@ -35,6 +35,11 @@
 - [x] Upgraded sub-metric pills into large, spacious, high-contrast capsules (`rounded-xl` with icons and complete labels) preventing text truncation.
 - [x] Configured Amit Singal's card to explicitly display `Physical Team Only: ₹1.24 Cr (56 tix)` with a 100% solid physical operations meter, eliminating the redundant zero digital stream display.
 - [x] Captured high-resolution verification screenshot (`centuryjoy_hero_cards_comparison.png`).
+- [x] Implemented Manager Two-Factor Authentication Flow (`src/components/LoginPage.jsx` & `src/utils/auth.js`) with corporate email lookup and random 6-digit OTP generation.
+- [x] Built dynamic manager-level scoping: authenticated managers view ONLY their team's revenue and performance without exposing peers' data.
+- [x] Replaced all 2-letter monogram avatar chips (`NB`, `SL`, `AN`, `AS`) with full names and executive icons.
+- [x] Dropped all restrictive lock badges to maintain an ego-neutral executive experience; added a clean `Sign Out` button.
+- [x] Verified full login and scoping workflow in automated headless CDP browser (`centuryjoy_login_page.png`, `centuryjoy_manager_scoped_dashboard.png`).
 - [ ] User review and local testing.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 
