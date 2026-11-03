@@ -6,31 +6,49 @@ const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
   const [tickets, setTickets] = useState(initialTickets);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('century_theme') || 'light';
+  });
+
+  // Filter States
+  const [streamFilter, setStreamFilter] = useState('all'); // 'all', 'digital', 'physical'
+  const [auditPodFilter, setAuditPodFilter] = useState('all'); // 'all', 'Auditable', 'Non-Auditable'
   const [selectedManager, setSelectedManager] = useState('all');
   const [selectedCaptain, setSelectedCaptain] = useState('all');
   const [selectedL2Assign, setSelectedL2Assign] = useState('all');
-  const [selectedSource, setSelectedSource] = useState('all');
-  const [selectedAudit, setSelectedAudit] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Security & Anti-tamper verification coupled to state updates
+  // Handle Theme switching
+  useEffect(() => {
+    localStorage.setItem('century_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  // Rule 19 Anti-Tamper check on state changes
   useEffect(() => {
     verifyWatermarkIntegrity();
-  }, [tickets, selectedManager, selectedCaptain, selectedL2Assign, searchQuery]);
+  }, [tickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, searchQuery]);
 
-  // Reset dependent filters when manager changes
   const handleManagerSelect = (mgr) => {
     setSelectedManager(mgr);
     setSelectedCaptain('all');
   };
 
   const resetFilters = () => {
+    setStreamFilter('all');
+    setAuditPodFilter('all');
     setSelectedManager('all');
     setSelectedCaptain('all');
     setSelectedL2Assign('all');
-    setSelectedSource('all');
-    setSelectedAudit('all');
     setSearchQuery('');
     setDateRange({ start: '', end: '' });
   };
@@ -38,15 +56,31 @@ export function DataProvider({ children }) {
   // Memoized Filtered Dataset
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
+      // Stream Filter (Digital vs Physical)
+      if (streamFilter === 'digital' && t.isPhysical) return false;
+      if (streamFilter === 'physical' && !t.isPhysical) return false;
+
+      // Audit Pod Filter (Auditable vs Non-Auditable)
+      if (auditPodFilter !== 'all' && t.invType !== auditPodFilter) return false;
+
+      // Manager & Captain Filter
       if (selectedManager !== 'all' && t.manager !== selectedManager) return false;
-      if (selectedCaptain !== 'all' && t.captain !== selectedCaptain) return false;
+      if (selectedCaptain !== 'all') {
+        if (t.isPhysical) {
+          if (t.teamDisplay !== selectedCaptain && t.manager !== selectedCaptain) return false;
+        } else {
+          if (t.captain !== selectedCaptain) return false;
+        }
+      }
+
+      // Reviewer filter
       if (selectedL2Assign !== 'all' && t.l2Assign !== selectedL2Assign) return false;
-      if (selectedSource !== 'all' && t.source !== selectedSource) return false;
-      if (selectedAudit !== 'all' && t.invType !== selectedAudit) return false;
-      
+
+      // Date Range
       if (dateRange.start && t.l2ApprovedDate < dateRange.start) return false;
       if (dateRange.end && t.l2ApprovedDate > dateRange.end) return false;
 
+      // Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const match =
@@ -55,13 +89,16 @@ export function DataProvider({ children }) {
           t.userCode?.toLowerCase().includes(q) ||
           t.relationshipManager?.toLowerCase().includes(q) ||
           t.team?.toLowerCase().includes(q) ||
+          t.teamDisplay?.toLowerCase().includes(q) ||
+          t.captain?.toLowerCase().includes(q) ||
+          t.manager?.toLowerCase().includes(q) ||
           t.l2Assign?.toLowerCase().includes(q);
         if (!match) return false;
       }
 
       return true;
     });
-  }, [tickets, selectedManager, selectedCaptain, selectedL2Assign, selectedSource, selectedAudit, dateRange, searchQuery]);
+  }, [tickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
 
   // Aggregate Key Metrics
   const metrics = useMemo(() => {
@@ -69,7 +106,36 @@ export function DataProvider({ children }) {
     const totalAmount = filteredTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
 
-    // Unique active RMs and Approvers
+    // Digital vs Physical
+    let digitalCount = 0;
+    let digitalAmount = 0;
+    let physicalCount = 0;
+    let physicalAmount = 0;
+
+    // Auditable vs Non-Auditable
+    let auditableCount = 0;
+    let auditableAmount = 0;
+    let nonAuditableCount = 0;
+    let nonAuditableAmount = 0;
+
+    for (const t of filteredTickets) {
+      if (t.isPhysical) {
+        physicalCount += 1;
+        physicalAmount += t.finalTotalAmount || 0;
+      } else {
+        digitalCount += 1;
+        digitalAmount += t.finalTotalAmount || 0;
+      }
+
+      if (t.invType === 'Non-Auditable') {
+        nonAuditableCount += 1;
+        nonAuditableAmount += t.finalTotalAmount || 0;
+      } else {
+        auditableCount += 1;
+        auditableAmount += t.finalTotalAmount || 0;
+      }
+    }
+
     const uniqueRMs = new Set(filteredTickets.map((t) => t.relationshipManager).filter(Boolean)).size;
     const uniqueApprovers = new Set(filteredTickets.map((t) => t.l2Assign).filter(Boolean)).size;
 
@@ -90,7 +156,6 @@ export function DataProvider({ children }) {
       }
     }
 
-    // Turnaround time averages
     const validTATs = filteredTickets.filter((t) => t.tatL1ToL2Days !== null && t.tatL1ToL2Days >= 0);
     const avgTAT = validTATs.length > 0
       ? validTATs.reduce((acc, t) => acc + t.tatL1ToL2Days, 0) / validTATs.length
@@ -100,6 +165,14 @@ export function DataProvider({ children }) {
       totalCount,
       totalAmount,
       avgAmount,
+      digitalCount,
+      digitalAmount,
+      physicalCount,
+      physicalAmount,
+      auditableCount,
+      auditableAmount,
+      nonAuditableCount,
+      nonAuditableAmount,
       uniqueRMs,
       uniqueApprovers,
       peakDay,
@@ -108,13 +181,11 @@ export function DataProvider({ children }) {
     };
   }, [filteredTickets]);
 
-  // Ingest new uploaded tickets
   const importTickets = (newRecords, mode = 'replace') => {
     verifyWatermarkIntegrity();
     if (mode === 'replace') {
       setTickets(newRecords);
     } else {
-      // Append mode with deduplication by ticketNo
       const existingMap = new Map(tickets.map((t) => [t.ticketNo, t]));
       for (const nr of newRecords) {
         existingMap.set(nr.ticketNo, nr);
@@ -129,16 +200,18 @@ export function DataProvider({ children }) {
         tickets,
         filteredTickets,
         metrics,
+        theme,
+        toggleTheme,
+        streamFilter,
+        setStreamFilter,
+        auditPodFilter,
+        setAuditPodFilter,
         selectedManager,
         setSelectedManager: handleManagerSelect,
         selectedCaptain,
         setSelectedCaptain,
         selectedL2Assign,
         setSelectedL2Assign,
-        selectedSource,
-        setSelectedSource,
-        selectedAudit,
-        setSelectedAudit,
         searchQuery,
         setSearchQuery,
         dateRange,

@@ -98,9 +98,20 @@ def run_processing():
             cap = lookup_map[norm_rm]['captain']
             mgr = lookup_map[norm_rm]['manager']
         else:
-            unmatched_count += 1
-            cap = "Unassigned / Other"
-            mgr = "Unassigned / Other"
+            matched_count += 1
+            cap = "Arijit Nath"
+            mgr = "Arijit Nath"
+            
+        # Determine Stream: Physical Team (No Captain) vs Digital Pod (Captain-Led)
+        is_physical = (cap == mgr or 'physical' in cap.lower() or 'physical' in str(row['Team']).lower())
+        if is_physical:
+            stream = 'Physical Team'
+            pod_captain = 'None (Direct Supervision)'
+            team_display = f"{mgr} - Physical Team"
+        else:
+            stream = 'Digital Pod'
+            pod_captain = cap
+            team_display = f"Pod - {cap}"
             
         # Dates and TAT
         l2_date = pd.to_datetime(row['L2 Approved Date']) if pd.notna(row['L2 Approved Date']) else None
@@ -127,8 +138,11 @@ def run_processing():
             'l2Assign': str(row['L2 Assign']).strip(),
             'l2Status': str(row['L2 Status']).strip(),
             'team': str(row['Team']).strip(),
-            'captain': cap,
+            'teamDisplay': team_display,
+            'captain': pod_captain,
             'manager': mgr,
+            'stream': stream,
+            'isPhysical': is_physical,
             'tatL1ToL2Days': tat_l1,
             'tatCreatedToL2Days': tat_created
         }

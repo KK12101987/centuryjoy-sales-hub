@@ -1,107 +1,234 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
 import { 
-  FileSpreadsheet, 
   RotateCcw, 
   UploadCloud, 
   Search, 
-  Filter, 
-  ShieldCheck,
-  Calendar
+  Sun, 
+  Moon, 
+  Layers, 
+  ShieldCheck, 
+  ShieldAlert,
+  Building2,
+  Smartphone
 } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload }) {
   const { 
-    tickets, 
     filteredTickets, 
+    tickets,
     metrics, 
+    theme, 
+    toggleTheme,
+    streamFilter,
+    setStreamFilter,
+    auditPodFilter,
+    setAuditPodFilter,
     searchQuery, 
     setSearchQuery, 
     resetFilters,
     selectedManager,
     selectedCaptain,
-    selectedL2Assign,
-    selectedSource,
-    selectedAudit
+    selectedL2Assign
   } = useData();
 
   const isFiltered = 
+    streamFilter !== 'all' ||
+    auditPodFilter !== 'all' ||
     selectedManager !== 'all' || 
     selectedCaptain !== 'all' || 
     selectedL2Assign !== 'all' || 
-    selectedSource !== 'all' || 
-    selectedAudit !== 'all' || 
     Boolean(searchQuery);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        
-        {/* Brand & Title */}
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-bold text-lg ring-1 ring-white/20">
-            L2
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                CenturyJoy L2 Operations Hub
-              </h1>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
-                Oct 2026 Live
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Executive Analytics, SLA Tracking & Revenue Reconciliation
-            </p>
-          </div>
-        </div>
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 shadow-sm transition-colors duration-200">
+      
+      {/* CenturyPly Red Top Accent Line */}
+      <div className="h-1 bg-gradient-to-r from-[#e31e24] via-[#c4161c] to-[#991b1b] w-full"></div>
 
-        {/* Global Search & Action Controls */}
-        <div className="flex items-center flex-wrap gap-2.5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5">
           
-          {/* Search Box */}
-          <div className="relative min-w-[240px] flex-1 sm:flex-initial">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search Ticket, Architect, RM..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-700/80 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold"
+          {/* Brand & Typographic Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#e31e24] text-white flex items-center justify-center font-black text-lg tracking-wider shadow-md shadow-red-600/20">
+                L2
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    L2 Operations & Revenue Hub
+                  </h1>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900/60">
+                    October 2026 Live
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  CenturyJoy Executive Governance & Audit Tracking
+                </p>
+              </div>
+            </div>
+
+            {/* Mobile Theme Toggle */}
+            <div className="lg:hidden">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                aria-label="Toggle theme"
               >
-                ×
+                {theme === 'light' ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Action Controls & Navigation */}
+          <div className="flex items-center flex-wrap gap-2.5">
+            
+            {/* Global Search Bar */}
+            <div className="relative min-w-[210px] flex-1 sm:flex-initial">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search ticket, RM, architect..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-[#e31e24] transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs font-bold"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {/* Reset Filters */}
+            {isFiltered && (
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
+                title="Reset all filters"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
               </button>
             )}
+
+            {/* Light / Dark Mode Toggle (Desktop) */}
+            <button
+              onClick={toggleTheme}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              title={`Switch to ${theme === 'light' ? 'Dark Mode' : 'Light Mode'}`}
+            >
+              {theme === 'light' ? (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-slate-700" />
+                  <span>Dark Mode</span>
+                </>
+              ) : (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Light Mode</span>
+                </>
+              )}
+            </button>
+
+            {/* Upload L2 Data Button */}
+            <button
+              onClick={onOpenUpload}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#e31e24] hover:bg-[#c4161c] active:bg-[#991b1b] rounded-lg shadow-sm shadow-red-600/30 transition-all cursor-pointer"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload L2 Data</span>
+            </button>
+
           </div>
 
-          {/* Reset Filters Button */}
-          {isFiltered && (
-            <button
-              onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors"
-              title="Reset all active filters"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filters</span>
-            </button>
-          )}
-
-          {/* Upload Data Button */}
-          <button
-            onClick={onOpenUpload}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/30 transition-all border border-indigo-400/20 cursor-pointer"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>Upload L2 Data</span>
-          </button>
         </div>
+
+        {/* Secondary Stream & Audit Pod Navigation Bar */}
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          
+          {/* Stream Segmented Controls */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 w-fit">
+            <button
+              onClick={() => setStreamFilter('all')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                streamFilter === 'all'
+                  ? 'bg-white dark:bg-slate-800 text-[#e31e24] dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              All Operations ({tickets.length.toLocaleString()})
+            </button>
+            <button
+              onClick={() => setStreamFilter('digital')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                streamFilter === 'digital'
+                  ? 'bg-[#e31e24] text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Smartphone className="w-3 h-3" />
+              <span>Digital Stream • Captains (1,834)</span>
+            </button>
+            <button
+              onClick={() => setStreamFilter('physical')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                streamFilter === 'physical'
+                  ? 'bg-[#e31e24] text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Building2 className="w-3 h-3" />
+              <span>Physical Stream • Direct (854)</span>
+            </button>
+          </div>
+
+          {/* Audit Pod Quick Pills */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Audit Pods:
+            </span>
+            <button
+              onClick={() => setAuditPodFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                auditPodFilter === 'all'
+                  ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+              }`}
+            >
+              All ({filteredTickets.length.toLocaleString()})
+            </button>
+            <button
+              onClick={() => setAuditPodFilter(auditPodFilter === 'Auditable' ? 'all' : 'Auditable')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                auditPodFilter === 'Auditable'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Auditable Pod ({metrics.auditableCount})</span>
+            </button>
+            <button
+              onClick={() => setAuditPodFilter(auditPodFilter === 'Non-Auditable' ? 'all' : 'Non-Auditable')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                auditPodFilter === 'Non-Auditable'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100'
+              }`}
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Non-Auditable Pod ({metrics.nonAuditableCount})</span>
+            </button>
+          </div>
+
+        </div>
+
       </div>
     </header>
   );

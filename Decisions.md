@@ -59,3 +59,22 @@
   - Achieved a **100.00% complete match (2,688 / 2,688 tickets)**.
   - Completely eliminated the "Unassigned / Other" card from the executive dashboard.
   - Arijit Nath's verified totals updated to 634 tickets | ₹11.03 Cr (27.2% revenue share).
+
+## Decision 006: Dual-Stream Hierarchy, Dedicated Audit PODs & 1-Click Light/Dark Mode
+- **Date:** 2026-11-03
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User provided crucial business operational clarity:
+  1. The 4 individuals (Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal) are Senior Managers only, NOT captains.
+  2. Each manager has a Physical Team (NO captain, direct manager supervision, labeled `<Manager> - Physical Team`) and Digital Teams (led by dedicated Pod Captains).
+  3. UI must follow Option 2 (CenturyPly branding with Century Red `#E31E24` accents, monogram initial chips, zero photos, no external logo).
+  4. Provide dedicated PODs for Auditable (1,925 tickets | ₹29.72 Cr) vs Non-Auditable (763 tickets | ₹10.78 Cr) invoices.
+  5. Provide a 1-click Light/Dark Mode toggle in the navbar.
+- **Decision:**
+  - Implement full dual-stream architecture with segmented filters (`All Operations`, `Digital Stream`, `Physical Stream`).
+  - Implement dedicated Auditable vs Non-Auditable Pod widgets with 1-click filtering.
+  - Implement `tailwind.config.js` with `darkMode: 'class'` and add interactive Sun/Moon theme toggle in `Navbar.jsx`.
+- **Consequences:**
+  - High-impact institutional corporate UI with instant stream segregation and compliance visibility.
+  - 100% verified against Rule 19 watermark integrity.
