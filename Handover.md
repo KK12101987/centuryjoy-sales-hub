@@ -44,8 +44,10 @@
 - [x] Refined role designation from executive titles to `Developer (Full System Access)` in `src/utils/auth.js` and `src/components/LoginPage.jsx`.
 - [x] Enhanced Sign Out control in top navigation with explicit text label and icon.
 - [x] Verified clean production build (`npm run build`, exit code 0) and Rule 19 Watermark anti-tamper compliance.
-- [ ] User review and local testing on `http://localhost:5173/`.
-- [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
+- [x] Connected GitHub remote `https://github.com/KK12101987/centuryjoy-sales-hub` and synced all commits.
+- [x] Deployed live to Vercel at `https://centuryjoy-sales-hub.vercel.app/`.
+- [x] Verified live deployment in automated headless browser (login, Kushal Kar Developer profile, ₹40.50 Cr dataset, all 4 senior managers, full names, 100% physical Amit Singal).
+- [ ] User review and operational use.
 
 ## File Manifest & Inventory
 1. **`L2 data_Oct'26.xlsx`** (Primary transactional data):
