@@ -190,3 +190,22 @@
   - Complete separation between back-office audit governance and sales manager operations.
   - Managers see zero clutter and zero irrelevant reviewer quotas.
   - Fully verified via automated headless CDP testing.
+
+## Decision 013: Scoped Pod Captains, Streamlined Audit Subtitles, and Isolated Physical Teams
+- **Date:** 2026-11-04
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User directed:
+  1. In "Digital Teams • Captain-Led Pods", show ONLY captains related to the manager logging in.
+  2. In "Auditable Invoices POD", remove "Full Compliance Verification Verified".
+  3. In "Non-Auditable Invoices POD", remove "Standard Procedural Sign-Off".
+  4. In "Physical Teams • Direct Manager Supervision", show ONLY the data of the manager logging in.
+- **Decision:**
+  - In `DigitalPodsSection.jsx`, consume `scopedTickets` instead of raw `tickets`. Dynamically render pod badge count based on `digitalPods.length`. Return `null` when a manager has 0 digital pods (e.g. Amit Singal).
+  - In `AuditPodsSection.jsx`, remove the subtitle text under "Auditable Invoices POD" and "Non-Auditable Invoices POD". Consume `scopedTickets` and gate individual manager breakdowns to `currentUser?.role === 'admin'`.
+  - In `PhysicalTeamsSection.jsx`, restrict `managers` list to `[currentUser.managerKey]` for managers and consume `scopedTickets`. Show responsive layout when only 1 physical team is present.
+- **Consequences:**
+  - Flawless data isolation: managers only see their own captains and their own physical teams.
+  - Cleaner, decluttered invoice audit cards.
+  - Retains full 360-degree company view for developer/admin accounts.

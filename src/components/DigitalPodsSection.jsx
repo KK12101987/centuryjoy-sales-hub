@@ -9,14 +9,13 @@ function formatINR(val) {
 }
 
 export default function DigitalPodsSection() {
-  const { tickets, selectedManager, selectedCaptain, setSelectedCaptain } = useData();
+  const { scopedTickets, selectedCaptain, setSelectedCaptain, currentUser } = useData();
   const [expandedPod, setExpandedPod] = useState(null);
 
   const digitalPods = React.useMemo(() => {
     const map = {};
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       if (t.isPhysical) continue; // Only Digital Pods
-      if (selectedManager !== 'all' && t.manager !== selectedManager) continue;
 
       const cap = t.captain;
       if (!map[cap]) {
@@ -54,7 +53,7 @@ export default function DigitalPodsSection() {
         monogram: p.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [tickets, selectedManager]);
+  }, [scopedTickets]);
 
   const toggleExpand = (capName, e) => {
     e.stopPropagation();
@@ -74,7 +73,7 @@ export default function DigitalPodsSection() {
               Digital Teams • Captain-Led Pods
             </h2>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#e31e24] dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900/60">
-              7 Dedicated Pod Captains
+              {digitalPods.length} Dedicated Pod {digitalPods.length === 1 ? 'Captain' : 'Captains'}
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -91,7 +90,7 @@ export default function DigitalPodsSection() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <div className={`grid gap-3.5 ${digitalPods.length <= 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
         {digitalPods.map((pod) => {
           const isSelected = selectedCaptain === pod.name;
           const isExpanded = expandedPod === pod.name;

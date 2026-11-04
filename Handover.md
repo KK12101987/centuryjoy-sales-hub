@@ -49,6 +49,9 @@
 - [x] Verified live deployment in automated headless browser (login, Kushal Kar Developer profile, ₹40.50 Cr dataset, all 4 senior managers, full names, 100% physical Amit Singal).
 - [x] Restrict Manager Visibility: Completely hide "L2 Reviewer Operations & SLA Workload" and "October 2026 Daily L2 Approval Velocity & Cadence" for all Senior Managers, while keeping them visible for Developer / Admin.
 - [x] Tailored Manager Monetary Bifurcation: Scoped RM tabs and dynamic stream navigation based on logged-in manager's tickets.
+- [x] Scoped Digital Pod Captains: In "Digital Teams • Captain-Led Pods", only display captains belonging to the logged-in manager.
+- [x] Streamlined Invoice Audit PODs: Removed "Full Compliance Verification Verified" and "Standard Procedural Sign-Off" subtitles.
+- [x] Isolated Physical Teams: In "Physical Teams • Direct Manager Supervision", only display the physical team belonging to the logged-in manager.
 - [ ] User review and operational use.
 
 ## File Manifest & Inventory

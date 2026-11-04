@@ -9,11 +9,14 @@ function formatINR(val) {
 }
 
 export default function PhysicalTeamsSection() {
-  const { tickets, selectedManager, selectedCaptain, setSelectedCaptain } = useData();
+  const { scopedTickets, selectedCaptain, setSelectedCaptain, currentUser } = useData();
   const [expandedTeam, setExpandedTeam] = useState(null);
 
   const physicalTeams = React.useMemo(() => {
-    const managers = ['Niladri Bhadra', 'Surajit Laha', 'Arijit Nath', 'Amit Singal'];
+    const managers = currentUser?.role === 'manager'
+      ? [currentUser.managerKey]
+      : ['Niladri Bhadra', 'Surajit Laha', 'Arijit Nath', 'Amit Singal'];
+
     const map = {};
 
     for (const m of managers) {
@@ -28,9 +31,8 @@ export default function PhysicalTeamsSection() {
       };
     }
 
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       if (!t.isPhysical) continue; // Only Physical Teams
-      if (selectedManager !== 'all' && t.manager !== selectedManager) continue;
 
       const m = t.manager;
       if (!map[m]) continue;
@@ -60,7 +62,7 @@ export default function PhysicalTeamsSection() {
         monogram: pt.manager.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [tickets, selectedManager]);
+  }, [scopedTickets, currentUser]);
 
   const toggleExpand = (teamName, e) => {
     e.stopPropagation();
@@ -78,7 +80,7 @@ export default function PhysicalTeamsSection() {
               Physical Teams • Direct Manager Supervision
             </h2>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
-              NO CAPTAINS • DIRECT
+              {physicalTeams.length} Direct Field {physicalTeams.length === 1 ? 'Team' : 'Teams'} • NO CAPTAINS
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -95,7 +97,7 @@ export default function PhysicalTeamsSection() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className={`grid gap-3.5 ${physicalTeams.length === 1 ? 'grid-cols-1 max-w-xl' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
         {physicalTeams.map((team) => {
           const isSelected = selectedCaptain === team.name;
           const isExpanded = expandedTeam === team.name;

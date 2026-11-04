@@ -9,13 +9,13 @@ function formatINR(val) {
 }
 
 export default function AuditPodsSection() {
-  const { tickets, auditPodFilter, setAuditPodFilter } = useData();
+  const { scopedTickets, auditPodFilter, setAuditPodFilter, currentUser } = useData();
 
   const auditStats = React.useMemo(() => {
     let auditable = { count: 0, amount: 0, digitalCount: 0, physicalCount: 0, byManager: {} };
     let nonAuditable = { count: 0, amount: 0, digitalCount: 0, physicalCount: 0, byManager: {} };
 
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       const isAud = t.invType !== 'Non-Auditable';
       const target = isAud ? auditable : nonAuditable;
 
@@ -49,7 +49,7 @@ export default function AuditPodsSection() {
         volumeShare: (nonAuditable.count / totalCount) * 100
       }
     };
-  }, [tickets]);
+  }, [scopedTickets]);
 
   return (
     <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
@@ -93,9 +93,6 @@ export default function AuditPodsSection() {
                 <h3 className="text-sm font-black text-slate-900 dark:text-white">
                   Auditable Invoices POD
                 </h3>
-                <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                  Full Compliance Verification Verified
-                </span>
               </div>
             </div>
             <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -127,15 +124,17 @@ export default function AuditPodsSection() {
             <span>Physical Teams: <strong>{auditStats.auditable.physicalCount}</strong> tickets</span>
           </div>
 
-          {/* Manager Breakdown inside Auditable */}
-          <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
-            {Object.entries(auditStats.auditable.byManager).map(([m, data]) => (
-              <div key={m} className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-                <span className="font-semibold text-slate-800 dark:text-slate-300">{m}:</span>
-                <span>{formatINR(data.amount)} ({data.count} tickets)</span>
-              </div>
-            ))}
-          </div>
+          {/* Manager Breakdown inside Auditable - Admin / Developer Only */}
+          {currentUser?.role === 'admin' && (
+            <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
+              {Object.entries(auditStats.auditable.byManager).map(([m, data]) => (
+                <div key={m} className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold text-slate-800 dark:text-slate-300">{m}:</span>
+                  <span>{formatINR(data.amount)} ({data.count} tickets)</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* POD 2: Non-Auditable POD */}
@@ -156,9 +155,6 @@ export default function AuditPodsSection() {
                 <h3 className="text-sm font-black text-slate-900 dark:text-white">
                   Non-Auditable Invoices POD
                 </h3>
-                <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                  Standard Procedural Sign-Off
-                </span>
               </div>
             </div>
             <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -190,15 +186,17 @@ export default function AuditPodsSection() {
             <span>Physical Teams: <strong>{auditStats.nonAuditable.physicalCount}</strong> tickets</span>
           </div>
 
-          {/* Manager Breakdown inside Non-Auditable */}
-          <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
-            {Object.entries(auditStats.nonAuditable.byManager).map(([m, data]) => (
-              <div key={m} className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-                <span className="font-semibold text-slate-800 dark:text-slate-300">{m}:</span>
-                <span>{formatINR(data.amount)} ({data.count} tickets)</span>
-              </div>
-            ))}
-          </div>
+          {/* Manager Breakdown inside Non-Auditable - Admin / Developer Only */}
+          {currentUser?.role === 'admin' && (
+            <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
+              {Object.entries(auditStats.nonAuditable.byManager).map(([m, data]) => (
+                <div key={m} className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold text-slate-800 dark:text-slate-300">{m}:</span>
+                  <span>{formatINR(data.amount)} ({data.count} tickets)</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>
