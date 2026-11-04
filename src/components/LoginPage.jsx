@@ -66,6 +66,24 @@ export default function LoginPage() {
     setResendTimer(60);
     setShowToast(true);
 
+    // Asynchronously dispatch OTP to real email via Vercel serverless API
+    try {
+      fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, otp: newOtp, name: user.name })
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.delivered) {
+          console.log(`[Email Dispatch] OTP delivered to ${user.email}`);
+        }
+      })
+      .catch(() => {
+        // Dev fallback if backend route is offline
+      });
+    } catch (err) {}
+
     // Auto focus first OTP input
     setTimeout(() => {
       if (digitRefs[0].current) {
