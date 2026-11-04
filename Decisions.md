@@ -139,3 +139,20 @@
   - Total operational privacy between managers.
   - Preserves manager dignity without restrictive warning banners.
   - Verified 100% against Rule 19 watermark integrity.
+
+## Decision 010: Kushal Kar Developer Profile & Full System Access
+- **Date:** 2026-11-04
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User clarified identity and authentication requirements:
+  - Email `kushal.centuryply@gmail.com` must be authorized with full system access (`all` managers, full ₹40.50 Cr dataset).
+  - Designation is "Developer" (not "Executive Director" or "Operations Head").
+- **Decision:**
+  - Map `kushal.centuryply@gmail.com` in `src/utils/auth.js` to `name: 'Kushal Kar'`, `role: 'admin'`, `managerKey: 'all'`, `designation: 'Developer (Full System Access)'`.
+  - Add flexible keyword matching in `findUserByEmail` for email variants containing `kushal`.
+  - Display Kushal Kar's profile card in `LoginPage.jsx` under "Quick Access Profiles" with title `Developer (Full System Access)` for 1-click OTP testing.
+  - Display `Kushal Kar • Developer (Full System Access)` in the top navigation bar alongside a high-visibility `Sign Out` button.
+- **Consequences:**
+  - Accurate identity attribution without incorrect executive designations.
+  - Seamless OTP login for developer testing and maintenance across all 4 manager operations.

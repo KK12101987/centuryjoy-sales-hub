@@ -40,7 +40,11 @@
 - [x] Replaced all 2-letter monogram avatar chips (`NB`, `SL`, `AN`, `AS`) with full names and executive icons.
 - [x] Dropped all restrictive lock badges to maintain an ego-neutral executive experience; added a clean `Sign Out` button.
 - [x] Verified full login and scoping workflow in automated headless CDP browser (`centuryjoy_login_page.png`, `centuryjoy_manager_scoped_dashboard.png`).
-- [ ] User review and local testing.
+- [x] Configured Kushal Kar (`kushal.centuryply@gmail.com`) as Lead Developer with full system access (`all` managers, ₹40.50 Cr dataset).
+- [x] Refined role designation from executive titles to `Developer (Full System Access)` in `src/utils/auth.js` and `src/components/LoginPage.jsx`.
+- [x] Enhanced Sign Out control in top navigation with explicit text label and icon.
+- [x] Verified clean production build (`npm run build`, exit code 0) and Rule 19 Watermark anti-tamper compliance.
+- [ ] User review and local testing on `http://localhost:5173/`.
 - [ ] Deploy live for free global access (Vercel / Netlify / GitHub Pages).
 
 ## File Manifest & Inventory
