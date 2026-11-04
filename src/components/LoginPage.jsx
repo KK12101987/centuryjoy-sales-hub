@@ -49,11 +49,12 @@ export default function LoginPage() {
   }, [step, resendTimer]);
 
   // Handle Email Submission
-  const handleRequestOTP = (selectedEmail = email) => {
+  const handleRequestOTP = (selectedEmail) => {
+    const emailToUse = (typeof selectedEmail === 'string' && selectedEmail.trim()) ? selectedEmail : email;
     setErrorMsg('');
-    const user = findUserByEmail(selectedEmail);
+    const user = findUserByEmail(emailToUse);
     if (!user) {
-      setErrorMsg('Email not recognized. Please use an authorized Senior Manager email or click a quick link below.');
+      setErrorMsg('Email not recognized. Please use an authorized email or select a profile below.');
       return;
     }
 
@@ -204,7 +205,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleRequestOTP()}
-                    placeholder="e.g. niladri.bhadra@centuryply.com"
+                    placeholder="e.g. kushal.centuryply@gmail.com"
                     className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
                   />
                 </div>
@@ -218,10 +219,10 @@ export default function LoginPage() {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              {/* 1-Click Quick Select for Senior Managers */}
+              {/* 1-Click Quick Select for Authorized Personnel */}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider text-center">
-                  Quick Access by Senior Manager:
+                  Quick Access Profiles:
                 </div>
                 <div className="space-y-1.5">
                   {AUTHORIZED_USERS.map((u) => (

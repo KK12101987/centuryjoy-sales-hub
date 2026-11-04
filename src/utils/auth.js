@@ -5,6 +5,14 @@
 
 export const AUTHORIZED_USERS = [
   {
+    name: 'Kushal Kar',
+    email: 'kushal.centuryply@gmail.com',
+    role: 'admin',
+    managerKey: 'all',
+    designation: 'Developer (Full System Access)',
+    isPhysicalOnly: false
+  },
+  {
     name: 'Niladri Bhadra',
     email: 'niladri.bhadra@centuryply.com',
     role: 'manager',
@@ -54,19 +62,43 @@ export function findUserByEmail(email) {
   const exact = AUTHORIZED_USERS.find(u => u.email.toLowerCase() === cleanEmail);
   if (exact) return exact;
 
-  // Prefix match (e.g., 'niladri' or 'surajit' or 'amit')
+  // Check if Kushal Kar (author / executive master)
+  if (cleanEmail.includes('kushal')) {
+    return AUTHORIZED_USERS.find(u => u.email === 'kushal.centuryply@gmail.com');
+  }
+
+  // Check if Niladri Bhadra
+  if (cleanEmail.includes('niladri')) {
+    return AUTHORIZED_USERS.find(u => u.managerKey === 'Niladri Bhadra');
+  }
+
+  // Check if Surajit Laha
+  if (cleanEmail.includes('surajit')) {
+    return AUTHORIZED_USERS.find(u => u.managerKey === 'Surajit Laha');
+  }
+
+  // Check if Arijit Nath
+  if (cleanEmail.includes('arijit')) {
+    return AUTHORIZED_USERS.find(u => u.managerKey === 'Arijit Nath');
+  }
+
+  // Check if Amit Singal
+  if (cleanEmail.includes('amit')) {
+    return AUTHORIZED_USERS.find(u => u.managerKey === 'Amit Singal');
+  }
+
+  // Check if Admin / Executive
+  if (cleanEmail.includes('admin') || cleanEmail.includes('exec') || cleanEmail.includes('director')) {
+    return AUTHORIZED_USERS.find(u => u.role === 'admin');
+  }
+
+  // Prefix match fallback
   const prefix = cleanEmail.split('@')[0];
   const byPrefix = AUTHORIZED_USERS.find(u => {
     const uPrefix = u.email.split('@')[0].toLowerCase();
     return uPrefix === prefix || uPrefix.includes(prefix) || prefix.includes(uPrefix.split('.')[0]);
   });
   if (byPrefix) return byPrefix;
-
-  // Name match fallback
-  const byName = AUTHORIZED_USERS.find(u => 
-    u.name.toLowerCase().includes(cleanEmail) || cleanEmail.includes(u.name.toLowerCase().split(' ')[0])
-  );
-  if (byName) return byName;
 
   return null;
 }

@@ -170,9 +170,10 @@ export default function Navbar({ onOpenUpload }) {
                 <button
                   onClick={logout}
                   title="Sign Out"
-                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-[#e31e24] dark:bg-slate-800 dark:hover:bg-red-950/40 dark:text-slate-300 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-[#e31e24] dark:bg-slate-800 dark:hover:bg-red-950/40 dark:text-slate-300 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs text-xs font-bold"
                 >
                   <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
                 </button>
               </div>
             )}
