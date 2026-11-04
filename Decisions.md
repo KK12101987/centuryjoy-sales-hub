@@ -156,3 +156,18 @@
 - **Consequences:**
   - Accurate identity attribution without incorrect executive designations.
   - Seamless OTP login for developer testing and maintenance across all 4 manager operations.
+
+## Decision 011: Vercel Deployment Configuration & Serverless Email Dispatch
+- **Date:** 2026-11-04
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User requested deployment to Vercel and real email dispatch for OTP authentication.
+- **Decision:**
+  - Create `vercel.json` configured for Vite SPA build (`npm run build`, `dist` output, and wildcard rewrite to `/index.html`).
+  - Add `api/send-otp.js` as a Vercel Serverless Function utilizing `nodemailer`.
+  - Support `GMAIL_USER` and `GMAIL_PASS` environment variables in Vercel for real SMTP email dispatch, with graceful test-code fallback if SMTP is unconfigured.
+  - Call `/api/send-otp` asynchronously from `LoginPage.jsx`.
+- **Consequences:**
+  - 100% turnkey deployment readiness for Vercel Hobby (zero cost).
+  - Production-ready real OTP delivery via Google/SMTP relay.
