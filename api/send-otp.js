@@ -42,16 +42,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      }
-    });
+    const isCustomSmtp = Boolean(process.env.SMTP_HOST);
+    const transportConfig = isCustomSmtp
+      ? {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass
+          }
+        }
+      : {
+          service: 'gmail',
+          auth: {
+            user: smtpUser,
+            pass: smtpPass
+          }
+        };
+
+    const transporter = nodemailer.createTransport(transportConfig);
+
+    const fromSender = process.env.SMTP_FROM || `"Century Joy Sales & Revenue Hub" <${smtpUser}>`;
 
     const mailOptions = {
-      from: `"Century Joy Sales & Revenue Hub" <${smtpUser}>`,
+      from: fromSender,
       to: email,
       subject: `Your Century Joy Login Verification Code: ${otp}`,
       html: `

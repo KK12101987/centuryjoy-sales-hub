@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [resendTimer, setResendTimer] = useState(60);
   const [showToast, setShowToast] = useState(false);
+  const [isEmailDelivered, setIsEmailDelivered] = useState(false);
 
   const digitRefs = [
     useRef(null),
@@ -65,6 +66,7 @@ export default function LoginPage() {
     setStep(2);
     setResendTimer(60);
     setShowToast(true);
+    setIsEmailDelivered(false);
 
     // Asynchronously dispatch OTP to real email via Vercel serverless API
     try {
@@ -76,6 +78,7 @@ export default function LoginPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.delivered) {
+          setIsEmailDelivered(true);
           console.log(`[Email Dispatch] OTP delivered to ${user.email}`);
         }
       })
@@ -282,15 +285,26 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-bold mb-1">
                   <span className="flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    One-Time Password Generated
+                    {isEmailDelivered ? 'Security Code Dispatched to Your Inbox' : 'One-Time Password Generated'}
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200/60 dark:bg-emerald-900/60 font-mono">
                     Valid for 5 mins
                   </span>
                 </div>
+                {isEmailDelivered ? (
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1">
+                    An email containing your code has been sent to <strong>{targetUser?.email}</strong>. Please check your inbox or spam folder.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Verification code ready for instant authentication.
+                  </p>
+                )}
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/60">
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Your Security Code:</span>
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">
+                      {isEmailDelivered ? 'Quick Preview Code:' : 'Your Security Code:'}
+                    </span>
                     <span className="text-base font-black tracking-widest text-emerald-900 dark:text-emerald-100 font-mono">
                       {generatedOtp}
                     </span>
