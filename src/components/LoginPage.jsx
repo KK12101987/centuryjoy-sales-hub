@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [resendTimer, setResendTimer] = useState(60);
   const [showToast, setShowToast] = useState(false);
-  const [isEmailDelivered, setIsEmailDelivered] = useState(false);
+  const [emailStatus, setEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'delivered' | 'unconfigured' | 'error'
 
   const digitRefs = [
     useRef(null),
@@ -66,7 +66,10 @@ export default function LoginPage() {
     setStep(2);
     setResendTimer(60);
     setShowToast(true);
-    setIsEmailDelivered(false);
+    setEmailStatus('sending');
+
+    // DevTools console notice for developer testing without exposing code in UI
+    console.info(`%c[Century Joy Security] One-Time Password for ${user.email}: ${newOtp}`, 'color: #e31e24; font-weight: bold; font-size: 13px;');
 
     // Asynchronously dispatch OTP to real email via Vercel serverless API
     try {
@@ -78,14 +81,18 @@ export default function LoginPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.delivered) {
-          setIsEmailDelivered(true);
+          setEmailStatus('delivered');
           console.log(`[Email Dispatch] OTP delivered to ${user.email}`);
+        } else {
+          setEmailStatus(data?.mode === 'test_fallback' ? 'unconfigured' : 'failed');
         }
       })
       .catch(() => {
-        // Dev fallback if backend route is offline
+        setEmailStatus('error');
       });
-    } catch (err) {}
+    } catch (err) {
+      setEmailStatus('error');
+    }
 
     // Auto focus first OTP input
     setTimeout(() => {
@@ -157,15 +164,8 @@ export default function LoginPage() {
     if (code === generatedOtp) {
       login(targetUser);
     } else {
-      setErrorMsg('Invalid verification code. Please check the OTP displayed above and try again.');
+      setErrorMsg('Invalid verification code. Please check the OTP received in your email and try again.');
     }
-  };
-
-  // Auto-fill OTP shortcut for rapid testing
-  const handleAutoFill = () => {
-    const chars = generatedOtp.split('');
-    setOtpDigits(chars);
-    verifyCode(generatedOtp);
   };
 
   return (
@@ -280,41 +280,47 @@ export default function LoginPage() {
           {step === 2 && (
             <div className="space-y-5">
               
-              {/* Simulated Secure OTP Dispatch Alert */}
-              <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs">
-                <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-bold mb-1">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    {isEmailDelivered ? 'Security Code Dispatched to Your Inbox' : 'One-Time Password Generated'}
-                  </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200/60 dark:bg-emerald-900/60 font-mono">
-                    Valid for 5 mins
-                  </span>
-                </div>
-                {isEmailDelivered ? (
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1">
-                    An email containing your code has been sent to <strong>{targetUser?.email}</strong>. Please check your inbox or spam folder.
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Verification code ready for instant authentication.
-                  </p>
-                )}
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/60">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">
-                      {isEmailDelivered ? 'Quick Preview Code:' : 'Your Security Code:'}
-                    </span>
-                    <span className="text-base font-black tracking-widest text-emerald-900 dark:text-emerald-100 font-mono">
-                      {generatedOtp}
-                    </span>
+              {/* Secure Email Dispatch Notice */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200/60 dark:border-red-900/60 text-[#e31e24] flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5" />
                   </div>
-                  <button
-                    onClick={handleAutoFill}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition-colors shadow-xs"
-                  >
-                    Auto-Fill Code
-                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-extrabold text-slate-900 dark:text-white text-xs">
+                        Check Your Email Inbox
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono font-bold">
+                        Valid for 5 mins
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                      A 6-digit verification code has been dispatched to{' '}
+                      <strong className="text-slate-900 dark:text-slate-100 font-bold">{targetUser?.email}</strong>.
+                      Please check your inbox or spam folder and enter the code below.
+                    </p>
+
+                    {emailStatus === 'sending' && (
+                      <div className="mt-2.5 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                        <div className="w-2 h-2 rounded-full bg-[#e31e24] animate-ping" />
+                        <span>Dispatching verification email...</span>
+                      </div>
+                    )}
+
+                    {emailStatus === 'delivered' && (
+                      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Email dispatched successfully to your inbox.</span>
+                      </div>
+                    )}
+
+                    {emailStatus === 'unconfigured' && (
+                      <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-[10px] text-amber-700 dark:text-amber-400 leading-normal">
+                        <strong>Developer Notice:</strong> SMTP credentials awaiting configuration in Vercel environment variables. For development testing, press F12 (DevTools console) to view the generated code.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

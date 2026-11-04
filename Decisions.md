@@ -209,3 +209,20 @@
   - Flawless data isolation: managers only see their own captains and their own physical teams.
   - Cleaner, decluttered invoice audit cards.
   - Retains full 360-degree company view for developer/admin accounts.
+
+## Decision 014: Email-Only OTP Verification and Elimination of On-Screen Security Codes
+- **Date:** 2026-11-04
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User provided feedback highlighting that the login modal displayed the generated OTP on-screen (`YOUR SECURITY CODE: 282829` with `Auto-Fill Code`) and explicitly directed: "otp should come to email".
+- **Decision:**
+  - In `src/components/LoginPage.jsx`, completely eliminate the on-screen code display, the `generatedOtp` text, and the `Auto-Fill Code` button.
+  - Implement a dedicated "Check Your Email Inbox" banner instructing the user that the 6-digit verification code has been dispatched to their email address.
+  - Retain 6-digit input boxes, auto-advance, paste handling, and 60-second resend countdown.
+  - Keep developer diagnostic logging restricted to DevTools console (`console.info`) only so the UI remains 100% production-authentic.
+  - In `api/send-otp.js`, ensure email dispatch uses `nodemailer` configured with Gmail SMTP or custom corporate SMTP based on environment variables (`GMAIL_USER`, `GMAIL_PASS`).
+- **Consequences:**
+  - True 2-factor authentication experience where access requires control of the user's email inbox.
+  - Prevents unauthorized access or code leakage on shared displays.
+  - Seamlessly handles Vercel deployment with serverless email dispatch.

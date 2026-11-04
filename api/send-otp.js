@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       success: true,
       delivered: false,
       mode: 'test_fallback',
-      message: 'SMTP credentials not configured in Vercel environment variables. Using on-screen security code.'
+      message: 'SMTP credentials not configured in Vercel environment variables. Set GMAIL_USER and GMAIL_PASS.'
     });
   }
 
