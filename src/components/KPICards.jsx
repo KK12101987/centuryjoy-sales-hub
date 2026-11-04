@@ -21,7 +21,7 @@ function formatINR(val) {
 }
 
 export default function KPICards() {
-  const { metrics, filteredTickets, tickets } = useData();
+  const { metrics, filteredTickets, tickets, currentUser } = useData();
   const isFiltered = filteredTickets.length !== tickets.length;
 
   return (
@@ -198,7 +198,7 @@ export default function KPICards() {
           <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs font-bold text-emerald-900 dark:text-emerald-200 shadow-2xs">
             <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-extrabold">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>8 L2 Approvers</span>
+              <span>{currentUser?.role === 'manager' ? 'L2 Approvals' : '8 L2 Approvers'}</span>
             </div>
             <span className="font-black text-emerald-900 dark:text-emerald-100">
               100% Sign-Off

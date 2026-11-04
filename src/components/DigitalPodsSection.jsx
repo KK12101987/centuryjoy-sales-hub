@@ -61,6 +61,8 @@ export default function DigitalPodsSection() {
     setExpandedPod(expandedPod === capName ? null : capName);
   };
 
+  if (digitalPods.length === 0) return null;
+
   return (
     <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">

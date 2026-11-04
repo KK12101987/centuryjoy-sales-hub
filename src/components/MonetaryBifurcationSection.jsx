@@ -25,7 +25,7 @@ function formatINR(val) {
 }
 
 export default function MonetaryBifurcationSection() {
-  const { filteredTickets } = useData();
+  const { filteredTickets, currentUser } = useData();
   const [activeTab, setActiveTab] = useState('rms'); // 'rms', 'managers', 'teams', 'approvers'
   const [rmSearch, setRmSearch] = useState('');
   const [expandedManagers, setExpandedManagers] = useState({});
@@ -441,18 +441,22 @@ export default function MonetaryBifurcationSection() {
             <span>By Relationship Managers ({bifurcationData.rmsList.length} RMs)</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('managers')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'managers'
-                ? 'bg-[#e31e24] text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>By Senior Managers (4)</span>
-          </button>
+          {/* TAB 2: Senior Managers (Admin / Developer Only) */}
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => setActiveTab('managers')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'managers'
+                  ? 'bg-[#e31e24] text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>By Senior Managers ({bifurcationData.managersList.length})</span>
+            </button>
+          )}
 
+          {/* TAB 3: Teams & Captains */}
           <button
             onClick={() => setActiveTab('teams')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
@@ -462,20 +466,23 @@ export default function MonetaryBifurcationSection() {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>By Teams & Captains (11)</span>
+            <span>By Teams & Captains ({bifurcationData.teamsList.length})</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('approvers')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'approvers'
-                ? 'bg-[#e31e24] text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>By L2 Approvers (8)</span>
-          </button>
+          {/* TAB 4: L2 Approvers (Admin / Developer Only) */}
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => setActiveTab('approvers')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'approvers'
+                  ? 'bg-[#e31e24] text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>By L2 Approvers ({bifurcationData.approversList.length})</span>
+            </button>
+          )}
         </div>
 
         {/* RM Quick Filter Search */}

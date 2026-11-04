@@ -47,6 +47,8 @@
 - [x] Connected GitHub remote `https://github.com/KK12101987/centuryjoy-sales-hub` and synced all commits.
 - [x] Deployed live to Vercel at `https://centuryjoy-sales-hub.vercel.app/`.
 - [x] Verified live deployment in automated headless browser (login, Kushal Kar Developer profile, ₹40.50 Cr dataset, all 4 senior managers, full names, 100% physical Amit Singal).
+- [x] Restrict Manager Visibility: Completely hide "L2 Reviewer Operations & SLA Workload" and "October 2026 Daily L2 Approval Velocity & Cadence" for all Senior Managers, while keeping them visible for Developer / Admin.
+- [x] Tailored Manager Monetary Bifurcation: Scoped RM tabs and dynamic stream navigation based on logged-in manager's tickets.
 - [ ] User review and operational use.
 
 ## File Manifest & Inventory

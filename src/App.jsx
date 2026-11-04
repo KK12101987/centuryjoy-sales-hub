@@ -47,11 +47,11 @@ function DashboardContent({ onOpenUpload }) {
           <PhysicalTeamsSection />
         </div>
 
-        {/* L2 Reviewer Operations & SLA Workload */}
-        <L2ApproverOperations />
+        {/* L2 Reviewer Operations & SLA Workload - Admin / Developer Governance Only */}
+        {currentUser?.role === 'admin' && <L2ApproverOperations />}
 
-        {/* Daily Velocity & Approval Cadence Timeline */}
-        <AnalyticsCharts />
+        {/* Daily Velocity & Approval Cadence Timeline - Admin / Developer Governance Only */}
+        {currentUser?.role === 'admin' && <AnalyticsCharts />}
 
         {/* Monetary Value Bifurcation (Auditable vs Non-Auditable) */}
         <MonetaryBifurcationSection />

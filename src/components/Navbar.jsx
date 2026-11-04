@@ -197,17 +197,19 @@ export default function Navbar({ onOpenUpload }) {
             >
               All Operations ({tickets.length.toLocaleString()})
             </button>
-            <button
-              onClick={() => setStreamFilter('digital')}
-              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
-                streamFilter === 'digital'
-                  ? 'bg-[#e31e24] text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Smartphone className="w-3 h-3" />
-              <span>Digital Stream • Captains (1,834)</span>
-            </button>
+            {metrics.digitalCount > 0 && (
+              <button
+                onClick={() => setStreamFilter('digital')}
+                className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                  streamFilter === 'digital'
+                    ? 'bg-[#e31e24] text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3 h-3" />
+                <span>Digital Stream • Captains ({metrics.digitalCount.toLocaleString()})</span>
+              </button>
+            )}
             <button
               onClick={() => setStreamFilter('physical')}
               className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
@@ -217,7 +219,7 @@ export default function Navbar({ onOpenUpload }) {
               }`}
             >
               <Building2 className="w-3 h-3" />
-              <span>Physical Stream • Direct (854)</span>
+              <span>Physical Stream • Direct ({metrics.physicalCount.toLocaleString()})</span>
             </button>
           </div>
 

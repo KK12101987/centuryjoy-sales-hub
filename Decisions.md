@@ -171,3 +171,22 @@
 - **Consequences:**
   - 100% turnkey deployment readiness for Vercel Hobby (zero cost).
   - Production-ready real OTP delivery via Google/SMTP relay.
+
+## Decision 012: Manager Scope Restriction (Hide Reviewer Operations & Velocity Timeline)
+- **Date:** 2026-11-04
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User instructed:
+  - All managers must not view "L2 Reviewer Operations & SLA Workload" or "October 2026 Daily L2 Approval Velocity & Cadence".
+  - Managers must only see their own team's performance, revenue, and relationship managers.
+  - Developer / Admin (`Kushal Kar`) retains complete system visibility.
+- **Decision:**
+  - In `App.jsx`, conditionally render `<L2ApproverOperations />` and `<AnalyticsCharts />` only when `currentUser.role === 'admin'`.
+  - In `MonetaryBifurcationSection.jsx`, hide "By Senior Managers" and "By L2 Approvers" tabs for managers (`currentUser.role === 'manager'`), defaulting to "By Relationship Managers" and "By Teams & Captains" scoped to their tickets.
+  - In `KPICards.jsx`, dynamically label operations capsule as `L2 Approvals` for managers and `8 L2 Approvers` for admin.
+  - In `Navbar.jsx`, dynamically format stream counts based on the logged-in manager's tickets.
+- **Consequences:**
+  - Complete separation between back-office audit governance and sales manager operations.
+  - Managers see zero clutter and zero irrelevant reviewer quotas.
+  - Fully verified via automated headless CDP testing.
