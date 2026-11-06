@@ -226,3 +226,30 @@
   - True 2-factor authentication experience where access requires control of the user's email inbox.
   - Prevents unauthorized access or code leakage on shared displays.
   - Seamlessly handles Vercel deployment with serverless email dispatch.
+
+## Decision 015: Password Authentication, In-App Password Update & Self-Service Recovery (Option 1)
+- **Date:** 2026-11-06
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User directed to drop the OTP login plan entirely and transition to standard password-based login where:
+  1. The initial password is provided by Kushal Kar.
+  2. Managers can update their passwords from their account.
+  3. A self-service password recovery mechanism is provided using recovery PINs (Option 1).
+- **Decision:**
+  - Redesign `src/components/LoginPage.jsx` to a sleek single-card layout with corporate email, password with show/hide toggle, quick-access profiles, and "Forgot Password?" entry.
+  - Seed initial passwords in `src/utils/auth.js`:
+    - Kushal Kar: `Kushal@2026` (Recovery PIN: `CP-7777`)
+    - Niladri Bhadra: `Niladri@2026` (Recovery PIN: `CP-1001`)
+    - Surajit Laha: `Surajit@2026` (Recovery PIN: `CP-1002`)
+    - Arijit Nath: `Arijit@2026` (Recovery PIN: `CP-1003`)
+    - Amit Singal: `Amit@2026` (Recovery PIN: `CP-1004`)
+    - Executive Leadership: `Century@2026` (Recovery PIN: `CP-9999`)
+  - Implement persistent password overrides in `localStorage` under `century_user_passwords_v1`.
+  - Create `src/components/UpdatePasswordModal.jsx` triggered from the top navbar when logged in, verifying current password before accepting new passwords.
+  - Implement self-service password recovery flow with registered corporate PINs in `LoginPage.jsx` (Option 1).
+- **Consequences:**
+  - Removes dependency on external SMTP / email relay servers.
+  - Immediate, friction-free login experience for managers.
+  - Full self-service password management with administrator fallback.
+  - Fully tested across invalid password rejection, password update, old password invalidation, and recovery PIN reset.

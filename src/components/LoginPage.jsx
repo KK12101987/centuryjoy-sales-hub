@@ -1,170 +1,113 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { AUTHORIZED_USERS, findUserByEmail, generateOTP } from '../utils/auth';
 import { 
-  KeyRound, 
+  AUTHORIZED_USERS, 
+  findUserByEmail, 
+  verifyUserPassword, 
+  recoverUserPassword 
+} from '../utils/auth';
+import { 
+  Lock, 
   Mail, 
+  KeyRound, 
+  Eye, 
+  EyeOff, 
   ArrowRight, 
-  ShieldCheck, 
-  RotateCcw, 
   CheckCircle2, 
   AlertCircle,
-  Building2,
-  Lock,
+  ShieldCheck,
   User,
-  Sparkles
+  RotateCcw
 } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useData();
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  const [mode, setMode] = useState('login'); // 'login' | 'recover'
+  
+  // Login State
   const [email, setEmail] = useState('');
-  const [targetUser, setTargetUser] = useState(null);
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [resendTimer, setResendTimer] = useState(60);
-  const [showToast, setShowToast] = useState(false);
-  const [emailStatus, setEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'delivered' | 'unconfigured' | 'error'
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
-  const digitRefs = [
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null)
-  ];
+  // Recovery State
+  const [recoverEmail, setRecoverEmail] = useState('');
+  const [recoveryPin, setRecoveryPin] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [recoverError, setRecoverError] = useState('');
+  const [recoverSuccess, setRecoverSuccess] = useState('');
 
-  // Resend OTP countdown
-  useEffect(() => {
-    let interval = null;
-    if (step === 2 && resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer(prev => prev - 1);
-      }, 1000);
+  const passwordInputRef = useRef(null);
+
+  // Quick 1-click select manager profile
+  const handleQuickSelect = (u) => {
+    setEmail(u.email);
+    setLoginError('');
+    if (passwordInputRef.current) {
+      passwordInputRef.current.focus();
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [step, resendTimer]);
+  };
 
-  // Handle Email Submission
-  const handleRequestOTP = (selectedEmail) => {
-    const emailToUse = (typeof selectedEmail === 'string' && selectedEmail.trim()) ? selectedEmail : email;
-    setErrorMsg('');
-    const user = findUserByEmail(emailToUse);
-    if (!user) {
-      setErrorMsg('Email not recognized. Please use an authorized email or select a profile below.');
+  // Handle Standard Login
+  const handleLogin = (e) => {
+    if (e) e.preventDefault();
+    setLoginError('');
+
+    if (!email || !email.trim()) {
+      setLoginError('Please enter your corporate email address.');
       return;
     }
 
-    const newOtp = generateOTP();
-    setTargetUser(user);
-    setGeneratedOtp(newOtp);
-    setOtpDigits(['', '', '', '', '', '']);
-    setStep(2);
-    setResendTimer(60);
-    setShowToast(true);
-    setEmailStatus('sending');
-
-    // DevTools console notice for developer testing without exposing code in UI
-    console.info(`%c[Century Joy Security] One-Time Password for ${user.email}: ${newOtp}`, 'color: #e31e24; font-weight: bold; font-size: 13px;');
-
-    // Asynchronously dispatch OTP to real email via Vercel serverless API
-    try {
-      fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, otp: newOtp, name: user.name })
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.delivered) {
-          setEmailStatus('delivered');
-          console.log(`[Email Dispatch] OTP delivered to ${user.email}`);
-        } else {
-          setEmailStatus(data?.mode === 'test_fallback' ? 'unconfigured' : 'failed');
-        }
-      })
-      .catch(() => {
-        setEmailStatus('error');
-      });
-    } catch (err) {
-      setEmailStatus('error');
-    }
-
-    // Auto focus first OTP input
-    setTimeout(() => {
-      if (digitRefs[0].current) {
-        digitRefs[0].current.focus();
-      }
-    }, 150);
-  };
-
-  // Quick 1-click select manager
-  const handleQuickSelect = (mgr) => {
-    setEmail(mgr.email);
-    handleRequestOTP(mgr.email);
-  };
-
-  // Handle OTP digit changes
-  const handleDigitChange = (index, val) => {
-    setErrorMsg('');
-    const char = val.replace(/\D/g, '').slice(-1);
-    const newDigits = [...otpDigits];
-    newDigits[index] = char;
-    setOtpDigits(newDigits);
-
-    // Auto advance
-    if (char && index < 5 && digitRefs[index + 1].current) {
-      digitRefs[index + 1].current.focus();
-    }
-
-    // Auto submit if all 6 filled
-    if (char && index === 5 && newDigits.every(d => d !== '')) {
-      const code = newDigits.join('');
-      verifyCode(code);
-    }
-  };
-
-  // Handle backspace navigation
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      digitRefs[index - 1].current.focus();
-    }
-  };
-
-  // Handle Paste
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (paste.length > 0) {
-      const newDigits = [...otpDigits];
-      for (let i = 0; i < paste.length; i++) {
-        newDigits[i] = paste[i];
-      }
-      setOtpDigits(newDigits);
-      if (paste.length === 6) {
-        verifyCode(paste);
-      } else if (digitRefs[paste.length]) {
-        digitRefs[paste.length].current.focus();
-      }
-    }
-  };
-
-  // Verify OTP
-  const verifyCode = (code = otpDigits.join('')) => {
-    setErrorMsg('');
-    if (code.length !== 6) {
-      setErrorMsg('Please enter all 6 digits of the OTP.');
+    if (!password) {
+      setLoginError('Please enter your password.');
       return;
     }
 
-    if (code === generatedOtp) {
-      login(targetUser);
+    const verification = verifyUserPassword(email, password);
+    if (verification.success) {
+      login(verification.user);
     } else {
-      setErrorMsg('Invalid verification code. Please check the OTP received in your email and try again.');
+      setLoginError(verification.error);
+    }
+  };
+
+  // Handle Password Recovery (Option 1: Self-Service with Recovery PIN)
+  const handleRecover = (e) => {
+    if (e) e.preventDefault();
+    setRecoverError('');
+    setRecoverSuccess('');
+
+    if (!recoverEmail || !recoverEmail.trim()) {
+      setRecoverError('Please enter your corporate email address.');
+      return;
+    }
+
+    if (!recoveryPin || !recoveryPin.trim()) {
+      setRecoverError('Please enter your assigned recovery PIN (e.g. CP-1001).');
+      return;
+    }
+
+    if (!newPassword || newPassword.trim().length < 6) {
+      setRecoverError('New password must contain at least 6 characters.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setRecoverError('New password and confirm password do not match.');
+      return;
+    }
+
+    const result = recoverUserPassword(recoverEmail, recoveryPin, newPassword);
+    if (result.success) {
+      setRecoverSuccess(result.message);
+      setTimeout(() => {
+        login(result.user);
+      }, 1500);
+    } else {
+      setRecoverError(result.error);
     }
   };
 
@@ -188,59 +131,103 @@ export default function LoginPage() {
 
       {/* Main Authentication Card */}
       <div className="w-full max-w-md bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden relative">
-        <div className="h-1.5 bg-gradient-to-r from-[#e31e24] via-red-600 to-amber-500 w-full"></div>
+        <div className="h-1.5 bg-gradient-to-r from-[#e31e24] via-red-600 to-amber-500 w-full" />
 
         <div className="p-6 sm:p-8">
           
           {/* Card Title */}
           <div className="text-center mb-6">
             <h2 className="text-lg font-black text-slate-900 dark:text-white">
-              {step === 1 ? 'Senior Management Login' : 'Verify One-Time Password'}
+              {mode === 'login' ? 'Senior Management Login' : 'Password Recovery'}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {step === 1 
-                ? 'Enter your corporate email to receive a secure access code.' 
-                : `Verification code sent to ${targetUser?.email}`}
+              {mode === 'login'
+                ? 'Enter your corporate credentials to access the executive portal.'
+                : 'Enter your corporate email and recovery PIN to reset your password.'}
             </p>
           </div>
 
-          {/* Error Notice */}
-          {errorMsg && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-[#e31e24]" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* STEP 1: EMAIL ENTRY */}
-          {step === 1 && (
+          {/* ================= MODE 1: LOGIN ================= */}
+          {mode === 'login' && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Corporate Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleRequestOTP()}
-                    placeholder="e.g. kushal.centuryply@gmail.com"
-                    className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
-                  />
+              
+              {/* Error Notice */}
+              {loginError && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 flex items-center gap-2 animate-in fade-in duration-150">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#e31e24]" />
+                  <span>{loginError}</span>
                 </div>
-              </div>
+              )}
 
-              <button
-                onClick={() => handleRequestOTP()}
-                className="w-full py-2.5 px-4 bg-[#e31e24] hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-md shadow-red-600/20 flex items-center justify-center gap-2 transition-all"
-              >
-                <span>Request Verification Code</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <form onSubmit={handleLogin} className="space-y-4">
+                
+                {/* Email Field */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                    Corporate Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. niladri.bhadra@centuryply.com"
+                      className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
+                    />
+                  </div>
+                </div>
 
-              {/* 1-Click Quick Select for Authorized Personnel */}
+                {/* Password Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoverEmail(email);
+                        setMode('recover');
+                        setLoginError('');
+                      }}
+                      className="text-[11px] font-bold text-[#e31e24] hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      ref={passwordInputRef}
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full pl-10 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 bg-[#e31e24] hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-md shadow-red-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>Sign In & Access Portal</span>
+                </button>
+
+              </form>
+
+              {/* Quick Select for Authorized Personnel */}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider text-center">
                   Quick Access Profiles:
@@ -249,8 +236,9 @@ export default function LoginPage() {
                   {AUTHORIZED_USERS.map((u) => (
                     <button
                       key={u.email}
+                      type="button"
                       onClick={() => handleQuickSelect(u)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-red-300 dark:hover:border-red-800 bg-slate-50/70 dark:bg-slate-900/60 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-left transition-all flex items-center justify-between group"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-red-300 dark:hover:border-red-800 bg-slate-50/70 dark:bg-slate-900/60 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-left transition-all flex items-center justify-between group cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs group-hover:bg-[#e31e24] transition-colors">
@@ -276,109 +264,139 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* STEP 2: 6-DIGIT OTP ENTRY */}
-          {step === 2 && (
-            <div className="space-y-5">
+          {/* ================= MODE 2: RECOVER PASSWORD (OPTION 1) ================= */}
+          {mode === 'recover' && (
+            <div className="space-y-4">
               
-              {/* Secure Email Dispatch Notice */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200/60 dark:border-red-900/60 text-[#e31e24] flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-extrabold text-slate-900 dark:text-white text-xs">
-                        Check Your Email Inbox
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono font-bold">
-                        Valid for 5 mins
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                      A 6-digit verification code has been dispatched to{' '}
-                      <strong className="text-slate-900 dark:text-slate-100 font-bold">{targetUser?.email}</strong>.
-                      Please check your inbox or spam folder and enter the code below.
-                    </p>
-
-                    {emailStatus === 'sending' && (
-                      <div className="mt-2.5 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                        <div className="w-2 h-2 rounded-full bg-[#e31e24] animate-ping" />
-                        <span>Dispatching verification email...</span>
-                      </div>
-                    )}
-
-                    {emailStatus === 'delivered' && (
-                      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Email dispatched successfully to your inbox.</span>
-                      </div>
-                    )}
-
-                    {emailStatus === 'unconfigured' && (
-                      <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-[10px] text-amber-700 dark:text-amber-400 leading-normal">
-                        <strong>Developer Notice:</strong> SMTP credentials awaiting configuration in Vercel environment variables. For development testing, press F12 (DevTools console) to view the generated code.
-                      </div>
-                    )}
-                  </div>
+              {/* Error Notice */}
+              {recoverError && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 flex items-center gap-2 animate-in fade-in duration-150">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#e31e24]" />
+                  <span>{recoverError}</span>
                 </div>
-              </div>
+              )}
 
-              {/* 6 Digit Input Boxes */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-center">
-                  Enter 6-Digit Verification Code
-                </label>
-                <div className="flex justify-between gap-2 max-w-xs mx-auto" onPaste={handlePaste}>
-                  {otpDigits.map((digit, idx) => (
+              {/* Success Notice */}
+              {recoverSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 animate-in fade-in duration-150">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-semibold">{recoverSuccess}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleRecover} className="space-y-3.5">
+                
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                    Corporate Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
-                      key={idx}
-                      ref={digitRefs[idx]}
-                      type="text"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleDigitChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(idx, e)}
-                      className="w-11 h-12 text-center text-lg font-black bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-mono shadow-inner"
+                      type="email"
+                      value={recoverEmail}
+                      onChange={(e) => setRecoverEmail(e.target.value)}
+                      placeholder="e.g. niladri.bhadra@centuryply.com"
+                      className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
                     />
-                  ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => verifyCode()}
-                  className="w-full py-2.5 px-4 bg-[#e31e24] hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-md shadow-red-600/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  <KeyRound className="w-4 h-4" />
-                  <span>Verify & Access Portal</span>
-                </button>
+                {/* Recovery PIN */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      Recovery PIN
+                    </label>
+                    <span className="text-[10px] text-slate-400">
+                      e.g. CP-1001 (Assigned by Admin)
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={recoveryPin}
+                      onChange={(e) => setRecoveryPin(e.target.value)}
+                      placeholder="Enter assigned recovery PIN"
+                      className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-mono font-bold tracking-wider"
+                    />
+                  </div>
+                </div>
 
-                <div className="flex items-center justify-between text-xs pt-1">
+                {/* New Password */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                    New Password <span className="text-slate-400 text-[10px] lowercase">(min 6 chars)</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      className="w-full pl-10 pr-10 py-2 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="w-full pl-10 pr-10 py-2 text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#e31e24] focus:ring-2 focus:ring-red-500/20 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-2 pt-2">
                   <button
+                    type="submit"
+                    className="w-full py-2.5 px-4 bg-[#e31e24] hover:bg-red-700 text-white text-xs font-black rounded-xl shadow-md shadow-red-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Reset Password & Sign In</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
-                      setStep(1);
-                      setErrorMsg('');
+                      setMode('login');
+                      setRecoverError('');
+                      setRecoverSuccess('');
                     }}
-                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-semibold text-[11px]"
+                    className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                   >
-                    Change Email
-                  </button>
-
-                  <button
-                    disabled={resendTimer > 0}
-                    onClick={() => handleRequestOTP(targetUser.email)}
-                    className={`font-bold text-[11px] ${
-                      resendTimer > 0 
-                        ? 'text-slate-400 cursor-not-allowed' 
-                        : 'text-[#e31e24] hover:underline'
-                    }`}
-                  >
-                    {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend Code'}
+                    Back to Login
                   </button>
                 </div>
-              </div>
+
+              </form>
 
             </div>
           )}

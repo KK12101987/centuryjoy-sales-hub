@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
+import UpdatePasswordModal from './UpdatePasswordModal';
 import { 
   RotateCcw, 
   UploadCloud, 
@@ -12,10 +13,12 @@ import {
   Building2,
   Smartphone,
   User,
-  LogOut
+  LogOut,
+  KeyRound
 } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload }) {
+  const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
   const { 
     filteredTickets, 
     tickets,
@@ -166,6 +169,16 @@ export default function Navbar({ onOpenUpload }) {
                   </div>
                 </div>
 
+                {/* Update Password Button */}
+                <button
+                  onClick={() => setIsUpdatePasswordOpen(true)}
+                  title="Update Password"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:hover:text-white border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs text-xs font-bold cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-[#e31e24]" />
+                  <span className="hidden sm:inline">Update Password</span>
+                </button>
+
                 {/* Sign Out Button */}
                 <button
                   onClick={logout}
@@ -265,6 +278,11 @@ export default function Navbar({ onOpenUpload }) {
         </div>
 
       </div>
+
+      <UpdatePasswordModal
+        isOpen={isUpdatePasswordOpen}
+        onClose={() => setIsUpdatePasswordOpen(false)}
+      />
     </header>
   );
 }

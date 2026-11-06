@@ -52,9 +52,11 @@
 - [x] Scoped Digital Pod Captains: In "Digital Teams • Captain-Led Pods", only display captains belonging to the logged-in manager.
 - [x] Streamlined Invoice Audit PODs: Removed "Full Compliance Verification Verified" and "Standard Procedural Sign-Off" subtitles.
 - [x] Isolated Physical Teams: In "Physical Teams • Direct Manager Supervision", only display the physical team belonging to the logged-in manager.
-- [x] Email-Only OTP Verification (Option A): Removed on-screen security code display and auto-fill shortcut from `src/components/LoginPage.jsx`. The 6-digit verification code is dispatched exclusively to the manager's corporate email inbox via `/api/send-otp`.
-- [x] Captured headless browser screenshot (`centuryjoy_otp_email_only_login.png`) and verified input validation rejecting invalid codes.
-- [ ] Configure `GMAIL_USER` and `GMAIL_PASS` in Vercel environment variables for live email delivery.
+- [x] Password Authentication Transition: Dropped OTP login; implemented password-based authentication with show/hide password toggle.
+- [x] Initial Password Seeding: Seeded initial passwords in `src/utils/auth.js` (`Name@2026`) and registered recovery PINs (`CP-100X`).
+- [x] In-App Password Update: Created `UpdatePasswordModal.jsx` and added "Update Password" button to top navigation bar.
+- [x] Self-Service Password Recovery (Option 1): Added recovery flow allowing managers to reset password using corporate email + recovery PIN.
+- [x] Verified full test lifecycle in automated headless Edge CDP tests (wrong password rejection, login, update password, old password invalidation, recovery PIN reset).
 - [ ] User review and operational use.
 
 ## File Manifest & Inventory
