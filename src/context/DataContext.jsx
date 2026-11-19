@@ -1,11 +1,58 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import initialTickets from '../data/initialData.json';
+import novemberTickets from '../data/novemberData.json';
 import { verifyWatermarkIntegrity } from '../utils/integrity';
+
+export const AVAILABLE_DATASETS = {
+  october: {
+    id: 'october',
+    name: 'October 2026 Live',
+    badgeText: 'October 2026 Live',
+    dateLabel: 'October 2026',
+    shortLabel: 'Oct 2026',
+    period: 'Oct 1 - Oct 31, 2026',
+    ticketsCount: 2688,
+    amountFormatted: '₹40.50 Cr',
+    tickets: initialTickets,
+    isTest: false
+  },
+  november: {
+    id: 'november',
+    name: 'November 2026 Test',
+    badgeText: 'November 2026 Test',
+    dateLabel: 'November 2026',
+    shortLabel: 'Nov 2026 (Test)',
+    period: 'Nov 2 - Nov 16, 2026',
+    ticketsCount: 326,
+    amountFormatted: '₹5.14 Cr',
+    tickets: novemberTickets,
+    isTest: true
+  }
+};
 
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
-  const [tickets, setTickets] = useState(initialTickets);
+  const [selectedDatasetId, setSelectedDatasetId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_active_dataset');
+      return (saved && AVAILABLE_DATASETS[saved]) ? saved : 'october';
+    } catch (e) {
+      return 'october';
+    }
+  });
+
+  const [customDatasetInfo, setCustomDatasetInfo] = useState(null);
+
+  const [tickets, setTickets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_active_dataset');
+      return (saved && AVAILABLE_DATASETS[saved]) ? AVAILABLE_DATASETS[saved].tickets : initialTickets;
+    } catch (e) {
+      return initialTickets;
+    }
+  });
+
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = sessionStorage.getItem('century_auth_user');
@@ -223,10 +270,38 @@ export function DataProvider({ children }) {
     };
   }, [filteredTickets]);
 
+  const selectDataset = (datasetId) => {
+    if (AVAILABLE_DATASETS[datasetId]) {
+      setSelectedDatasetId(datasetId);
+      setCustomDatasetInfo(null);
+      setTickets(AVAILABLE_DATASETS[datasetId].tickets);
+      try {
+        localStorage.setItem('century_active_dataset', datasetId);
+      } catch (e) {}
+      resetFilters();
+    }
+  };
+
+  const activeDataset = customDatasetInfo || AVAILABLE_DATASETS[selectedDatasetId] || AVAILABLE_DATASETS.october;
+
   const importTickets = (newRecords, mode = 'replace') => {
     verifyWatermarkIntegrity();
     if (mode === 'replace') {
       setTickets(newRecords);
+      const totalAmt = newRecords.reduce((s, t) => s + (t.finalTotalAmount || 0), 0);
+      setCustomDatasetInfo({
+        id: 'custom',
+        name: 'Custom Uploaded Data',
+        badgeText: `Custom Upload (${newRecords.length} tix)`,
+        dateLabel: 'Custom Upload',
+        shortLabel: 'Custom',
+        period: 'Uploaded File',
+        ticketsCount: newRecords.length,
+        amountFormatted: `₹${(totalAmt / 10000000).toFixed(2)} Cr`,
+        tickets: newRecords,
+        isTest: true
+      });
+      resetFilters();
     } else {
       const existingMap = new Map(tickets.map((t) => [t.ticketNo, t]));
       for (const nr of newRecords) {
@@ -263,7 +338,11 @@ export function DataProvider({ children }) {
         dateRange,
         setDateRange,
         resetFilters,
-        importTickets
+        importTickets,
+        availableDatasets: Object.values(AVAILABLE_DATASETS),
+        selectedDatasetId,
+        activeDataset,
+        selectDataset
       }}
     >
       {children}

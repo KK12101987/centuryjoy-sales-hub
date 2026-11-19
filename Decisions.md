@@ -248,6 +248,24 @@
   - Implement persistent password overrides in `localStorage` under `century_user_passwords_v1`.
   - Create `src/components/UpdatePasswordModal.jsx` triggered from the top navbar when logged in, verifying current password before accepting new passwords.
   - Implement self-service password recovery flow with registered corporate PINs in `LoginPage.jsx` (Option 1).
+
+## Decision 016: Multi-Dataset Architecture (October 2026 Live & November 2026 Test) with Dynamic Switcher
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User provided `C:\Users\User\Downloads\L2 Approved_Test.xlsx` containing November 2026 L2 approval data (326 tickets, ₹5.14 Cr) and selected Option 1: Multi-Dataset Switcher in the top navigation bar.
+- **Decision:**
+  - Processed `L2 Approved_Test.xlsx` with `scripts/process_data.py`:
+    - Mapped new RMs `Sholanki Dhar` and `ISHANI DEY` under Captain `Arshi Afreen Jamal` & Senior Manager `Arijit Nath`, achieving a 100% hierarchy match across all 326 tickets.
+    - Exported `src/data/novemberData.json` (326 tickets, ₹5.14 Cr: 250 auditable @ ₹3.89 Cr, 76 non-auditable @ ₹1.25 Cr).
+  - Extended `src/context/DataContext.jsx` with `AVAILABLE_DATASETS` metadata catalog (`october` and `november`), active dataset state (`selectedDatasetId` persisted in `localStorage`), and `selectDataset` action.
+  - Replaced the static date pill in `src/components/Navbar.jsx` with an interactive dataset selector dropdown showing ticket counts, total revenue, date ranges, and active checks.
+  - Dynamically wired `AnalyticsCharts.jsx` to render the active dataset's name and cadence.
+- **Consequences:**
+  - Instant toggle between October 2026 baseline (₹40.50 Cr) and November 2026 test data (₹5.14 Cr).
+  - Dynamic re-scoping across all manager cards, pod breakdowns, and monetary bifurcation matrices without page reload.
+  - Fully verified via headless CDP testing (`test_dataset_switcher.py`).
 - **Consequences:**
   - Removes dependency on external SMTP / email relay servers.
   - Immediate, friction-free login experience for managers.

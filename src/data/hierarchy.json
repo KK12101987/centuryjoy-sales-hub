@@ -9,7 +9,9 @@
         "Pritha Bhattacharya",
         "Shalini Bose",
         "Sujita Hazra",
-        "Suvra Sen"
+        "Suvra Sen",
+        "Sholanki Dhar",
+        "ISHANI DEY"
       ],
       "Mousumi Chakraborty": [
         "Aparna Biswas",
@@ -547,6 +549,16 @@
       "manager": "Arijit Nath",
       "captain": "Silpa Palchina",
       "member": "Ronika Banerjee"
+    },
+    "sholanki dhar": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "Sholanki Dhar"
+    },
+    "ishani dey": {
+      "manager": "Arijit Nath",
+      "captain": "Arshi Afreen Jamal",
+      "member": "ISHANI DEY"
     }
   },
   "aliases": {

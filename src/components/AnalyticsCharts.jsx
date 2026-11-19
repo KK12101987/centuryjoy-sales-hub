@@ -9,7 +9,7 @@ function formatINR(val) {
 }
 
 export default function AnalyticsCharts() {
-  const { filteredTickets, streamFilter, setStreamFilter } = useData();
+  const { filteredTickets, streamFilter, setStreamFilter, activeDataset } = useData();
 
   const dailyData = React.useMemo(() => {
     const map = {};
@@ -26,6 +26,7 @@ export default function AnalyticsCharts() {
   }, [filteredTickets]);
 
   const maxDailyCount = Math.max(...dailyData.map(d => d.count), 1);
+  const peakDay = dailyData.reduce((max, d) => (d.count > (max?.count || 0) ? d : max), null);
 
   return (
     <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
@@ -33,15 +34,17 @@ export default function AnalyticsCharts() {
         <div>
           <h2 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#e31e24]" />
-            October 2026 Daily L2 Approval Velocity & Cadence
+            {activeDataset?.dateLabel || 'October 2026'} Daily L2 Approval Velocity & Cadence
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Day-by-day transaction throughput across all 22 active approval days with peak surge on Oct 29–31.
+            Day-by-day transaction throughput across active approval dates in {activeDataset?.dateLabel || 'this period'}.
           </p>
         </div>
-        <span className="text-xs font-bold text-[#e31e24] bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 px-2.5 py-1 rounded-full">
-          Peak Day: Oct 31 (538 tickets)
-        </span>
+        {peakDay && (
+          <span className="text-xs font-bold text-[#e31e24] bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 px-2.5 py-1 rounded-full">
+            Peak Day: {peakDay.date} ({peakDay.count} tickets)
+          </span>
+        )}
       </div>
 
       {/* Bar Chart Visualization */}

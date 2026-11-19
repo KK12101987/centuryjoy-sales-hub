@@ -45,3 +45,18 @@
 - Production build verified: `npm run build` generated `dist/` successfully with 0 errors.
 - Local server active: `http://localhost:5173/` tested and responding with HTTP 200.
 - Anti-tamper watermark & coupled integrity verification active.
+
+---
+
+## 5. FEAT-004: Multi-Dataset Architecture (October 2026 Live & November 2026 Test)
+- **ID:** FEAT-004
+- **Date:** 2026-11-19
+- **Core Requirements:**
+  1. Ingest `L2 Approved_Test.xlsx` (November 2026: 326 tickets, ₹5.14 Cr).
+  2. Map unassigned RMs (Sholanki Dhar & Ishani Dey) to Captain Arshi Afreen Jamal and Senior Manager Arijit Nath.
+  3. Support Option 1: Multi-Dataset Switcher dropdown in the top navbar allowing instant toggling between October 2026 Live and November 2026 Test datasets.
+  4. Persist user selection across browser reloads via `localStorage` key `century_active_dataset`.
+  5. Dynamically refresh KPIs, Monetary Bifurcation matrices, and cadence charts on dataset change.
+- **Verification:**
+  - Automated CDP tests confirmed October baseline (2,688 tickets | ₹40.50 Cr) toggles seamlessly to November (326 tickets | ₹5.14 Cr: 250 auditable @ ₹3.89 Cr, 76 non-auditable @ ₹1.25 Cr) and back.
+

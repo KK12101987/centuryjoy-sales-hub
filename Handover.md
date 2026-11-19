@@ -57,7 +57,10 @@
 - [x] In-App Password Update: Created `UpdatePasswordModal.jsx` and added "Update Password" button to top navigation bar.
 - [x] Self-Service Password Recovery (Option 1): Added recovery flow allowing managers to reset password using corporate email + recovery PIN.
 - [x] Verified full test lifecycle in automated headless Edge CDP tests (wrong password rejection, login, update password, old password invalidation, recovery PIN reset).
-- [ ] User review and operational use.
+- [x] Ingested and reconciled November 2026 dataset (`L2 Approved_Test.xlsx`: 326 tickets, ₹5.14 Cr) with 100% hierarchy resolution for new RMs Sholanki Dhar & Ishani Dey under Captain Arshi Afreen Jamal & Manager Arijit Nath.
+- [x] Implemented Option 1 Multi-Dataset Switcher in `src/components/Navbar.jsx` & `src/context/DataContext.jsx` allowing seamless toggling between October 2026 Live (2,688 tickets | ₹40.50 Cr) and November 2026 Test (326 tickets | ₹5.14 Cr).
+- [x] Automated CDP verification completed for dataset switcher with live metric updates, screenshots, and return-to-baseline tests.
+- [ ] User review and operational deployment.
 
 ## File Manifest & Inventory
 1. **`L2 data_Oct'26.xlsx`** (Primary transactional data):

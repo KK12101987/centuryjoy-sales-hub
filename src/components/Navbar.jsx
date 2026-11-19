@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import UpdatePasswordModal from './UpdatePasswordModal';
 import { 
@@ -14,11 +14,17 @@ import {
   Smartphone,
   User,
   LogOut,
-  KeyRound
+  KeyRound,
+  Database,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload }) {
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
+  const [isDatasetDropdownOpen, setIsDatasetDropdownOpen] = useState(false);
+  const datasetDropdownRef = useRef(null);
+
   const { 
     filteredTickets, 
     tickets,
@@ -36,8 +42,22 @@ export default function Navbar({ onOpenUpload }) {
     selectedCaptain,
     selectedL2Assign,
     currentUser,
-    logout
+    logout,
+    availableDatasets,
+    activeDataset,
+    selectDataset
   } = useData();
+
+  // Close dataset dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (datasetDropdownRef.current && !datasetDropdownRef.current.contains(event.target)) {
+        setIsDatasetDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isFiltered = 
     streamFilter !== 'all' ||
@@ -67,9 +87,70 @@ export default function Navbar({ onOpenUpload }) {
                   <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
                     Century Joy Sales & Revenue Hub
                   </h1>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900/60">
-                    October 2026 Live
-                  </span>
+
+                  {/* Interactive Dataset Switcher */}
+                  <div className="relative" ref={datasetDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDatasetDropdownOpen(!isDatasetDropdownOpen)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight bg-red-50 hover:bg-red-100 text-[#e31e24] dark:bg-red-950/50 dark:hover:bg-red-900/60 dark:text-red-400 border border-red-200 dark:border-red-900/60 transition-all cursor-pointer shadow-2xs group"
+                      title="Switch between datasets"
+                    >
+                      <Database className="w-3 h-3 text-[#e31e24] group-hover:scale-110 transition-transform" />
+                      <span>{activeDataset?.badgeText || 'October 2026 Live'}</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isDatasetDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dataset Dropdown Menu */}
+                    {isDatasetDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <span>Select Dataset Period</span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-mono">
+                            {availableDatasets.length} sets
+                          </span>
+                        </div>
+                        <div className="py-1">
+                          {availableDatasets.map((ds) => {
+                            const isSelected = activeDataset?.id === ds.id;
+                            return (
+                              <button
+                                key={ds.id}
+                                onClick={() => {
+                                  selectDataset(ds.id);
+                                  setIsDatasetDropdownOpen(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left text-xs transition-colors flex items-center justify-between group cursor-pointer ${
+                                  isSelected 
+                                    ? 'bg-red-50/70 dark:bg-red-950/30 text-slate-900 dark:text-white font-bold' 
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                                }`}
+                              >
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={isSelected ? 'text-[#e31e24]' : 'text-slate-700 dark:text-slate-200'}>
+                                      {ds.name}
+                                    </span>
+                                    {ds.isTest && (
+                                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-semibold uppercase">
+                                        Test
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 font-normal mt-0.5">
+                                    {ds.ticketsCount.toLocaleString()} tickets • {ds.amountFormatted}
+                                  </div>
+                                </div>
+                                {isSelected && (
+                                  <Check className="w-4 h-4 text-[#e31e24] shrink-0" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   Executive Governance, Sales Approvals & Revenue Audit Tracking
