@@ -28,6 +28,7 @@ export default function Navbar({ onOpenUpload }) {
   const { 
     filteredTickets, 
     scopedTickets,
+    userScopedTickets,
     tickets,
     metrics, 
     theme, 
@@ -48,7 +49,9 @@ export default function Navbar({ onOpenUpload }) {
     selectedMonth,
     selectMonth,
     availableMonths,
-    activeMonthInfo
+    activeMonthInfo,
+    scopedStreamCounts,
+    scopedAuditCounts
   } = useData();
 
   // Close month dropdown when clicking outside
@@ -167,7 +170,7 @@ export default function Navbar({ onOpenUpload }) {
                               <div>
                                 <div className="text-slate-700 dark:text-slate-200">All Months (Consolidated)</div>
                                 <div className="text-[10px] text-slate-400 font-normal mt-0.5">
-                                  {scopedTickets.length.toLocaleString()} tickets • ₹{(scopedTickets.reduce((s, t) => s + (t.finalTotalAmount || 0), 0) / 10000000).toFixed(2)} Cr
+                                  {userScopedTickets.length.toLocaleString()} tickets • ₹{(userScopedTickets.reduce((s, t) => s + (t.finalTotalAmount || 0), 0) / 10000000).toFixed(2)} Cr
                                 </div>
                               </div>
                               {selectedMonth === 'all' && (
@@ -321,7 +324,7 @@ export default function Navbar({ onOpenUpload }) {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                All Months ({scopedTickets.length.toLocaleString()})
+                All Months ({userScopedTickets.length.toLocaleString()})
               </button>
             )}
           </div>
@@ -336,9 +339,9 @@ export default function Navbar({ onOpenUpload }) {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              All Operations ({filteredTickets.length.toLocaleString()})
+              All Operations ({scopedTickets.length.toLocaleString()})
             </button>
-            {metrics.digitalCount > 0 && (
+            {scopedStreamCounts.digital > 0 && (
               <button
                 onClick={() => setStreamFilter('digital')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
@@ -348,7 +351,7 @@ export default function Navbar({ onOpenUpload }) {
                 }`}
               >
                 <Smartphone className="w-3 h-3" />
-                <span>Digital Stream • Captains ({metrics.digitalCount.toLocaleString()})</span>
+                <span>Digital Stream • Captains ({scopedStreamCounts.digital.toLocaleString()})</span>
               </button>
             )}
             <button
@@ -360,7 +363,7 @@ export default function Navbar({ onOpenUpload }) {
               }`}
             >
               <Building2 className="w-3 h-3" />
-              <span>Physical Stream • Direct ({metrics.physicalCount.toLocaleString()})</span>
+              <span>Physical Stream • Direct ({scopedStreamCounts.physical.toLocaleString()})</span>
             </button>
           </div>
 
@@ -377,7 +380,7 @@ export default function Navbar({ onOpenUpload }) {
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
               }`}
             >
-              All ({filteredTickets.length.toLocaleString()})
+              All ({scopedTickets.length.toLocaleString()})
             </button>
             <button
               onClick={() => setAuditPodFilter(auditPodFilter === 'Auditable' ? 'all' : 'Auditable')}
@@ -388,7 +391,7 @@ export default function Navbar({ onOpenUpload }) {
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Auditable Pod ({metrics.auditableCount})</span>
+              <span>Auditable Pod ({scopedAuditCounts.auditable.toLocaleString()})</span>
             </button>
             <button
               onClick={() => setAuditPodFilter(auditPodFilter === 'Non-Auditable' ? 'all' : 'Non-Auditable')}
@@ -399,7 +402,7 @@ export default function Navbar({ onOpenUpload }) {
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Non-Auditable Pod ({metrics.nonAuditableCount})</span>
+              <span>Non-Auditable Pod ({scopedAuditCounts.nonAuditable.toLocaleString()})</span>
             </button>
           </div>
 

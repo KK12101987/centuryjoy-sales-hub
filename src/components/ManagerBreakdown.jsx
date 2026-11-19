@@ -9,7 +9,7 @@ function formatINR(val) {
 }
 
 export default function ManagerBreakdown() {
-  const { tickets, selectedManager, setSelectedManager, currentUser } = useData();
+  const { scopedTickets, selectedManager, setSelectedManager, currentUser } = useData();
 
   const managerStats = React.useMemo(() => {
     const managers = currentUser?.role === 'manager'
@@ -32,7 +32,7 @@ export default function ManagerBreakdown() {
       };
     }
 
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       const mgr = t.manager;
       if (!map[mgr]) continue;
       map[mgr].totalAmount += t.finalTotalAmount || 0;
@@ -63,7 +63,7 @@ export default function ManagerBreakdown() {
       digitalShare: m.totalAmount > 0 ? (m.digitalAmount / m.totalAmount) * 100 : 0,
       physicalShare: m.totalAmount > 0 ? (m.physicalAmount / m.totalAmount) * 100 : 0
     })).sort((a, b) => b.totalAmount - a.totalAmount);
-  }, [tickets]);
+  }, [scopedTickets, currentUser]);
 
   return (
     <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-sm relative overflow-hidden transition-colors">

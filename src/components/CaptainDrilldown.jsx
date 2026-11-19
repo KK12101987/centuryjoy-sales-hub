@@ -10,7 +10,7 @@ function formatINR(val) {
 
 export default function CaptainDrilldown() {
   const { 
-    tickets, 
+    scopedTickets, 
     selectedManager, 
     selectedCaptain, 
     setSelectedCaptain 
@@ -21,7 +21,7 @@ export default function CaptainDrilldown() {
   // Group by Captain
   const captainStats = React.useMemo(() => {
     const map = {};
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       if (selectedManager !== 'all' && t.manager !== selectedManager) continue;
       
       const cap = t.captain || 'Unassigned';
@@ -52,7 +52,7 @@ export default function CaptainDrilldown() {
         rmList: Object.values(c.rms).sort((a, b) => b.amount - a.amount)
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [tickets, selectedManager]);
+  }, [scopedTickets, selectedManager]);
 
   const toggleExpand = (capName, e) => {
     e.stopPropagation();

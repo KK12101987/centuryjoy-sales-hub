@@ -291,3 +291,26 @@
   - 1-click switching between October baseline, November test, and All Months consolidated view.
   - All KPIs, manager scopes, pod drilldowns, and RM rankings update instantly in real-time.
   - Fully verified via automated headless CDP tests (`test_month_selector_suite.py`).
+
+## Decision 018: Full Dynamic Month Synchronization across All UI Components
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User reported that upon selecting a month, certain UI fields (Senior Management Leadership cards, Audit PODs, Digital Captains, Physical Teams, Approvers, and Navbar counters) remained static and did not update with the selected month's numbers.
+- **Root Cause:**
+  `scopedTickets` in `DataContext.jsx` was previously filtered only by manager login role, not by `selectedMonth`. Consequently, components that consumed `scopedTickets` or raw `tickets` (such as `ManagerBreakdown.jsx`, `AuditPodsSection.jsx`, `DigitalPodsSection.jsx`, `PhysicalTeamsSection.jsx`, `L2ApproverOperations.jsx`, `CaptainDrilldown.jsx`) were rendering combined corpus totals rather than month-specific figures.
+- **Decision:**
+  - Re-architected data layering in `DataContext.jsx`:
+    1. `userScopedTickets`: Filtered strictly by logged-in manager scope.
+    2. `availableMonths`: Computed from `userScopedTickets` with accurate per-month counts and revenue.
+    3. `scopedTickets`: Filtered by BOTH logged-in manager scope AND `selectedMonth` (`'2026-10'`, `'2026-11'`, `'all'`).
+    4. `scopedStreamCounts` & `scopedAuditCounts`: Computed from `scopedTickets` for active month counters in Navbar.
+    5. `filteredTickets`: Further filtered by streams, audit pods, captains, and search.
+  - Refactored `ManagerBreakdown.jsx`, `L2ApproverOperations.jsx`, `CaptainDrilldown.jsx` to consume `scopedTickets` instead of raw `tickets`.
+  - Refactored `KPICards.jsx` to calculate dataset share against `scopedTickets.length`, and compute `medianAmount` and `maxAmount` dynamically.
+  - Refactored `Navbar.jsx` to bind stream and audit pod button counts to `scopedStreamCounts` and `scopedAuditCounts`.
+- **Consequences:**
+  - 100% of all UI fields, cards, badges, and counters now change synchronously when toggling between October 2026 (₹40.50 Cr | 2,688 tix), November 2026 (₹5.14 Cr | 326 tix), and All Months (₹45.64 Cr | 3,014 tix).
+  - Senior Managers' revenue and ticket volumes adjust to the active month (e.g. November: Arijit ₹2.03 Cr, Surajit ₹1.54 Cr, Niladri ₹1.39 Cr, Amit ₹18.38 L).
+  - Fully verified via automated headless CDP tests (`test_dynamic_fields.py`).

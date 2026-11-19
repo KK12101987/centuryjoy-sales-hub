@@ -21,8 +21,20 @@ function formatINR(val) {
 }
 
 export default function KPICards() {
-  const { metrics, filteredTickets, tickets, currentUser } = useData();
-  const isFiltered = filteredTickets.length !== tickets.length;
+  const { metrics, filteredTickets, scopedTickets, currentUser } = useData();
+  const isFiltered = filteredTickets.length !== scopedTickets.length;
+
+  const medianAmount = React.useMemo(() => {
+    if (!filteredTickets || filteredTickets.length === 0) return 0;
+    const sorted = [...filteredTickets].map(t => t.finalTotalAmount || 0).sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }, [filteredTickets]);
+
+  const maxAmount = React.useMemo(() => {
+    if (!filteredTickets || filteredTickets.length === 0) return 0;
+    return Math.max(...filteredTickets.map(t => t.finalTotalAmount || 0));
+  }, [filteredTickets]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -94,7 +106,7 @@ export default function KPICards() {
             </div>
             <div className="mt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>{metrics.uniqueRMs} Active RMs</span>
-              <span className="font-semibold text-slate-600 dark:text-slate-300">{((metrics.totalCount / (tickets.length || 1)) * 100).toFixed(0)}% of dataset</span>
+              <span className="font-semibold text-slate-600 dark:text-slate-300">{((metrics.totalCount / (scopedTickets.length || 1)) * 100).toFixed(0)}% of dataset</span>
             </div>
           </div>
         </div>
@@ -140,8 +152,8 @@ export default function KPICards() {
               {formatINR(metrics.avgAmount)}
             </div>
             <div className="mt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>Median: ₹81,196</span>
-              <span className="text-slate-400">Max: ₹33.25 L</span>
+              <span>Median: {formatINR(medianAmount)}</span>
+              <span className="text-slate-400">Max: {formatINR(maxAmount)}</span>
             </div>
           </div>
         </div>

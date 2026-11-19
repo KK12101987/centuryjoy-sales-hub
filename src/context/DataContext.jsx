@@ -108,8 +108,8 @@ export function DataProvider({ children }) {
     resetFilters();
   };
 
-  // Base tickets dynamically scoped to the logged in user
-  const scopedTickets = useMemo(() => {
+  // Base tickets scoped strictly to the logged-in user profile
+  const userScopedTickets = useMemo(() => {
     if (!currentUser) return tickets;
     if (currentUser.role === 'manager') {
       return tickets.filter(t => t.manager === currentUser.managerKey);
@@ -117,7 +117,7 @@ export function DataProvider({ children }) {
     return tickets;
   }, [tickets, currentUser]);
 
-  // Dynamically compute available months from scopedTickets
+  // Dynamically compute available months from userScopedTickets
   const availableMonths = useMemo(() => {
     const monthMap = new Map();
 
@@ -144,7 +144,7 @@ export function DataProvider({ children }) {
       isTest: true
     });
 
-    for (const t of scopedTickets) {
+    for (const t of userScopedTickets) {
       const ym = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
       if (!ym || ym.length < 7) continue;
       if (!monthMap.has(ym)) {
@@ -170,19 +170,49 @@ export function DataProvider({ children }) {
     }
 
     return Array.from(monthMap.values()).filter(m => m.count > 0);
+  }, [userScopedTickets]);
+
+  // scopedTickets is NOW strictly scoped to BOTH logged-in user AND selectedMonth!
+  const scopedTickets = useMemo(() => {
+    if (selectedMonth === 'all') return userScopedTickets;
+    return userScopedTickets.filter((t) => {
+      const ym = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
+      return ym === selectedMonth;
+    });
+  }, [userScopedTickets, selectedMonth]);
+
+  // Scoped counts for streams and audit pods within the active month
+  const scopedStreamCounts = useMemo(() => {
+    let digital = 0;
+    let physical = 0;
+    for (const t of scopedTickets) {
+      if (t.isPhysical) physical += 1;
+      else digital += 1;
+    }
+    return { digital, physical };
+  }, [scopedTickets]);
+
+  const scopedAuditCounts = useMemo(() => {
+    let auditable = 0;
+    let nonAuditable = 0;
+    for (const t of scopedTickets) {
+      if (t.invType === 'Non-Auditable') nonAuditable += 1;
+      else auditable += 1;
+    }
+    return { auditable, nonAuditable };
   }, [scopedTickets]);
 
   // Active Month Information
   const activeMonthInfo = useMemo(() => {
     if (selectedMonth === 'all') {
-      const totalAmt = scopedTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
+      const totalAmt = userScopedTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
       return {
         key: 'all',
         label: 'All Months',
         badgeText: 'All Months Consolidated',
         dateLabel: 'Consolidated Period',
         period: 'All Active Records',
-        count: scopedTickets.length,
+        count: userScopedTickets.length,
         amount: totalAmt,
         isTest: false
       };
@@ -198,7 +228,7 @@ export function DataProvider({ children }) {
       amount: 0,
       isTest: false
     };
-  }, [selectedMonth, availableMonths, scopedTickets]);
+  }, [selectedMonth, availableMonths, userScopedTickets]);
 
   // Handle Theme switching
   useEffect(() => {
@@ -234,15 +264,9 @@ export function DataProvider({ children }) {
     setDateRange({ start: '', end: '' });
   };
 
-  // Memoized Filtered Dataset
+  // Memoized Filtered Dataset (scopedTickets further filtered by streams, pods, managers, search)
   const filteredTickets = useMemo(() => {
     return scopedTickets.filter((t) => {
-      // Month Filter ('2026-10', '2026-11', 'all')
-      if (selectedMonth !== 'all') {
-        const ticketMonth = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
-        if (ticketMonth !== selectedMonth) return false;
-      }
-
       // Stream Filter (Digital vs Physical)
       if (streamFilter === 'digital' && t.isPhysical) return false;
       if (streamFilter === 'physical' && !t.isPhysical) return false;
@@ -285,7 +309,7 @@ export function DataProvider({ children }) {
 
       return true;
     });
-  }, [scopedTickets, selectedMonth, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
+  }, [scopedTickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
 
   // Aggregate Key Metrics
   const metrics = useMemo(() => {
@@ -412,7 +436,10 @@ export function DataProvider({ children }) {
     <DataContext.Provider
       value={{
         tickets,
+        userScopedTickets,
         scopedTickets,
+        scopedStreamCounts,
+        scopedAuditCounts,
         filteredTickets,
         metrics,
         currentUser,

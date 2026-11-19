@@ -9,11 +9,11 @@ function formatINR(val) {
 }
 
 export default function L2ApproverOperations() {
-  const { tickets, selectedL2Assign, setSelectedL2Assign } = useData();
+  const { scopedTickets, selectedL2Assign, setSelectedL2Assign } = useData();
 
   const approverStats = React.useMemo(() => {
     const map = {};
-    for (const t of tickets) {
+    for (const t of scopedTickets) {
       const user = t.l2Assign || 'Unassigned';
       if (!map[user]) {
         map[user] = {
@@ -32,7 +32,7 @@ export default function L2ApproverOperations() {
       }
     }
 
-    const totalTickets = tickets.length || 1;
+    const totalTickets = scopedTickets.length || 1;
 
     return Object.values(map)
       .map((u) => ({
@@ -42,7 +42,7 @@ export default function L2ApproverOperations() {
         share: (u.count / totalTickets) * 100
       }))
       .sort((a, b) => b.count - a.count);
-  }, [tickets]);
+  }, [scopedTickets]);
 
   return (
     <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
