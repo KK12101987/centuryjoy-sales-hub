@@ -138,11 +138,6 @@ export default function Navbar({ onOpenUpload }) {
                                     <span className={isSelected ? 'text-[#e31e24]' : 'text-slate-700 dark:text-slate-200'}>
                                       {m.label}
                                     </span>
-                                    {m.isTest && (
-                                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-semibold uppercase">
-                                        Test
-                                      </span>
-                                    )}
                                   </div>
                                   <div className="text-[10px] text-slate-400 font-normal mt-0.5">
                                     {m.count.toLocaleString()} tickets • ₹{(m.amount / 10000000).toFixed(2)} Cr

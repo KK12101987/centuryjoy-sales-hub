@@ -24,15 +24,15 @@ export const AVAILABLE_DATASETS = {
   },
   november: {
     id: 'november',
-    name: 'November 2026 Test',
-    badgeText: 'November 2026 Test',
+    name: 'November 2026 Live',
+    badgeText: 'November 2026 Live',
     dateLabel: 'November 2026',
-    shortLabel: 'Nov 2026 (Test)',
+    shortLabel: 'Nov 2026',
     period: 'Nov 2 - Nov 16, 2026',
     ticketsCount: 326,
     amountFormatted: '₹5.14 Cr',
     tickets: novemberTickets,
-    isTest: true
+    isTest: false
   }
 };
 
@@ -136,12 +136,12 @@ export function DataProvider({ children }) {
     monthMap.set('2026-11', {
       key: '2026-11',
       label: 'November 2026',
-      badgeText: 'November 2026 Test',
+      badgeText: 'November 2026 Live',
       dateLabel: 'November 2026',
       period: 'Nov 2 - Nov 16, 2026',
       count: 0,
       amount: 0,
-      isTest: true
+      isTest: false
     });
 
     for (const t of userScopedTickets) {
