@@ -404,3 +404,17 @@
 - **Consequences:**
   - Enables granular stakeholder governance between active data operators and read-only executive auditors.
   - Both roles see the unified company-wide data while respecting least-privilege principles for data modification and identity administration.
+
+## Decision 023: React DOM Portal Integration for Modals & Overlay Windows
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User reported that the "Update Password" modal was cut off vertically and only displayed within the navbar header area.
+- **Decision:**
+  - Diagnosed CSS containing block trapping caused by `backdrop-filter: blur(...)` (`backdrop-blur-md`) on the `<header>` element in `Navbar.jsx`.
+  - Upgraded `src/components/UpdatePasswordModal.jsx` to render via `createPortal(modalContent, document.body)`.
+  - Added full viewport dimensions, escape key listener, background scroll lock, and click-outside dismissal.
+- **Consequences:**
+  - Complete elimination of modal clipping.
+  - Modal overlay covers 100% of the screen with a clean blurred backdrop and the dialog is pixel-perfect centered vertically and horizontally.

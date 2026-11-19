@@ -73,6 +73,7 @@
   - `Upload and View All Teams Data` (`upload_view_all`): Complete dataset visibility (3,014 tickets | ₹45.64 Cr) + active `Upload L2 Data` button.
   - `View All Teams Data (Read-Only)` (`view_all`): Complete dataset visibility (3,014 tickets | ₹45.64 Cr) + `Upload L2 Data` button strictly hidden.
 - [x] Automated CDP verification completed for both roles (`test_new_roles_verification.py`) confirming proper scoping, button visibility, and developer console restriction.
+- [x] Resolved "Update Password Modal Clipped" bug: upgraded `src/components/UpdatePasswordModal.jsx` to render via `createPortal(modalContent, document.body)` so it escapes `<header>`'s CSS backdrop-filter containing block and centers cleanly in the viewport with full-screen overlay backdrop.
 - [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
 - [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
