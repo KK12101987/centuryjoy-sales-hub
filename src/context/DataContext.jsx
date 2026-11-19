@@ -3,6 +3,12 @@ import initialTickets from '../data/initialData.json';
 import novemberTickets from '../data/novemberData.json';
 import { verifyWatermarkIntegrity } from '../utils/integrity';
 
+// Unified default ticket corpus combining baseline October (2,688) & November (326)
+const DEFAULT_ALL_TICKETS = [
+  ...initialTickets.map((t, idx) => ({ ...t, _uid: `oct-${idx}-${t.ticketNo}` })),
+  ...novemberTickets.map((t, idx) => ({ ...t, _uid: `nov-${idx}-${t.ticketNo}` }))
+];
+
 export const AVAILABLE_DATASETS = {
   october: {
     id: 'october',
@@ -33,25 +39,29 @@ export const AVAILABLE_DATASETS = {
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
-  const [selectedDatasetId, setSelectedDatasetId] = useState(() => {
-    try {
-      const saved = localStorage.getItem('century_active_dataset');
-      return (saved && AVAILABLE_DATASETS[saved]) ? saved : 'october';
-    } catch (e) {
-      return 'october';
-    }
-  });
-
-  const [customDatasetInfo, setCustomDatasetInfo] = useState(null);
-
+  // Master tickets state
   const [tickets, setTickets] = useState(() => {
-    try {
-      const saved = localStorage.getItem('century_active_dataset');
-      return (saved && AVAILABLE_DATASETS[saved]) ? AVAILABLE_DATASETS[saved].tickets : initialTickets;
-    } catch (e) {
-      return initialTickets;
-    }
+    return DEFAULT_ALL_TICKETS;
   });
+
+  // Selected Month state: '2026-10' | '2026-11' | 'all' | other YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_selected_month_v2');
+      if (saved) return saved;
+      const oldDs = localStorage.getItem('century_active_dataset');
+      if (oldDs === 'november') return '2026-11';
+      if (oldDs === 'october') return '2026-10';
+    } catch (e) {}
+    return '2026-10'; // Default to October 2026 Live baseline
+  });
+
+  const selectMonth = (monthKey) => {
+    setSelectedMonth(monthKey);
+    try {
+      localStorage.setItem('century_selected_month_v2', monthKey);
+    } catch (e) {}
+  };
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -63,7 +73,6 @@ export function DataProvider({ children }) {
   });
 
   const [theme, setTheme] = useState(() => {
-    // Default to Option 2 CenturyPly Enterprise Clean Light theme
     return localStorage.getItem('century_theme_v2') || 'light';
   });
 
@@ -108,6 +117,89 @@ export function DataProvider({ children }) {
     return tickets;
   }, [tickets, currentUser]);
 
+  // Dynamically compute available months from scopedTickets
+  const availableMonths = useMemo(() => {
+    const monthMap = new Map();
+
+    // Default predefined descriptors
+    monthMap.set('2026-10', {
+      key: '2026-10',
+      label: 'October 2026',
+      badgeText: 'October 2026 Live',
+      dateLabel: 'October 2026',
+      period: 'Oct 1 - Oct 31, 2026',
+      count: 0,
+      amount: 0,
+      isTest: false
+    });
+
+    monthMap.set('2026-11', {
+      key: '2026-11',
+      label: 'November 2026',
+      badgeText: 'November 2026 Test',
+      dateLabel: 'November 2026',
+      period: 'Nov 2 - Nov 16, 2026',
+      count: 0,
+      amount: 0,
+      isTest: true
+    });
+
+    for (const t of scopedTickets) {
+      const ym = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
+      if (!ym || ym.length < 7) continue;
+      if (!monthMap.has(ym)) {
+        const [y, m] = ym.split('-');
+        const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+        const label = !isNaN(dateObj)
+          ? dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+          : ym;
+        monthMap.set(ym, {
+          key: ym,
+          label: label,
+          badgeText: `${label} Data`,
+          dateLabel: label,
+          period: label,
+          count: 0,
+          amount: 0,
+          isTest: false
+        });
+      }
+      const entry = monthMap.get(ym);
+      entry.count += 1;
+      entry.amount += (t.finalTotalAmount || 0);
+    }
+
+    return Array.from(monthMap.values()).filter(m => m.count > 0);
+  }, [scopedTickets]);
+
+  // Active Month Information
+  const activeMonthInfo = useMemo(() => {
+    if (selectedMonth === 'all') {
+      const totalAmt = scopedTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
+      return {
+        key: 'all',
+        label: 'All Months',
+        badgeText: 'All Months Consolidated',
+        dateLabel: 'Consolidated Period',
+        period: 'All Active Records',
+        count: scopedTickets.length,
+        amount: totalAmt,
+        isTest: false
+      };
+    }
+    const found = availableMonths.find(m => m.key === selectedMonth);
+    return found || availableMonths[0] || {
+      key: '2026-10',
+      label: 'October 2026',
+      badgeText: 'October 2026 Live',
+      dateLabel: 'October 2026',
+      period: 'Oct 1 - Oct 31, 2026',
+      count: 0,
+      amount: 0,
+      isTest: false
+    };
+  }, [selectedMonth, availableMonths, scopedTickets]);
+
   // Handle Theme switching
   useEffect(() => {
     localStorage.setItem('century_theme_v2', theme);
@@ -125,7 +217,7 @@ export function DataProvider({ children }) {
   // Rule 19 Anti-Tamper check on state changes
   useEffect(() => {
     verifyWatermarkIntegrity();
-  }, [tickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, searchQuery]);
+  }, [tickets, selectedMonth, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, searchQuery]);
 
   const handleManagerSelect = (mgr) => {
     setSelectedManager(mgr);
@@ -145,6 +237,12 @@ export function DataProvider({ children }) {
   // Memoized Filtered Dataset
   const filteredTickets = useMemo(() => {
     return scopedTickets.filter((t) => {
+      // Month Filter ('2026-10', '2026-11', 'all')
+      if (selectedMonth !== 'all') {
+        const ticketMonth = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
+        if (ticketMonth !== selectedMonth) return false;
+      }
+
       // Stream Filter (Digital vs Physical)
       if (streamFilter === 'digital' && t.isPhysical) return false;
       if (streamFilter === 'physical' && !t.isPhysical) return false;
@@ -170,7 +268,7 @@ export function DataProvider({ children }) {
       if (dateRange.end && t.l2ApprovedDate > dateRange.end) return false;
 
       // Search Query
-      if (searchQuery.trim()) {
+      if (searchQuery && searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const match =
           t.ticketNo?.toLowerCase().includes(q) ||
@@ -187,7 +285,7 @@ export function DataProvider({ children }) {
 
       return true;
     });
-  }, [scopedTickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
+  }, [scopedTickets, selectedMonth, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
 
   // Aggregate Key Metrics
   const metrics = useMemo(() => {
@@ -270,44 +368,43 @@ export function DataProvider({ children }) {
     };
   }, [filteredTickets]);
 
+  // Backward-compatible dataset select
   const selectDataset = (datasetId) => {
-    if (AVAILABLE_DATASETS[datasetId]) {
-      setSelectedDatasetId(datasetId);
-      setCustomDatasetInfo(null);
-      setTickets(AVAILABLE_DATASETS[datasetId].tickets);
-      try {
-        localStorage.setItem('century_active_dataset', datasetId);
-      } catch (e) {}
-      resetFilters();
+    if (datasetId === 'november') {
+      selectMonth('2026-11');
+    } else if (datasetId === 'october') {
+      selectMonth('2026-10');
+    } else {
+      selectMonth(datasetId);
     }
   };
-
-  const activeDataset = customDatasetInfo || AVAILABLE_DATASETS[selectedDatasetId] || AVAILABLE_DATASETS.october;
 
   const importTickets = (newRecords, mode = 'replace') => {
     verifyWatermarkIntegrity();
     if (mode === 'replace') {
-      setTickets(newRecords);
-      const totalAmt = newRecords.reduce((s, t) => s + (t.finalTotalAmount || 0), 0);
-      setCustomDatasetInfo({
-        id: 'custom',
-        name: 'Custom Uploaded Data',
-        badgeText: `Custom Upload (${newRecords.length} tix)`,
-        dateLabel: 'Custom Upload',
-        shortLabel: 'Custom',
-        period: 'Uploaded File',
-        ticketsCount: newRecords.length,
-        amountFormatted: `₹${(totalAmt / 10000000).toFixed(2)} Cr`,
-        tickets: newRecords,
-        isTest: true
-      });
+      const tagged = newRecords.map((r, i) => ({ ...r, _uid: `upload-${i}-${r.ticketNo}` }));
+      setTickets(tagged);
+      const firstMonth = (tagged[0]?.l2ApprovedDate || tagged[0]?.createdDate || '').slice(0, 7);
+      if (firstMonth && firstMonth.length === 7) {
+        setSelectedMonth(firstMonth);
+      } else {
+        setSelectedMonth('all');
+      }
       resetFilters();
     } else {
-      const existingMap = new Map(tickets.map((t) => [t.ticketNo, t]));
-      for (const nr of newRecords) {
-        existingMap.set(nr.ticketNo, nr);
+      // Append mode: merge into existing corpus
+      const existingMap = new Map(tickets.map((t) => [t._uid || t.ticketNo, t]));
+      for (let i = 0; i < newRecords.length; i++) {
+        const nr = newRecords[i];
+        const uid = nr._uid || `upload-${i}-${nr.ticketNo}`;
+        existingMap.set(uid, { ...nr, _uid: uid });
       }
-      setTickets(Array.from(existingMap.values()));
+      const updated = Array.from(existingMap.values());
+      setTickets(updated);
+      const newMonth = (newRecords[0]?.l2ApprovedDate || newRecords[0]?.createdDate || '').slice(0, 7);
+      if (newMonth && newMonth.length === 7) {
+        setSelectedMonth(newMonth);
+      }
     }
   };
 
@@ -339,9 +436,16 @@ export function DataProvider({ children }) {
         setDateRange,
         resetFilters,
         importTickets,
+        // Month Selector API
+        selectedMonth,
+        setSelectedMonth,
+        selectMonth,
+        availableMonths,
+        activeMonthInfo,
+        // Backwards compatibility API
         availableDatasets: Object.values(AVAILABLE_DATASETS),
-        selectedDatasetId,
-        activeDataset,
+        selectedDatasetId: selectedMonth === '2026-11' ? 'november' : 'october',
+        activeDataset: activeMonthInfo,
         selectDataset
       }}
     >

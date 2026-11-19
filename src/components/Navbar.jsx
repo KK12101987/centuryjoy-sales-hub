@@ -15,18 +15,19 @@ import {
   User,
   LogOut,
   KeyRound,
-  Database,
+  Calendar,
   ChevronDown,
   Check
 } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload }) {
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
-  const [isDatasetDropdownOpen, setIsDatasetDropdownOpen] = useState(false);
-  const datasetDropdownRef = useRef(null);
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
+  const monthDropdownRef = useRef(null);
 
   const { 
     filteredTickets, 
+    scopedTickets,
     tickets,
     metrics, 
     theme, 
@@ -43,16 +44,18 @@ export default function Navbar({ onOpenUpload }) {
     selectedL2Assign,
     currentUser,
     logout,
-    availableDatasets,
-    activeDataset,
-    selectDataset
+    // Month API
+    selectedMonth,
+    selectMonth,
+    availableMonths,
+    activeMonthInfo
   } = useData();
 
-  // Close dataset dropdown when clicking outside
+  // Close month dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (datasetDropdownRef.current && !datasetDropdownRef.current.contains(event.target)) {
-        setIsDatasetDropdownOpen(false);
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
+        setIsMonthDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -88,37 +91,38 @@ export default function Navbar({ onOpenUpload }) {
                     Century Joy Sales & Revenue Hub
                   </h1>
 
-                  {/* Interactive Dataset Switcher */}
-                  <div className="relative" ref={datasetDropdownRef}>
+                  {/* Interactive Month Switcher in Header */}
+                  <div className="relative" ref={monthDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setIsDatasetDropdownOpen(!isDatasetDropdownOpen)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight bg-red-50 hover:bg-red-100 text-[#e31e24] dark:bg-red-950/50 dark:hover:bg-red-900/60 dark:text-red-400 border border-red-200 dark:border-red-900/60 transition-all cursor-pointer shadow-2xs group"
-                      title="Switch between datasets"
+                      onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-tight bg-red-50 hover:bg-red-100 text-[#e31e24] dark:bg-red-950/60 dark:hover:bg-red-900/80 dark:text-red-400 border border-red-200 dark:border-red-900/80 transition-all cursor-pointer shadow-2xs group"
+                      title="Click to select month"
                     >
-                      <Database className="w-3 h-3 text-[#e31e24] group-hover:scale-110 transition-transform" />
-                      <span>{activeDataset?.badgeText || 'October 2026 Live'}</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isDatasetDropdownOpen ? 'rotate-180' : ''}`} />
+                      <Calendar className="w-3.5 h-3.5 text-[#e31e24] group-hover:scale-110 transition-transform" />
+                      <span>{activeMonthInfo?.badgeText || activeMonthInfo?.label || 'October 2026 Live'}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMonthDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {/* Dataset Dropdown Menu */}
-                    {isDatasetDropdownOpen && (
-                      <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    {/* Month Dropdown Menu */}
+                    {isMonthDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
                         <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>Select Dataset Period</span>
+                          <span>Select Month Period</span>
                           <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-mono">
-                            {availableDatasets.length} sets
+                            {availableMonths.length} available
                           </span>
                         </div>
                         <div className="py-1">
-                          {availableDatasets.map((ds) => {
-                            const isSelected = activeDataset?.id === ds.id;
+                          {availableMonths.map((m) => {
+                            const isSelected = selectedMonth === m.key;
                             return (
                               <button
-                                key={ds.id}
+                                key={m.key}
+                                type="button"
                                 onClick={() => {
-                                  selectDataset(ds.id);
-                                  setIsDatasetDropdownOpen(false);
+                                  selectMonth(m.key);
+                                  setIsMonthDropdownOpen(false);
                                 }}
                                 className={`w-full px-3 py-2 text-left text-xs transition-colors flex items-center justify-between group cursor-pointer ${
                                   isSelected 
@@ -129,16 +133,16 @@ export default function Navbar({ onOpenUpload }) {
                                 <div>
                                   <div className="flex items-center gap-1.5">
                                     <span className={isSelected ? 'text-[#e31e24]' : 'text-slate-700 dark:text-slate-200'}>
-                                      {ds.name}
+                                      {m.label}
                                     </span>
-                                    {ds.isTest && (
+                                    {m.isTest && (
                                       <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-semibold uppercase">
                                         Test
                                       </span>
                                     )}
                                   </div>
                                   <div className="text-[10px] text-slate-400 font-normal mt-0.5">
-                                    {ds.ticketsCount.toLocaleString()} tickets • {ds.amountFormatted}
+                                    {m.count.toLocaleString()} tickets • ₹{(m.amount / 10000000).toFixed(2)} Cr
                                   </div>
                                 </div>
                                 {isSelected && (
@@ -147,6 +151,30 @@ export default function Navbar({ onOpenUpload }) {
                               </button>
                             );
                           })}
+                          {availableMonths.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                selectMonth('all');
+                                setIsMonthDropdownOpen(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left text-xs transition-colors flex items-center justify-between border-t border-slate-100 dark:border-slate-800 group cursor-pointer ${
+                                selectedMonth === 'all'
+                                  ? 'bg-red-50/70 dark:bg-red-950/30 text-slate-900 dark:text-white font-bold' 
+                                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                              }`}
+                            >
+                              <div>
+                                <div className="text-slate-700 dark:text-slate-200">All Months (Consolidated)</div>
+                                <div className="text-[10px] text-slate-400 font-normal mt-0.5">
+                                  {scopedTickets.length.toLocaleString()} tickets • ₹{(scopedTickets.reduce((s, t) => s + (t.finalTotalAmount || 0), 0) / 10000000).toFixed(2)} Cr
+                                </div>
+                              </div>
+                              {selectedMonth === 'all' && (
+                                <Check className="w-4 h-4 text-[#e31e24] shrink-0" />
+                              )}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -157,43 +185,24 @@ export default function Navbar({ onOpenUpload }) {
                 </p>
               </div>
             </div>
-
-            {/* Mobile Theme Toggle */}
-            <div className="lg:hidden">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-                aria-label="Toggle theme"
-              >
-                {theme === 'light' ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
-              </button>
-            </div>
           </div>
 
-          {/* Action Controls & Navigation */}
-          <div className="flex items-center flex-wrap gap-2.5">
+          {/* Quick Search & Controls */}
+          <div className="flex flex-wrap items-center gap-2.5">
             
-            {/* Global Search Bar */}
-            <div className="relative min-w-[210px] flex-1 sm:flex-initial">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            {/* Search Input */}
+            <div className="relative min-w-[200px] sm:min-w-[240px]">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search ticket, RM, architect..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-[#e31e24] transition-all"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#e31e24] transition-all"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs font-bold"
-                >
-                  ×
-                </button>
-              )}
             </div>
 
-            {/* Reset Filters */}
+            {/* Reset Filters Button */}
             {isFiltered && (
               <button
                 onClick={resetFilters}
@@ -233,7 +242,7 @@ export default function Navbar({ onOpenUpload }) {
               <span>Upload L2 Data</span>
             </button>
 
-            {/* Authenticated Manager Profile (Full Name, No Monograms, No Restricted Badge) */}
+            {/* Authenticated Manager Profile */}
             {currentUser && (
               <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:border-l border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -276,9 +285,47 @@ export default function Navbar({ onOpenUpload }) {
 
         </div>
 
-        {/* Secondary Stream & Audit Pod Navigation Bar */}
-        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        {/* Secondary Navigation & Filter Bar: Month Selector, Streams & Audit Pods */}
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex flex-wrap items-center justify-between gap-3 text-xs">
           
+          {/* Month Segmented Controls (Primary Month Selection) */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 w-fit shadow-2xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 pr-1 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-[#e31e24]" />
+              Month:
+            </span>
+            {availableMonths.map((m) => {
+              const isSelected = selectedMonth === m.key;
+              return (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => selectMonth(m.key)}
+                  className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-white dark:bg-slate-800 text-[#e31e24] shadow-sm border border-slate-200/80 dark:border-slate-700 font-extrabold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {m.label} ({m.count.toLocaleString()})
+                </button>
+              );
+            })}
+            {availableMonths.length > 1 && (
+              <button
+                type="button"
+                onClick={() => selectMonth('all')}
+                className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                  selectedMonth === 'all'
+                    ? 'bg-white dark:bg-slate-800 text-[#e31e24] shadow-sm border border-slate-200/80 dark:border-slate-700 font-extrabold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                All Months ({scopedTickets.length.toLocaleString()})
+              </button>
+            )}
+          </div>
+
           {/* Stream Segmented Controls */}
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 w-fit">
             <button
@@ -289,7 +336,7 @@ export default function Navbar({ onOpenUpload }) {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              All Operations ({tickets.length.toLocaleString()})
+              All Operations ({filteredTickets.length.toLocaleString()})
             </button>
             {metrics.digitalCount > 0 && (
               <button

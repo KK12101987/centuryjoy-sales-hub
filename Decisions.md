@@ -271,3 +271,23 @@
   - Immediate, friction-free login experience for managers.
   - Full self-service password management with administrator fallback.
   - Fully tested across invalid password rejection, password update, old password invalidation, and recovery PIN reset.
+
+## Decision 017: Dedicated Dynamic Month Selector (October 2026, November 2026, All Months)
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User reported "unable to select month" with a screenshot showing 3,009 tickets and ₹45.52 Cr resulting from appending November test data without a visible, dedicated Month filter on screen.
+- **Decision:**
+  - Integrated both October 2026 (2,688 tickets | ₹40.50 Cr) and November 2026 (326 tickets | ₹5.14 Cr) into the unified corpus (3,014 records) in `DataContext.jsx`.
+  - Added first-class `selectedMonth` filter (`'2026-10'`, `'2026-11'`, or `'all'`) to `DataContext.jsx`, defaulting to `'2026-10'` (October 2026 Live baseline).
+  - Implemented dynamic month detection (`availableMonths`) computing ticket counts and total revenue per month directly from scoped tickets.
+  - Added dual Month selection controls in `Navbar.jsx`:
+    1. **Primary Month Filter Buttons:** Added to the secondary filter bar alongside Streams and Audit Pods: `Month: [ October 2026 (2,688) ] [ November 2026 (326) ] [ All Months (3,014) ]`.
+    2. **Header Dropdown Pill:** Redesigned the top brand badge into an interactive dropdown with calendar icon and chevron displaying active month status and revenue.
+  - Wired `AnalyticsCharts.jsx` to dynamically label charts with the active month name.
+- **Consequences:**
+  - Zero ambiguity: month selection is front-and-center in both the header and the main filter bar.
+  - 1-click switching between October baseline, November test, and All Months consolidated view.
+  - All KPIs, manager scopes, pod drilldowns, and RM rankings update instantly in real-time.
+  - Fully verified via automated headless CDP tests (`test_month_selector_suite.py`).

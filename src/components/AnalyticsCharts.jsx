@@ -9,7 +9,7 @@ function formatINR(val) {
 }
 
 export default function AnalyticsCharts() {
-  const { filteredTickets, streamFilter, setStreamFilter, activeDataset } = useData();
+  const { filteredTickets, streamFilter, setStreamFilter, activeMonthInfo } = useData();
 
   const dailyData = React.useMemo(() => {
     const map = {};
@@ -34,10 +34,10 @@ export default function AnalyticsCharts() {
         <div>
           <h2 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#e31e24]" />
-            {activeDataset?.dateLabel || 'October 2026'} Daily L2 Approval Velocity & Cadence
+            {activeMonthInfo?.label || 'October 2026'} Daily L2 Approval Velocity & Cadence
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Day-by-day transaction throughput across active approval dates in {activeDataset?.dateLabel || 'this period'}.
+            Day-by-day transaction throughput across active approval dates in {activeMonthInfo?.dateLabel || activeMonthInfo?.label || 'this period'}.
           </p>
         </div>
         {peakDay && (

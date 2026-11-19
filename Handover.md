@@ -60,6 +60,9 @@
 - [x] Ingested and reconciled November 2026 dataset (`L2 Approved_Test.xlsx`: 326 tickets, ₹5.14 Cr) with 100% hierarchy resolution for new RMs Sholanki Dhar & Ishani Dey under Captain Arshi Afreen Jamal & Manager Arijit Nath.
 - [x] Implemented Option 1 Multi-Dataset Switcher in `src/components/Navbar.jsx` & `src/context/DataContext.jsx` allowing seamless toggling between October 2026 Live (2,688 tickets | ₹40.50 Cr) and November 2026 Test (326 tickets | ₹5.14 Cr).
 - [x] Automated CDP verification completed for dataset switcher with live metric updates, screenshots, and return-to-baseline tests.
+- [x] Resolved "Unable to select month" issue: built dynamic, prominent Month Selector with dual controls (1-click filter bar buttons + header dropdown pill).
+- [x] Unified default corpus in `DataContext.jsx` combining October 2026 (2,688 tickets | ₹40.50 Cr) and November 2026 (326 tickets | ₹5.14 Cr) with 100% dynamic month filtering.
+- [x] Automated headless CDP verification passed across October baseline, November selection, and dropdown interaction.
 - [ ] User review and operational deployment.
 
 ## File Manifest & Inventory
