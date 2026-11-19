@@ -314,3 +314,41 @@
   - 100% of all UI fields, cards, badges, and counters now change synchronously when toggling between October 2026 (₹40.50 Cr | 2,688 tix), November 2026 (₹5.14 Cr | 326 tix), and All Months (₹45.64 Cr | 3,014 tix).
   - Senior Managers' revenue and ticket volumes adjust to the active month (e.g. November: Arijit ₹2.03 Cr, Surajit ₹1.54 Cr, Niladri ₹1.39 Cr, Amit ₹18.38 L).
   - Fully verified via automated headless CDP tests (`test_dynamic_fields.py`).
+
+
+## Decision 019: Concept 1 Split-Screen Login & Removal of Quick Access Profiles
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User selected Concept 1 (Split-Screen Flagship) from the redesign mockup suite and requested completely removing the "Quick Access Profiles" section from the login screen to establish a clean, production-grade corporate authentication terminal.
+- **Decision:**
+  - Re-architected `src/components/LoginPage.jsx` into a 2-column split-screen layout:
+    - **Left Column:** Century Joy enterprise authority, live operating metrics (October & November 2026 Live Certified, ₹45.64 Cr | 3,014 tickets), security badges, and background ambient glow.
+    - **Right Column:** Focused corporate sign-in form (Email, Password with Eye toggle, Forgot Password? link, and Sign In button) with single sign-on assurance note.
+  - Completely eliminated all 6 quick-access profile bars and chips from the UI.
+  - Retained Option 1 Self-Service Password Recovery (Recovery PIN CP-XXXX) and Rule 19 Watermark.
+- **Consequences:**
+  - Login screen height reduced from >850px to a comfortable ~560px that fits 100% of standard laptop viewports with zero scrolling.
+  - Establishes full enterprise security posture for management sign-in.
+
+## Decision 020: Developer User & Access Management Console (Dynamic Registry & RBAC)
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  Developer required a dedicated in-app administration section to view existing users, create fresh users, assign supervisory scopes, reset credentials, and govern access.
+- **Decision:**
+  - Upgraded `src/utils/auth.js` from static list to dynamic persistent user registry stored in `localStorage` under `century_users_registry_v1`.
+  - Implemented full administrative CRUD APIs: `getAllUsers()`, `createUser()`, `updateUser()`, `deleteUser()`, `toggleUserStatus()`, `adminResetUserPassword()`.
+  - Created `src/components/DeveloperUserModal.jsx`:
+    - Directory with search and role filtering.
+    - User cards showing avatar, name, email, designation, manager pod scope, PIN, and active/suspended status.
+    - "Create Fresh User" modal with automatic validation and immediate login capability.
+    - "Edit User & Access" drawer to update designations, pods, or passwords.
+    - Direct password reset and suspend/activate toggles.
+  - Integrated into `src/components/Navbar.jsx` behind strict RBAC: button is only rendered if `currentUser.role === 'admin'` or user is Kushal Kar.
+- **Consequences:**
+  - Developer has full autonomy to onboard new managers and manage credentials without code redeployment.
+  - Regular managers (Niladri, Surajit, Arijit, Amit, or new users) cannot access or view the administrative console.
+  - Fully verified via automated headless CDP tests (`test_developer_console_flow.py`).

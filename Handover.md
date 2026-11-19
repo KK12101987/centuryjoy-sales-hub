@@ -65,6 +65,13 @@
 - [x] Automated headless CDP verification passed across October baseline, November selection, and dropdown interaction.
 - [x] Corrected UI component data binding: wired `ManagerBreakdown`, `AuditPodsSection`, `DigitalPodsSection`, `PhysicalTeamsSection`, `L2ApproverOperations`, and `CaptainDrilldown` to month-scoped data so ALL fields, manager totals, and pod metrics dynamically update upon month selection.
 - [x] Verified full dynamic month update via automated CDP tests (`test_dynamic_fields.py`) confirming real-time updates across all components.
+- [x] Designated November 2026 as official Live Operating Data: removed amber 'TEST' badges from `DataContext.jsx` and `Navbar.jsx`.
+- [x] Implemented Concept 1 (Split-Screen Flagship) in `LoginPage.jsx` with complete removal of Quick Access Profiles for production security.
+- [x] Implemented Developer User & Access Management Console (`DeveloperUserModal.jsx`) allowing Developer Kushal Kar to create fresh users, assign roles/supervisory scopes, view the active registry, and reset credentials.
+- [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
+- [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
+- [x] Pushed commit `568eadd` to GitHub master (`https://github.com/KK12101987/centuryjoy-sales-hub.git`).
+- [x] Verified production build (`npm run build`, exit code 0).
 - [ ] User review and operational deployment.
 
 ## File Manifest & Inventory
