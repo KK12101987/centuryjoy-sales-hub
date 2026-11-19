@@ -68,7 +68,9 @@
 - [x] Designated November 2026 as official Live Operating Data: removed amber 'TEST' badges from `DataContext.jsx` and `Navbar.jsx`.
 - [x] Implemented Concept 1 (Split-Screen Flagship) in `LoginPage.jsx` with complete removal of Quick Access Profiles for production security.
 - [x] Implemented Developer User & Access Management Console (`DeveloperUserModal.jsx`) allowing Developer Kushal Kar to create fresh users, assign roles/supervisory scopes, view the active registry, and reset credentials.
+- [x] Converted User Access into a Dedicated Standalone Page (`UserAccessPage.jsx`) with widescreen layout, 4 KPI cards, full-width directory table, and `← Back to Dashboard` return navigation.
 - [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
+- [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
 - [x] Pushed commit `568eadd` to GitHub master (`https://github.com/KK12101987/centuryjoy-sales-hub.git`).
 - [x] Verified production build (`npm run build`, exit code 0).

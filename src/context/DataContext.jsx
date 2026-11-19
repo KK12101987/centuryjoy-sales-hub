@@ -72,6 +72,8 @@ export function DataProvider({ children }) {
     }
   });
 
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'user-access'
+
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('century_theme_v2') || 'light';
   });
@@ -105,6 +107,7 @@ export function DataProvider({ children }) {
     } catch (e) {}
     setCurrentUser(null);
     setSelectedManager('all');
+    setActiveView('dashboard');
     resetFilters();
   };
 
@@ -445,6 +448,8 @@ export function DataProvider({ children }) {
         currentUser,
         login,
         logout,
+        activeView,
+        setActiveView,
         theme,
         toggleTheme,
         streamFilter,

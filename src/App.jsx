@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import LoginPage from './components/LoginPage';
 import Navbar from './components/Navbar';
+import UserAccessPage from './components/UserAccessPage';
 import KPICards from './components/KPICards';
 import ManagerBreakdown from './components/ManagerBreakdown';
 import AuditPodsSection from './components/AuditPodsSection';
@@ -14,10 +15,16 @@ import UploadModal from './components/UploadModal';
 import Watermark from './components/Watermark';
 
 function DashboardContent({ onOpenUpload }) {
-  const { currentUser } = useData();
+  const { currentUser, activeView, setActiveView } = useData();
 
   if (!currentUser) {
     return <LoginPage />;
+  }
+
+  // Dedicated Standalone Page for Developer User Access
+  const isDeveloper = currentUser.role === 'admin' || (currentUser.name && currentUser.name.toLowerCase().includes('kushal'));
+  if (activeView === 'user-access' && isDeveloper) {
+    return <UserAccessPage onBack={() => setActiveView('dashboard')} />;
   }
 
   return (

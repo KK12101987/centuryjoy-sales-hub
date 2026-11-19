@@ -352,3 +352,25 @@
   - Developer has full autonomy to onboard new managers and manage credentials without code redeployment.
   - Regular managers (Niladri, Surajit, Arijit, Amit, or new users) cannot access or view the administrative console.
   - Fully verified via automated headless CDP tests (`test_developer_console_flow.py`).
+
+
+## Decision 021: Dedicated Standalone User Access Page
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User requested converting the modal-based User Access tool into a dedicated standalone page to eliminate modal container constraints, nested scrollbars, and overlay cramping.
+- **Decision:**
+  - Added global view state `activeView: 'dashboard' | 'user-access'` to `DataContext.jsx`.
+  - Created dedicated full-screen standalone component `src/components/UserAccessPage.jsx`:
+    - Full-width top navigation with prominent `← Back to Dashboard` return action.
+    - 4 Executive KPI metric cards (Total Accounts, Active Status, Senior Managers, Leadership & Dev).
+    - Full-width search and role filter bar (`All Users`, `Senior Managers`, `Admins`) with `+ Create Fresh User` button.
+    - Spacious widescreen Authorized Personnel Directory table with full details (User & Initials Avatar, Role & Designation, Supervisory Pod Scope, Recovery PIN, Live Status toggle, and direct action controls).
+    - Slide-over drawers for fresh user creation, access scope edits, and password overrides.
+  - Wired Navbar button to activate `user-access` view and removed `DeveloperUserModal`.
+  - Enforced strict RBAC guard: automatically returns non-admin users to the sales dashboard.
+- **Consequences:**
+  - Provides a complete widescreen administrative workspace without any modal nesting or background clutter.
+  - Seamless 1-click transition between the executive sales dashboard and user identity governance.
+  - Fully verified via automated headless CDP tests (`test_user_access_page_standalone.py`).

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import UpdatePasswordModal from './UpdatePasswordModal';
-import DeveloperUserModal from './DeveloperUserModal';
 import { 
   RotateCcw, 
   UploadCloud, 
@@ -24,7 +23,6 @@ import {
 
 export default function Navbar({ onOpenUpload }) {
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
-  const [isDeveloperModalOpen, setIsDeveloperModalOpen] = useState(false);
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const monthDropdownRef = useRef(null);
 
@@ -48,6 +46,8 @@ export default function Navbar({ onOpenUpload }) {
     selectedL2Assign,
     currentUser,
     logout,
+    activeView,
+    setActiveView,
     // Month API
     selectedMonth,
     selectMonth,
@@ -263,8 +263,8 @@ export default function Navbar({ onOpenUpload }) {
                 {/* Developer User & Access Control (Restricted to Developer) */}
                 {currentUser && (currentUser.role === 'admin' || (currentUser.name && currentUser.name.toLowerCase().includes('kushal'))) && (
                   <button
-                    onClick={() => setIsDeveloperModalOpen(true)}
-                    title="Developer User & Access Management"
+                    onClick={() => setActiveView('user-access')}
+                    title="Developer User & Access Management Page"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-[#e31e24] dark:text-red-400 border border-red-500/30 transition-colors shadow-2xs text-xs font-bold cursor-pointer"
                   >
                     <Users className="w-3.5 h-3.5 text-[#e31e24]" />
@@ -423,12 +423,6 @@ export default function Navbar({ onOpenUpload }) {
       <UpdatePasswordModal
         isOpen={isUpdatePasswordOpen}
         onClose={() => setIsUpdatePasswordOpen(false)}
-      />
-
-      <DeveloperUserModal
-        isOpen={isDeveloperModalOpen}
-        onClose={() => setIsDeveloperModalOpen(false)}
-        currentUser={currentUser}
       />
     </header>
   );
