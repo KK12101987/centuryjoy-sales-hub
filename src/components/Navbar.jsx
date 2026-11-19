@@ -76,6 +76,11 @@ export default function Navbar({ onOpenUpload }) {
     selectedL2Assign !== 'all' || 
     Boolean(searchQuery);
 
+  const canUpload = !currentUser || 
+    currentUser.role === 'admin' || 
+    currentUser.role === 'upload_view_all' || 
+    (currentUser.name && currentUser.name.toLowerCase().includes('kushal'));
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 shadow-sm transition-colors duration-200">
       
@@ -234,14 +239,16 @@ export default function Navbar({ onOpenUpload }) {
               )}
             </button>
 
-            {/* Upload L2 Data Button */}
-            <button
-              onClick={onOpenUpload}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xs transition-all cursor-pointer"
-            >
-              <UploadCloud className="w-3.5 h-3.5 text-[#e31e24]" />
-              <span>Upload L2 Data</span>
-            </button>
+            {/* Upload L2 Data Button (Restricted to Upload-Authorized Roles) */}
+            {canUpload && (
+              <button
+                onClick={onOpenUpload}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xs transition-all cursor-pointer"
+              >
+                <UploadCloud className="w-3.5 h-3.5 text-[#e31e24]" />
+                <span>Upload L2 Data</span>
+              </button>
+            )}
 
             {/* Authenticated Manager Profile */}
             {currentUser && (

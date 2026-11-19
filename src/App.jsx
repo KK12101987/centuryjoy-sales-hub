@@ -54,11 +54,11 @@ function DashboardContent({ onOpenUpload }) {
           <PhysicalTeamsSection />
         </div>
 
-        {/* L2 Reviewer Operations & SLA Workload - Admin / Developer Governance Only */}
-        {currentUser?.role === 'admin' && <L2ApproverOperations />}
+        {/* L2 Reviewer Operations & SLA Workload - Admin / Developer / All-Team Governance */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all') && <L2ApproverOperations />}
 
-        {/* Daily Velocity & Approval Cadence Timeline - Admin / Developer Governance Only */}
-        {currentUser?.role === 'admin' && <AnalyticsCharts />}
+        {/* Daily Velocity & Approval Cadence Timeline - Admin / Developer / All-Team Governance */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all') && <AnalyticsCharts />}
 
         {/* Monetary Value Bifurcation (Auditable vs Non-Auditable) */}
         <MonetaryBifurcationSection />

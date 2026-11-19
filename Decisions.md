@@ -374,3 +374,33 @@
   - Provides a complete widescreen administrative workspace without any modal nesting or background clutter.
   - Seamless 1-click transition between the executive sales dashboard and user identity governance.
   - Fully verified via automated headless CDP tests (`test_user_access_page_standalone.py`).
+
+## Decision 022: Role Permission Expansion - Upload and View All Teams vs. View All Teams (Read-Only)
+- **Date:** 2026-11-19
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User requested two new role permission tiers for corporate users:
+  1. "Upload and view all teams data" (for operations heads who need to ingest updated data files and view total company figures).
+  2. "View all teams data" (for executive viewers and read-only stakeholders who require company-wide oversight without upload capabilities).
+- **Decision:**
+  - Added two new role options in `src/components/UserAccessPage.jsx` across both the "Create Fresh Corporate User" drawer and the "Edit User & Access" drawer:
+    - **`Upload and View All Teams Data`** (`upload_view_all`):
+      - Scoped automatically to `managerKey: 'all'` with full company-wide visibility across all senior managers (3,014 tickets, ₹45.64 Cr).
+      - Default designation set to `Operations & Revenue Lead`.
+      - Granted upload privilege: `canUpload` in `Navbar.jsx` renders the `Upload L2 Data` button.
+      - Granted full governance analytics access: `L2ApproverOperations` and `AnalyticsCharts` rendered in `App.jsx`.
+      - User & Access management portal remains strictly hidden (reserved for Developer/Admin).
+    - **`View All Teams Data (Read-Only)`** (`view_all`):
+      - Scoped automatically to `managerKey: 'all'` with full company-wide visibility across all senior managers (3,014 tickets, ₹45.64 Cr).
+      - Default designation set to `Executive Stakeholder / Viewer`.
+      - Upload privilege disabled: `canUpload` in `Navbar.jsx` hides the `Upload L2 Data` button.
+      - Granted full governance analytics access: `L2ApproverOperations` and `AnalyticsCharts` rendered in `App.jsx`.
+      - User & Access management portal remains strictly hidden (reserved for Developer/Admin).
+  - Updated `UserAccessPage.jsx`:
+    - Added role filter pill `All-Team Access` to directory filters.
+    - Added high-contrast badges: `Upload + All Teams` (Emerald) and `View All Teams (Read-Only)` (Blue).
+  - Verified end-to-end via automated CDP test `test_new_roles_verification.py`.
+- **Consequences:**
+  - Enables granular stakeholder governance between active data operators and read-only executive auditors.
+  - Both roles see the unified company-wide data while respecting least-privilege principles for data modification and identity administration.

@@ -135,6 +135,7 @@ export default function UserAccessPage({ onBack }) {
 
     if (roleFilter === 'all') return matchesSearch;
     if (roleFilter === 'manager') return matchesSearch && u.role === 'manager';
+    if (roleFilter === 'all_teams') return matchesSearch && (u.role === 'upload_view_all' || u.role === 'view_all');
     if (roleFilter === 'admin') return matchesSearch && u.role === 'admin';
     return matchesSearch;
   });
@@ -143,6 +144,7 @@ export default function UserAccessPage({ onBack }) {
   const totalCount = users.length;
   const activeCount = users.filter(u => u.status !== 'suspended').length;
   const managersCount = users.filter(u => u.role === 'manager').length;
+  const allTeamsCount = users.filter(u => u.role === 'upload_view_all' || u.role === 'view_all').length;
   const adminCount = users.filter(u => u.role === 'admin').length;
 
   // Handle Create User Submit
@@ -479,7 +481,17 @@ export default function UserAccessPage({ onBack }) {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Senior Managers ({managersCount})
+                Managers ({managersCount})
+              </button>
+              <button
+                onClick={() => setRoleFilter('all_teams')}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  roleFilter === 'all_teams' 
+                    ? 'bg-[#e31e24] text-white shadow-xs' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                All-Team Access ({allTeamsCount})
               </button>
               <button
                 onClick={() => setRoleFilter('admin')}
@@ -598,8 +610,11 @@ export default function UserAccessPage({ onBack }) {
                             <span className="inline-block px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                               {u.designation || u.role}
                             </span>
-                            <div className="text-[10px] text-slate-400 capitalize">
-                              Role: {u.role === 'admin' ? 'Administrator' : 'Manager'}
+                            <div className="text-[10px] font-semibold text-slate-400">
+                              {u.role === 'admin' && <span className="text-red-500 dark:text-red-400">Full Administrator</span>}
+                              {u.role === 'upload_view_all' && <span className="text-emerald-600 dark:text-emerald-400">Upload + All Teams</span>}
+                              {u.role === 'view_all' && <span className="text-blue-500 dark:text-blue-400">View All Teams (Read-Only)</span>}
+                              {u.role === 'manager' && <span>Senior Manager (Pod Scoped)</span>}
                             </div>
                           </div>
                         </td>
@@ -806,16 +821,31 @@ export default function UserAccessPage({ onBack }) {
                     value={createForm.role}
                     onChange={(e) => {
                       const r = e.target.value;
+                      let defaultDesig = 'Senior Manager';
+                      let defaultKey = createForm.managerKey;
+                      if (r === 'admin') {
+                        defaultDesig = 'Executive Director';
+                        defaultKey = 'all';
+                      } else if (r === 'upload_view_all') {
+                        defaultDesig = 'Operations & Revenue Lead';
+                        defaultKey = 'all';
+                      } else if (r === 'view_all') {
+                        defaultDesig = 'Executive Stakeholder / Viewer';
+                        defaultKey = 'all';
+                      }
                       setCreateForm({
                         ...createForm,
                         role: r,
-                        designation: r === 'admin' ? 'Executive Director' : 'Senior Manager',
-                        managerKey: r === 'admin' ? 'all' : createForm.managerKey
+                        designation: defaultDesig,
+                        managerKey: defaultKey,
+                        isPhysicalOnly: false
                       });
                     }}
                     className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#e31e24]"
                   >
                     <option value="manager">Senior Manager (Scoped to Pod)</option>
+                    <option value="upload_view_all">Upload and View All Teams Data</option>
+                    <option value="view_all">View All Teams Data (Read-Only)</option>
                     <option value="admin">Administrator / Leadership (Full Access)</option>
                   </select>
                 </div>
@@ -958,11 +988,24 @@ export default function UserAccessPage({ onBack }) {
                   <select
                     disabled={selectedUser.isProtected}
                     value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                    onChange={(e) => {
+                      const r = e.target.value;
+                      let defaultKey = editForm.managerKey;
+                      if (r === 'admin' || r === 'upload_view_all' || r === 'view_all') {
+                        defaultKey = 'all';
+                      }
+                      setEditForm({
+                        ...editForm,
+                        role: r,
+                        managerKey: defaultKey
+                      });
+                    }}
                     className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#e31e24] disabled:opacity-50"
                   >
-                    <option value="manager">Senior Manager</option>
-                    <option value="admin">Administrator / Leadership</option>
+                    <option value="manager">Senior Manager (Scoped to Pod)</option>
+                    <option value="upload_view_all">Upload and View All Teams Data</option>
+                    <option value="view_all">View All Teams Data (Read-Only)</option>
+                    <option value="admin">Administrator / Leadership (Full Access)</option>
                   </select>
                 </div>
 

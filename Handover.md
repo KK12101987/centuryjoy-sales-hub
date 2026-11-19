@@ -69,6 +69,10 @@
 - [x] Implemented Concept 1 (Split-Screen Flagship) in `LoginPage.jsx` with complete removal of Quick Access Profiles for production security.
 - [x] Implemented Developer User & Access Management Console (`DeveloperUserModal.jsx`) allowing Developer Kushal Kar to create fresh users, assign roles/supervisory scopes, view the active registry, and reset credentials.
 - [x] Converted User Access into a Dedicated Standalone Page (`UserAccessPage.jsx`) with widescreen layout, 4 KPI cards, full-width directory table, and `← Back to Dashboard` return navigation.
+- [x] Implemented Granular Role Permissions in `UserAccessPage.jsx` and `Navbar.jsx`:
+  - `Upload and View All Teams Data` (`upload_view_all`): Complete dataset visibility (3,014 tickets | ₹45.64 Cr) + active `Upload L2 Data` button.
+  - `View All Teams Data (Read-Only)` (`view_all`): Complete dataset visibility (3,014 tickets | ₹45.64 Cr) + `Upload L2 Data` button strictly hidden.
+- [x] Automated CDP verification completed for both roles (`test_new_roles_verification.py`) confirming proper scoping, button visibility, and developer console restriction.
 - [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
 - [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
