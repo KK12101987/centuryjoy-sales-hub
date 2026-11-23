@@ -8,7 +8,6 @@ import ManagerBreakdown from './components/ManagerBreakdown';
 import AuditPodsSection from './components/AuditPodsSection';
 import DigitalPodsSection from './components/DigitalPodsSection';
 import PhysicalTeamsSection from './components/PhysicalTeamsSection';
-import L2ApproverOperations from './components/L2ApproverOperations';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import MonetaryBifurcationSection from './components/MonetaryBifurcationSection';
 import UploadModal from './components/UploadModal';
@@ -53,9 +52,6 @@ function DashboardContent({ onOpenUpload }) {
           {/* Physical Teams (No Captain - Direct Manager Supervision) */}
           <PhysicalTeamsSection />
         </div>
-
-        {/* L2 Reviewer Operations & SLA Workload - Admin / Developer / All-Team Governance */}
-        {(currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all') && <L2ApproverOperations />}
 
         {/* Daily Velocity & Approval Cadence Timeline - Admin / Developer / All-Team Governance */}
         {(currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all') && <AnalyticsCharts />}

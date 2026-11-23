@@ -96,6 +96,7 @@
   - Added automatic synchronization in `getAllUsers()` to ensure seeded users are merged into existing `localStorage` on any client browser.
   - Added intelligent email resolution in `findUserByEmail()` to support both `tanmoykar.centuryply@gmail.com` and `tanmoy.centuryply@gmail.com` (addressing the missing 'kar' typo).
   - Verified 100% login success in automated headless CDP test (`test_tanmoy_login.py`).
+- [x] Completely removed "L2 Reviewer Operations & SLA Workload" section from the dashboard canvas (unmounted from `src/App.jsx`). Verified via automated headless CDP test (`check_removal.py`).
 - [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
 - [x] Pushed commit `568eadd` to GitHub master (`https://github.com/KK12101987/centuryjoy-sales-hub.git`).

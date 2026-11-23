@@ -487,3 +487,16 @@
   - Tanmoy Kar is globally recognized across all devices, browsers, and sessions.
   - User can sign in using either `tanmoykar.centuryply@gmail.com` or `tanmoy.centuryply@gmail.com`.
   - Zero disruption from minor email prefix typos.
+
+## Decision 027: Removal of "L2 Reviewer Operations & SLA Workload" Section
+- **Date:** 2026-11-23
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User requested to "completely remove 'L2 Reviewer Operations & SLA Workload'".
+- **Decision:**
+  - Unmounted and removed `L2ApproverOperations` component import and JSX block from `src/App.jsx`.
+  - Maintained core SLA turnaround metrics at the executive level in Card 4 of `KPICards.jsx`.
+  - Verified via automated headless CDP test (`check_removal.py`) confirming `"hasL2ReviewerOps": false` while keeping all adjacent sections intact.
+- **Consequences:**
+  - Streamlines dashboard vertical flow, prioritizing executive performance, hierarchy pods, approval cadence, and monetary audit bifurcation.
