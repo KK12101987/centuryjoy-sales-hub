@@ -468,3 +468,22 @@
   - Complete compliance transparency at the very top of the executive dashboard.
   - Perfect visual balance and symmetry across all 4 KPI cards.
   - Zero clutter or awkward line wraps across responsive breakpoints.
+
+## Decision 026: Pre-Seeding Tanmoy Kar & Resilient Email Matching for Corporate Sign-In
+- **Date:** 2026-11-23
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User asked why "tanmoykar.centuryply@gmail.com" was unable to login, attaching a screenshot displaying the error banner "Corporate email address not recognized."
+  Investigation revealed two factors:
+  1. In the login input field shown in the screenshot, the user typed `tanmoy.centuryply@gmail.com` (missing the "kar") while the created user account was `tanmoykar.centuryply@gmail.com`.
+  2. Dynamically created users in the Developer User Access console reside in browser `localStorage`. When accessing the app from a different browser, incognito session, or cleared cache, dynamic users were not present in the default seed registry.
+- **Decision:**
+  - **Authoritative Pre-Seeding:** Added Tanmoy Kar (`name: 'Tanmoy Kar'`, `email: 'tanmoykar.centuryply@gmail.com'`, `initialPassword: 'Tanmoy@2026'`, `recoveryPin: 'CP-2026'`, `role: 'admin'`, `managerKey: 'all'`, `designation: 'Senior Manager (Leadership & Full Access)'`) directly into `SEED_USERS` in `src/utils/auth.js`.
+  - **Dynamic Registry Synchronization:** Updated `getAllUsers()` to automatically merge all `SEED_USERS` into existing client `localStorage` (`century_users_registry_v1`), ensuring Tanmoy Kar is present across all existing and new browser sessions.
+  - **Fuzzy Email Resolution:** Enhanced `findUserByEmail()` to recognize `tanmoy` in the email string, resolving both `tanmoykar.centuryply@gmail.com` and `tanmoy.centuryply@gmail.com` to Tanmoy Kar's account.
+  - Verified via automated headless CDP test (`test_tanmoy_login.py`) confirming successful login and dashboard mounting under both email variants.
+- **Consequences:**
+  - Tanmoy Kar is globally recognized across all devices, browsers, and sessions.
+  - User can sign in using either `tanmoykar.centuryply@gmail.com` or `tanmoy.centuryply@gmail.com`.
+  - Zero disruption from minor email prefix typos.

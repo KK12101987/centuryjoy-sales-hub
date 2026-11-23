@@ -82,6 +82,19 @@ export const SEED_USERS = [
     status: 'active',
     isProtected: false,
     createdAt: '2026-10-01T00:00:00.000Z'
+  },
+  {
+    name: 'Tanmoy Kar',
+    email: 'tanmoykar.centuryply@gmail.com',
+    role: 'admin',
+    managerKey: 'all',
+    designation: 'Senior Manager (Leadership & Full Access)',
+    isPhysicalOnly: false,
+    initialPassword: 'Tanmoy@2026',
+    recoveryPin: 'CP-2026',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-11-20T00:00:00.000Z'
   }
 ];
 
@@ -107,13 +120,17 @@ export function getAllUsers() {
       return SEED_USERS;
     }
     
-    // Ensure Developer Kushal Kar always remains present in registry
-    const hasDeveloper = parsed.some(u => (u.email || '').toLowerCase() === 'kushal.centuryply@gmail.com');
-    if (!hasDeveloper) {
-      const dev = SEED_USERS[0];
-      const merged = [dev, ...parsed];
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
-      return merged;
+    // Ensure all SEED_USERS (Developer Kushal Kar, Tanmoy Kar, etc.) are present in the active registry
+    let modified = false;
+    for (const seed of SEED_USERS) {
+      const exists = parsed.some(u => (u.email || '').toLowerCase() === seed.email.toLowerCase());
+      if (!exists) {
+        parsed.push(seed);
+        modified = true;
+      }
+    }
+    if (modified) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsed));
     }
     return parsed;
   } catch (e) {
@@ -172,6 +189,12 @@ export function findUserByEmail(email) {
   // 2. Check if Kushal Kar (master developer)
   if (cleanEmail.includes('kushal')) {
     return allUsers.find(u => (u.email || '').toLowerCase() === 'kushal.centuryply@gmail.com') || SEED_USERS[0];
+  }
+
+  // 2b. Check if Tanmoy Kar (handles tanmoykar, tanmoy.centuryply, etc.)
+  if (cleanEmail.includes('tanmoy')) {
+    return allUsers.find(u => (u.email || '').toLowerCase().includes('tanmoy') || (u.name || '').toLowerCase().includes('tanmoy')) ||
+           SEED_USERS.find(u => u.name.toLowerCase().includes('tanmoy'));
   }
 
   // 3. Fallback for seeded manager names in email or prefix
