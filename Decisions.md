@@ -443,3 +443,28 @@
   - 100% accurate physical (194 tix, ₹3.31 Cr) vs digital (499 tix, ₹6.62 Cr) split on uploaded datasets.
   - Zero loss of uploaded data upon page refresh.
   - High-visibility audit compliance percentages across all managers, captains, and RMs.
+
+## Decision 025: Executive KPI Hero Cards Auditable and Non-Auditable Compliance Percentage Integration
+- **Date:** 2026-11-23
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User provided a focused screenshot of the first two executive KPI cards ("Total Approved Revenue" and "Approved Volume") and requested: "add auditable and non auditable %age".
+  Previously, Card 1 and Card 2 only displayed Digital vs Physical stream breakdowns without any audit compliance metrics.
+- **Decision:**
+  - **Card 1 (Total Approved Revenue):**
+    - Added revenue percentage shares to Digital and Physical capsules.
+    - Integrated a dedicated Invoice Audit Compliance section displaying exact Auditable % and Non-Auditable % of revenue (`formatINR(auditableAmount)` vs `formatINR(nonAuditableAmount)`), ticket counts, and a high-contrast dual emerald/amber progress meter.
+  - **Card 2 (Approved Volume):**
+    - Integrated a dedicated Ticket Audit Volume Compliance section displaying exact Auditable % and Non-Auditable % of ticket volume (`auditableCount` vs `nonAuditableCount` tickets) and a dual progress meter.
+  - **Card 3 (Average Ticket Size):**
+    - Refactored bottom capsules to show Auditable vs Non-Auditable average ticket values (`auditableAvg` vs `nonAuditableAvg`), revenue share %, and comparison meter.
+  - **Card 4 (SLA Turnaround):**
+    - Aligned height with SLA 100% target met badge and 0 violation status for visual symmetry across all 4 cards in the row.
+  - **Layout & Typography Polish:**
+    - Structured the audit metrics into a 2-row layout (`Auditable: XX.X%` on Row 1, amounts/counts on Row 2, meter on Row 3) to prevent text wrapping on smaller viewports.
+  - Verified end-to-end via automated CDP test (`snap_clean_kpi.py`).
+- **Consequences:**
+  - Complete compliance transparency at the very top of the executive dashboard.
+  - Perfect visual balance and symmetry across all 4 KPI cards.
+  - Zero clutter or awkward line wraps across responsive breakpoints.

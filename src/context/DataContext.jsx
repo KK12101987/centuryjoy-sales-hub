@@ -343,21 +343,48 @@ export function DataProvider({ children }) {
     let nonAuditableCount = 0;
     let nonAuditableAmount = 0;
 
+    let digitalAuditableCount = 0;
+    let digitalAuditableAmount = 0;
+    let digitalNonAuditableCount = 0;
+    let digitalNonAuditableAmount = 0;
+
+    let physicalAuditableCount = 0;
+    let physicalAuditableAmount = 0;
+    let physicalNonAuditableCount = 0;
+    let physicalNonAuditableAmount = 0;
+
     for (const t of filteredTickets) {
+      const isAud = t.invType !== 'Non-Auditable';
+      const amt = t.finalTotalAmount || 0;
+
       if (t.isPhysical) {
         physicalCount += 1;
-        physicalAmount += t.finalTotalAmount || 0;
+        physicalAmount += amt;
+        if (isAud) {
+          physicalAuditableCount += 1;
+          physicalAuditableAmount += amt;
+        } else {
+          physicalNonAuditableCount += 1;
+          physicalNonAuditableAmount += amt;
+        }
       } else {
         digitalCount += 1;
-        digitalAmount += t.finalTotalAmount || 0;
+        digitalAmount += amt;
+        if (isAud) {
+          digitalAuditableCount += 1;
+          digitalAuditableAmount += amt;
+        } else {
+          digitalNonAuditableCount += 1;
+          digitalNonAuditableAmount += amt;
+        }
       }
 
-      if (t.invType === 'Non-Auditable') {
+      if (!isAud) {
         nonAuditableCount += 1;
-        nonAuditableAmount += t.finalTotalAmount || 0;
+        nonAuditableAmount += amt;
       } else {
         auditableCount += 1;
-        auditableAmount += t.finalTotalAmount || 0;
+        auditableAmount += amt;
       }
     }
 
@@ -398,6 +425,14 @@ export function DataProvider({ children }) {
       auditableAmount,
       nonAuditableCount,
       nonAuditableAmount,
+      digitalAuditableCount,
+      digitalAuditableAmount,
+      digitalNonAuditableCount,
+      digitalNonAuditableAmount,
+      physicalAuditableCount,
+      physicalAuditableAmount,
+      physicalNonAuditableCount,
+      physicalNonAuditableAmount,
       uniqueRMs,
       uniqueApprovers,
       peakDay,

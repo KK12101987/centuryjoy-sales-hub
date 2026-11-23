@@ -84,6 +84,12 @@
   - Direct Physical Teams (`PhysicalTeamsSection.jsx`): Auditable % and Non-Auditable % on Physical Team cards + individual Aud/Non-Aud % badges on every Field RM in the drawer.
   - Monetary Bifurcation Matrix (`MonetaryBifurcationSection.jsx`): dual Auditable % and Non-Auditable % on RM table, Manager matrix, and Team matrix.
 - [x] Automated CDP End-to-End Self-Verification (`test_upload_process.py`): verified upload ingestion, stream bifurcations, audit %ages across all PODs, and persistent state across page refresh (F5).
+- [x] Upgraded Executive KPI Hero Cards (`KPICards.jsx`) with Auditable and Non-Auditable Percentages:
+  - Card 1 (Total Approved Revenue): Added dedicated Invoice Audit Compliance section displaying exact Auditable % and Non-Auditable % of revenue (`formatINR(auditableAmount)` vs `formatINR(nonAuditableAmount)`), ticket counts, and a high-contrast dual emerald/amber progress meter. Added revenue % share to Digital and Physical capsules.
+  - Card 2 (Approved Volume): Added dedicated Ticket Audit Volume Compliance section displaying exact Auditable % and Non-Auditable % of ticket volume (`auditableCount` vs `nonAuditableCount` tickets) and a dual progress meter.
+  - Card 3 (Average Ticket Size): Added Auditable vs Non-Auditable average ticket values (`auditableAvg` vs `nonAuditableAvg`), revenue share %, and comparison meter.
+  - Card 4 (SLA Turnaround): Aligned height with SLA 100% target met badge and 0 violation status for visual symmetry across all 4 cards.
+- [x] Automated CDP browser visual verification completed (`kpicards_card1_and_card2_audit_clean.png`, `kpicards_all4_audit_clean.png`).
 - [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
 - [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.
