@@ -1,6 +1,6 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, CheckCircle2, User } from 'lucide-react';
+import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, ShieldAlert, CheckCircle2, User } from 'lucide-react';
 
 function formatINR(val) {
   if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
@@ -27,7 +27,9 @@ export default function ManagerBreakdown() {
         physicalAmount: 0,
         physicalCount: 0,
         auditableAmount: 0,
+        auditableCount: 0,
         nonAuditableAmount: 0,
+        nonAuditableCount: 0,
         rms: new Set()
       };
     }
@@ -49,8 +51,10 @@ export default function ManagerBreakdown() {
 
       if (t.invType === 'Non-Auditable') {
         map[mgr].nonAuditableAmount += t.finalTotalAmount || 0;
+        map[mgr].nonAuditableCount += 1;
       } else {
         map[mgr].auditableAmount += t.finalTotalAmount || 0;
+        map[mgr].auditableCount += 1;
       }
     }
 
@@ -61,7 +65,9 @@ export default function ManagerBreakdown() {
       rmsCount: m.rms.size,
       share: (m.totalAmount / totalRevenue) * 100,
       digitalShare: m.totalAmount > 0 ? (m.digitalAmount / m.totalAmount) * 100 : 0,
-      physicalShare: m.totalAmount > 0 ? (m.physicalAmount / m.totalAmount) * 100 : 0
+      physicalShare: m.totalAmount > 0 ? (m.physicalAmount / m.totalAmount) * 100 : 0,
+      auditableShare: m.totalAmount > 0 ? (m.auditableAmount / m.totalAmount) * 100 : 0,
+      nonAuditableShare: m.totalAmount > 0 ? (m.nonAuditableAmount / m.totalAmount) * 100 : 0
     })).sort((a, b) => b.totalAmount - a.totalAmount);
   }, [scopedTickets, currentUser]);
 
@@ -240,6 +246,35 @@ export default function ManagerBreakdown() {
                     </div>
                   </>
                 )}
+
+                {/* Dedicated Invoice Audit Compliance Pod (Auditable vs Non-Auditable %age) */}
+                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80">
+                  <div className="flex items-center justify-between text-[11px] font-extrabold mb-1.5">
+                    <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Aud: {mgr.auditableShare.toFixed(0)}%</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">({formatINR(mgr.auditableAmount)})</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>Non-Aud: {mgr.nonAuditableShare.toFixed(0)}%</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">({formatINR(mgr.nonAuditableAmount)})</span>
+                    </span>
+                  </div>
+                  {/* Dual Audit Progress Meter */}
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 flex overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-1.5 transition-all duration-500"
+                      style={{ width: `${mgr.auditableShare}%` }}
+                      title={`Auditable: ${mgr.auditableShare.toFixed(1)}% (${mgr.auditableCount} tix)`}
+                    ></div>
+                    <div
+                      className="bg-amber-500 h-1.5 transition-all duration-500"
+                      style={{ width: `${mgr.nonAuditableShare}%` }}
+                      title={`Non-Auditable: ${mgr.nonAuditableShare.toFixed(1)}% (${mgr.nonAuditableCount} tix)`}
+                    ></div>
+                  </div>
+                </div>
 
               </div>
 

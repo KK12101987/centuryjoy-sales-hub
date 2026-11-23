@@ -568,14 +568,16 @@ export default function MonetaryBifurcationSection() {
                         <div className="text-[10px] text-slate-400">{rm.nonAudTix} tix</div>
                       </td>
                       <td className="py-2.5 px-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-14 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex shrink-0">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-extrabold">
+                            <span className="text-emerald-700 dark:text-emerald-400">Aud: {audRatio.toFixed(0)}%</span>
+                            <span className="text-slate-300 dark:text-slate-600">•</span>
+                            <span className="text-amber-700 dark:text-amber-400">Non: {(100 - audRatio).toFixed(0)}%</span>
+                          </div>
+                          <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex shrink-0">
                             <div style={{ width: `${audRatio}%` }} className="bg-emerald-500"></div>
                             <div style={{ width: `${100 - audRatio}%` }} className="bg-amber-500"></div>
                           </div>
-                          <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
-                            {audRatio.toFixed(1)}%
-                          </span>
                         </div>
                       </td>
                     </tr>
@@ -645,14 +647,16 @@ export default function MonetaryBifurcationSection() {
                         <div className="text-[10px] text-slate-400">{m.nonAudTix} tix</div>
                       </td>
                       <td className="py-3 px-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-[11px] font-extrabold">
+                            <span className="text-emerald-700 dark:text-emerald-400">Aud: {audRatio.toFixed(0)}%</span>
+                            <span className="text-slate-300 dark:text-slate-600">•</span>
+                            <span className="text-amber-700 dark:text-amber-400">Non-Aud: {(100 - audRatio).toFixed(0)}%</span>
+                          </div>
+                          <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
                             <div style={{ width: `${audRatio}%` }} className="bg-emerald-500"></div>
                             <div style={{ width: `${100 - audRatio}%` }} className="bg-amber-500"></div>
                           </div>
-                          <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
-                            {audRatio.toFixed(1)}%
-                          </span>
                         </div>
                       </td>
                       <td className="py-3 px-3 text-[11px] text-slate-600 dark:text-slate-400">
@@ -688,7 +692,11 @@ export default function MonetaryBifurcationSection() {
                                   </div>
                                   <div className="flex items-center justify-between text-[11px] font-bold">
                                     <span className="text-slate-900 dark:text-white">{formatINR(rm.totalAmt)}</span>
-                                    <span className="text-emerald-600 dark:text-emerald-400">{rmAudRatio.toFixed(0)}% Aud</span>
+                                    <div className="flex items-center gap-1 text-[10px]">
+                                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{rmAudRatio.toFixed(0)}% Aud</span>
+                                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                                      <span className="text-amber-600 dark:text-amber-400 font-extrabold">{(100 - rmAudRatio).toFixed(0)}% Non</span>
+                                    </div>
                                   </div>
                                   <div className="flex items-center justify-between text-[10px] text-slate-500 mt-0.5">
                                     <span className="text-emerald-600">Aud: {formatINR(rm.audAmt)}</span>
@@ -819,14 +827,16 @@ export default function MonetaryBifurcationSection() {
                           <div className="text-[10px] text-slate-400">{tm.nonAudTix} tix</div>
                         </td>
                         <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-14 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 text-[11px] font-extrabold">
+                              <span className="text-emerald-700 dark:text-emerald-400">Aud: {audRatio.toFixed(0)}%</span>
+                              <span className="text-slate-300 dark:text-slate-600">•</span>
+                              <span className="text-amber-700 dark:text-amber-400">Non-Aud: {(100 - audRatio).toFixed(0)}%</span>
+                            </div>
+                            <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
                               <div style={{ width: `${audRatio}%` }} className="bg-emerald-500"></div>
                               <div style={{ width: `${100 - audRatio}%` }} className="bg-amber-500"></div>
                             </div>
-                            <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
-                              {audRatio.toFixed(1)}%
-                            </span>
                           </div>
                         </td>
                         <td className="py-3 px-3 text-right">
@@ -854,7 +864,11 @@ export default function MonetaryBifurcationSection() {
                                     </div>
                                     <div className="flex items-center justify-between text-[11px] font-bold mt-1">
                                       <span className="text-slate-900 dark:text-white">{formatINR(rm.totalAmt)}</span>
-                                      <span className="text-emerald-600 dark:text-emerald-400">{rmAudRatio.toFixed(0)}% Aud</span>
+                                      <div className="flex items-center gap-1 text-[10px]">
+                                        <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{rmAudRatio.toFixed(0)}% Aud</span>
+                                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                                        <span className="text-amber-600 dark:text-amber-400 font-extrabold">{(100 - rmAudRatio).toFixed(0)}% Non</span>
+                                      </div>
                                     </div>
                                     <div className="flex items-center justify-between text-[10px] text-slate-500 mt-0.5">
                                       <span className="text-emerald-600">Aud: {formatINR(rm.audAmt)}</span>

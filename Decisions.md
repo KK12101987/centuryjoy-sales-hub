@@ -418,3 +418,28 @@
 - **Consequences:**
   - Complete elimination of modal clipping.
   - Modal overlay covers 100% of the screen with a clean blurred backdrop and the dialog is pixel-perfect centered vertically and horizontally.
+
+## Decision 024: CRM Source Channel Stream Mapping, Invoice Type Audit Driver, Universal Audit %age, & Upload Persistence
+- **Date:** 2026-11-23
+- **Model:** Gemini 3.8 Flash (High)
+- **Status:** Approved
+- **Context:**
+  User reported three critical operational issues when uploading `L2 Approved_Test.xlsx`:
+  1. Uploading the file turned Screenshot 1 into Screenshot 2 where all physical teams were zeroed out (Physical: 0, Digital: 693), and Amit Singal showed ₹0 (0 tix).
+  2. The application failed to persist the uploaded dataset upon browser refresh (F5), reverting back to Screenshot 1.
+  3. Requested that `Is Auditable` be disregarded in favor of `Invoice Type` (`Inv Type`) as the strict compliance driver.
+  4. Requested adding Auditable and Non-Auditable percentages across all PODs (Senior Managers, Captains, and Relationship Managers).
+  5. Clarified CRM channel rule: `CenturyJoyApp` is physical; `CenturyJoy` is digital.
+- **Decision:**
+  - **CRM Source Channel Rule:** Updated `src/utils/columnMatcher.js` to map `Source: CenturyJoyApp` to `isPhysical: true, stream: 'Physical Team', captain: 'None (Direct Supervision)'` and `CenturyJoy` to `isPhysical: false, stream: 'Digital Pod'`.
+  - **Strict Invoice Type Rule:** Bound audit classification strictly to `Inv Type` / `Invoice Type` (`Auditable` vs `Non-Auditable`), completely ignoring `Is Auditable`.
+  - **Universal Audit %age across all PODs:**
+    - `ManagerBreakdown.jsx`: Added dedicated Invoice Audit Compliance section to every Senior Manager card with exact Auditable % and Non-Auditable % (values & counts) and dual progress meter.
+    - `DigitalPodsSection.jsx`: Added Auditable % and Non-Auditable % pills and dual progress bar on each Captain Pod, plus individual Aud/Non-Aud % badges on every RM in the expandable drawer.
+    - `PhysicalTeamsSection.jsx`: Added Auditable % and Non-Auditable % pills and progress bar on each Direct Physical Team, plus individual Aud/Non-Aud % badges on every Field RM in the drawer.
+    - `MonetaryBifurcationSection.jsx`: Updated RM table, Manager matrix, and Team matrix to show both Auditable % and Non-Auditable % side by side.
+  - **Dynamic Upload Persistence:** Updated `src/context/DataContext.jsx` to persist uploaded datasets to `localStorage` under `century_uploaded_tickets_v2`, intelligently replacing the uploaded month while preserving other months (October 2,688 + November 693 = 3,381 total). Refreshes now preserve the uploaded dataset cleanly.
+- **Consequences:**
+  - 100% accurate physical (194 tix, ₹3.31 Cr) vs digital (499 tix, ₹6.62 Cr) split on uploaded datasets.
+  - Zero loss of uploaded data upon page refresh.
+  - High-visibility audit compliance percentages across all managers, captains, and RMs.

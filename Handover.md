@@ -74,6 +74,16 @@
   - `View All Teams Data (Read-Only)` (`view_all`): Complete dataset visibility (3,014 tickets | ₹45.64 Cr) + `Upload L2 Data` button strictly hidden.
 - [x] Automated CDP verification completed for both roles (`test_new_roles_verification.py`) confirming proper scoping, button visibility, and developer console restriction.
 - [x] Resolved "Update Password Modal Clipped" bug: upgraded `src/components/UpdatePasswordModal.jsx` to render via `createPortal(modalContent, document.body)` so it escapes `<header>`'s CSS backdrop-filter containing block and centers cleanly in the viewport with full-screen overlay backdrop.
+- [x] Implemented CRM Source Channel Rule in `columnMatcher.js`: mapped `Source: CenturyJoyApp` to Physical Stream (`isPhysical: true`) and `Source: CenturyJoy` to Digital Stream (`isPhysical: false`).
+- [x] Resolved "Zero Physical Stream on Upload" bug: `L2 Approved_Test.xlsx` now correctly populates 194 Physical tickets (₹3.31 Cr) and 499 Digital tickets (₹6.62 Cr) instead of 0 Physical / 693 Digital.
+- [x] Resolved "Reverts on Browser Refresh (F5)" bug: `DataContext.jsx` now persists uploaded datasets into `localStorage` (`century_uploaded_tickets_v2`), replacing the uploaded month while preserving other months (October 2,688 + November 693 = 3,381 total).
+- [x] Implemented Strict Invoice Type Audit Classification: completely disregarded `Is Auditable` and drove all Auditable (554 / ₹8.77 Cr / 88.4%) vs Non-Auditable (139 / ₹1.15 Cr / 11.6%) calculations from `Inv Type` / `Invoice Type`.
+- [x] Added Auditable and Non-Auditable Percentages across ALL PODs:
+  - Senior Management Cards (`ManagerBreakdown.jsx`): exact Auditable % and Non-Auditable % values & counts with dual progress bar.
+  - Captain-Led Digital Pods (`DigitalPodsSection.jsx`): Auditable % and Non-Auditable % on Captain Pod cards + individual Aud/Non-Aud % badges on every RM in the expandable drawer.
+  - Direct Physical Teams (`PhysicalTeamsSection.jsx`): Auditable % and Non-Auditable % on Physical Team cards + individual Aud/Non-Aud % badges on every Field RM in the drawer.
+  - Monetary Bifurcation Matrix (`MonetaryBifurcationSection.jsx`): dual Auditable % and Non-Auditable % on RM table, Manager matrix, and Team matrix.
+- [x] Automated CDP End-to-End Self-Verification (`test_upload_process.py`): verified upload ingestion, stream bifurcations, audit %ages across all PODs, and persistent state across page refresh (F5).
 - [x] Upgraded `src/utils/auth.js` with dynamic persistent user storage (`century_users_registry_v1`), account suspension checks, and admin CRUD methods.
 - [x] Verified complete flow with automated CDP tests (`test_user_access_page_standalone.py`): Clean Concept 1 login, Developer login, User Access Page transition, fresh user creation, and seamless return to dashboard.
 - [x] Verified complete flow with automated CDP tests (`test_developer_console_flow.py`): Clean Concept 1 login, Developer login, User creation, Ramesh Chandra login with password, and RBAC isolation.

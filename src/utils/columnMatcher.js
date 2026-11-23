@@ -13,8 +13,8 @@ export const CANONICAL_FIELDS = [
   { key: 'createdDate', label: 'Created Date', required: false, aliases: ['created date', 'creation date', 'created on', 'create date', 'created_date'] },
   { key: 'l1ApprovedDateTime', label: 'L1 Approved Date', required: false, aliases: ['l1 approved date time', 'l1 approved date', 'l1 date', 'l1 approved', 'l1 date time'] },
   { key: 'l1ApprovedUser', label: 'L1 Approver User', required: false, aliases: ['l1 approved user', 'l1 user', 'l1 approver', 'l1 reviewer'] },
-  { key: 'isAuditable', label: 'Is Auditable', required: false, aliases: ['is auditable', 'auditable', 'is_auditable', 'audit status', 'audit'] },
-  { key: 'invType', label: 'Invoice Type', required: false, aliases: ['inv type', 'invoice type', 'inv_type', 'invoice_type'] },
+  { key: 'isAuditable', label: 'Is Auditable (Disregarded for Audit Status)', required: false, aliases: ['is auditable', 'is_auditable', 'audit status'] },
+  { key: 'invType', label: 'Invoice Type (Audit Compliance Driver)', required: false, aliases: ['inv type', 'invoice type', 'inv_type', 'invoice_type', 'type of invoice', 'invoice category'] },
   { key: 'team', label: 'Team / Pod', required: false, aliases: ['team', 'pod', 'group', 'branch', 'cluster'] }
 ];
 
@@ -119,13 +119,24 @@ export function sanitizeString(val) {
 }
 
 /**
- * Normalizes uploaded rows into canonical ticket records joined with hierarchy
+ * Normalizes uploaded rows into canonical ticket records joined with hierarchy.
+ * Respects CenturyJoyApp (Physical) vs CenturyJoy (Digital) and strictly drives
+ * Auditable / Non-Auditable status from Invoice Type (Inv Type).
  */
 export function transformUploadedData(rows, mapping) {
   const lookup = hierarchyData.lookup || {};
   const aliases = hierarchyData.aliases || {};
 
-  return rows.map((row, idx) => {
+  // Filter out completely blank/trailing rows
+  const validRows = rows.filter(row => {
+    const tNo = mapping['ticketNo'] ? row[mapping['ticketNo']] : '';
+    const amt = mapping['finalTotalAmount'] ? row[mapping['finalTotalAmount']] : '';
+    const rm = mapping['relationshipManager'] ? row[mapping['relationshipManager']] : '';
+    const src = mapping['source'] ? row[mapping['source']] : '';
+    return Boolean(String(tNo || '').trim() || String(rm || '').trim() || String(src || '').trim() || (amt && !isNaN(parseFloat(amt))));
+  });
+
+  return validRows.map((row, idx) => {
     const getVal = (key) => mapping[key] ? row[mapping[key]] : undefined;
 
     const rawRM = getVal('relationshipManager') || getVal('createdBy') || 'Unassigned';
@@ -138,6 +149,68 @@ export function transformUploadedData(rows, mapping) {
     if (lookup[mappedRM]) {
       manager = lookup[mappedRM].manager;
       captain = lookup[mappedRM].captain;
+    }
+
+    // Determine Source & Stream
+    // Golden CRM Rule: Source 'CenturyJoyApp' = Physical, 'CenturyJoy' = Digital
+    const rawSource = String(getVal('source') || '').trim();
+    const rawTeam = String(getVal('team') || '').trim();
+
+    let isPhysical = false;
+    let stream = 'Digital Pod';
+
+    if (rawSource.toLowerCase().includes('centuryjoyapp') || rawSource.toLowerCase().includes('app')) {
+      isPhysical = true;
+      stream = 'Physical Team';
+    } else if (rawSource.toLowerCase() === 'centuryjoy') {
+      isPhysical = false;
+      stream = 'Digital Pod';
+    } else if (rawTeam.toLowerCase().includes('physical') || manager === 'Amit Singal') {
+      isPhysical = true;
+      stream = 'Physical Team';
+    }
+
+    // Physical teams have NO captains (Direct Manager Supervision)
+    if (isPhysical) {
+      captain = 'None (Direct Supervision)';
+      const tLow = rawTeam.toLowerCase();
+      if (tLow.includes('surajit')) manager = 'Surajit Laha';
+      else if (tLow.includes('arijit')) manager = 'Arijit Nath';
+      else if (tLow.includes('niladri') || tLow.includes('gujrat')) manager = 'Niladri Bhadra';
+      else if (tLow.includes('amit')) manager = 'Amit Singal';
+      else if (manager === 'Unassigned / Other' && lookup[mappedRM]) {
+        manager = lookup[mappedRM].manager;
+      }
+    } else {
+      // Digital Pods: if manager is unassigned, derive from team string
+      if (manager === 'Unassigned / Other') {
+        const tLow = rawTeam.toLowerCase();
+        if (tLow.includes('pallabi') || tLow.includes('nasima')) {
+          manager = 'Surajit Laha';
+          captain = rawTeam;
+        } else if (tLow.includes('arshi') || tLow.includes('arijit')) {
+          manager = 'Arijit Nath';
+          captain = rawTeam.includes('Arshi') ? 'Arshi Afreen Jamal' : (lookup[mappedRM]?.captain || 'Arshi Afreen Jamal');
+        } else if (tLow.includes('shiuli') || tLow.includes('ranjana')) {
+          manager = 'Niladri Bhadra';
+          captain = rawTeam;
+        }
+      }
+    }
+
+    const teamDisplay = isPhysical 
+      ? `${manager} - Physical Team`
+      : `Pod - ${captain}`;
+
+    // Invoice Type: Disregard "Is Auditable", use ONLY "Invoice Type" (Inv Type)
+    const rawInvType = String(getVal('invType') || '').trim();
+    let invType = 'Auditable';
+    if (rawInvType.toLowerCase().includes('non')) {
+      invType = 'Non-Auditable';
+    } else if (rawInvType.toLowerCase().includes('auditable')) {
+      invType = 'Auditable';
+    } else {
+      invType = 'Auditable';
     }
 
     const l2DateStr = parseDate(getVal('l2ApprovedDate'));
@@ -168,23 +241,26 @@ export function transformUploadedData(rows, mapping) {
 
     return {
       ticketNo,
-      l2ApprovedDate: l2DateStr || '2026-10-31',
+      l2ApprovedDate: l2DateStr || '2026-11-16',
       createdDate: createdStr || l2DateStr || '',
       l1ApprovedDateTime: l1Str || '',
-      source: sanitizeString(getVal('source') || 'CenturyJoy'),
+      source: sanitizeString(rawSource || (isPhysical ? 'CenturyJoyApp' : 'CenturyJoy')),
       architectName: sanitizeString(getVal('architectName') || 'N/A'),
       userCode: sanitizeString(getVal('userCode') || 'N/A'),
       relationshipManager: sanitizeString(rawRM),
       createdBy: sanitizeString(getVal('createdBy') || rawRM),
       finalTotalAmount: amount,
-      isAuditable: sanitizeString(getVal('isAuditable') || 'No'),
-      invType: sanitizeString(getVal('invType') || 'Auditable'),
+      isAuditable: invType === 'Auditable' ? 'Yes' : 'No', // synced with invType
+      invType,
       l1ApprovedUser: sanitizeString(getVal('l1ApprovedUser') || 'Auto'),
       l2Assign: sanitizeString(getVal('l2Assign') || 'Kushal'),
       l2Status: 'Approved',
-      team: sanitizeString(getVal('team') || captain),
+      team: sanitizeString(rawTeam || (isPhysical ? `${manager} - Physical` : captain)),
+      teamDisplay,
       captain,
       manager,
+      stream,
+      isPhysical,
       tatL1ToL2Days: tatL1,
       tatCreatedToL2Days: tatCreated
     };

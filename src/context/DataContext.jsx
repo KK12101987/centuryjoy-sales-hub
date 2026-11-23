@@ -39,8 +39,19 @@ export const AVAILABLE_DATASETS = {
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
-  // Master tickets state
+  // Master tickets state with local storage persistence across browser refresh
   const [tickets, setTickets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_uploaded_tickets_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load saved tickets from localStorage:', e);
+    }
     return DEFAULT_ALL_TICKETS;
   });
 
@@ -408,31 +419,79 @@ export function DataProvider({ children }) {
 
   const importTickets = (newRecords, mode = 'replace') => {
     verifyWatermarkIntegrity();
+    let updatedTickets = [];
+
     if (mode === 'replace') {
       const tagged = newRecords.map((r, i) => ({ ...r, _uid: `upload-${i}-${r.ticketNo}` }));
-      setTickets(tagged);
-      const firstMonth = (tagged[0]?.l2ApprovedDate || tagged[0]?.createdDate || '').slice(0, 7);
-      if (firstMonth && firstMonth.length === 7) {
-        setSelectedMonth(firstMonth);
+      
+      // Determine all months present in the uploaded dataset
+      const uploadedMonths = new Set(
+        tagged.map(t => (t.l2ApprovedDate || t.createdDate || '').slice(0, 7)).filter(m => m.length === 7)
+      );
+
+      // Keep tickets from all other months, replace the uploaded month(s)
+      const otherMonthsTickets = tickets.filter(t => {
+        const m = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
+        return !uploadedMonths.has(m);
+      });
+
+      updatedTickets = [...otherMonthsTickets, ...tagged];
+      setTickets(updatedTickets);
+
+      try {
+        localStorage.setItem('century_uploaded_tickets_v2', JSON.stringify(updatedTickets));
+      } catch (e) {
+        console.warn('Failed to save uploaded tickets to localStorage:', e);
+      }
+
+      if (uploadedMonths.size === 1) {
+        const targetMonth = [...uploadedMonths][0];
+        setSelectedMonth(targetMonth);
+        try {
+          localStorage.setItem('century_selected_month_v2', targetMonth);
+        } catch (e) {}
       } else {
         setSelectedMonth('all');
+        try {
+          localStorage.setItem('century_selected_month_v2', 'all');
+        } catch (e) {}
       }
       resetFilters();
     } else {
-      // Append mode: merge into existing corpus
+      // Append mode: merge into existing corpus and deduplicate by ticketNo
       const existingMap = new Map(tickets.map((t) => [t._uid || t.ticketNo, t]));
       for (let i = 0; i < newRecords.length; i++) {
         const nr = newRecords[i];
         const uid = nr._uid || `upload-${i}-${nr.ticketNo}`;
-        existingMap.set(uid, { ...nr, _uid: uid });
+        existingMap.set(nr.ticketNo || uid, { ...nr, _uid: uid });
       }
-      const updated = Array.from(existingMap.values());
-      setTickets(updated);
+      updatedTickets = Array.from(existingMap.values());
+      setTickets(updatedTickets);
+
+      try {
+        localStorage.setItem('century_uploaded_tickets_v2', JSON.stringify(updatedTickets));
+      } catch (e) {
+        console.warn('Failed to save uploaded tickets to localStorage:', e);
+      }
+
       const newMonth = (newRecords[0]?.l2ApprovedDate || newRecords[0]?.createdDate || '').slice(0, 7);
       if (newMonth && newMonth.length === 7) {
         setSelectedMonth(newMonth);
+        try {
+          localStorage.setItem('century_selected_month_v2', newMonth);
+        } catch (e) {}
       }
     }
+  };
+
+  const resetToDefaultData = () => {
+    try {
+      localStorage.removeItem('century_uploaded_tickets_v2');
+      localStorage.removeItem('century_selected_month_v2');
+    } catch (e) {}
+    setTickets(DEFAULT_ALL_TICKETS);
+    setSelectedMonth('2026-10');
+    resetFilters();
   };
 
   return (
@@ -468,6 +527,7 @@ export function DataProvider({ children }) {
         setDateRange,
         resetFilters,
         importTickets,
+        resetToDefaultData,
         // Month Selector API
         selectedMonth,
         setSelectedMonth,
