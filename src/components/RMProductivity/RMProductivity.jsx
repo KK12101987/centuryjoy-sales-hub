@@ -477,7 +477,7 @@ export default function RMProductivity() {
                   required
                 >
                   <option value="">-- Choose Agent --</option>
-                  {rmDirectory.map((rm) => (
+                  {rmDirectory.filter((r) => r.status !== 'inactive').map((rm) => (
                     <option key={rm.rm_name} value={rm.rm_name}>{rm.rm_name} ({rm.captain_name})</option>
                   ))}
                 </select>

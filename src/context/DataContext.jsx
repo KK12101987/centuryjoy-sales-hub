@@ -750,6 +750,94 @@ export function DataProvider({ children }) {
     });
   };
 
+  // Soft Deactivate RM / Employee without affecting the database (preserves all historical audits, tickets, and logs)
+  const deactivateRm = (rmName, reason = 'Separated / Soft Offboarded') => {
+    verifyWatermarkIntegrity();
+    let updatedRm = null;
+
+    setRmDirectory((prev) => {
+      const updated = prev.map((rm) => {
+        if (rm.rm_name.toLowerCase() === rmName.toLowerCase()) {
+          updatedRm = {
+            ...rm,
+            status: 'inactive',
+            deactivatedAt: new Date().toISOString(),
+            deactivationReason: reason,
+          };
+          return updatedRm;
+        }
+        return rm;
+      });
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Remove from active hierarchy tree view so captains don't see inactive agents in their live pods
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      for (const m in tree) {
+        for (const c in tree[m]) {
+          tree[m][c] = (tree[m][c] || []).filter((agent) => agent.toLowerCase() !== rmName.toLowerCase());
+        }
+      }
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return updatedRm;
+  };
+
+  // Reactivate / Restore a previously offboarded RM
+  const reactivateRm = (rmName) => {
+    verifyWatermarkIntegrity();
+    let restoredRm = null;
+
+    setRmDirectory((prev) => {
+      const updated = prev.map((rm) => {
+        if (rm.rm_name.toLowerCase() === rmName.toLowerCase()) {
+          restoredRm = {
+            ...rm,
+            status: 'active',
+            deactivatedAt: null,
+            deactivationReason: null,
+          };
+          return restoredRm;
+        }
+        return rm;
+      });
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Re-add to hierarchy tree under their manager and captain
+    setHierarchy((prev) => {
+      const target = restoredRm || rmDirectory.find((r) => r.rm_name.toLowerCase() === rmName.toLowerCase());
+      if (!target) return prev;
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      const m = target.manager_name || 'Arijit Nath';
+      const c = target.captain_name || 'Arshi Afreen Jamal';
+      if (!tree[m]) tree[m] = {};
+      if (!tree[m][c]) tree[m][c] = [];
+      if (!tree[m][c].some((a) => a.toLowerCase() === target.rm_name.toLowerCase())) {
+        tree[m][c].push(target.rm_name);
+      }
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return restoredRm;
+  };
+
   // Global Scope Filter for Consolidated View
   const [scopeFilter, setScopeFilter] = useState({
     manager: 'all',
@@ -835,6 +923,8 @@ export function DataProvider({ children }) {
     discardAllPendingDialerCalls,
     rmDirectory,
     updateRmMapping,
+    deactivateRm,
+    reactivateRm,
     scopeFilter,
     setScopeFilter,
     isUploadModalOpen,

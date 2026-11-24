@@ -277,12 +277,13 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
     return [...new Set(rmDirectory.map((r) => (r.team_name || "").trim()).filter(Boolean))];
   }, [rmDirectory]);
 
-  // Filtered RMs (robust against Unity-II vs Unity 2 variations)
+  // Filtered RMs (robust against Unity-II vs Unity 2 variations, excludes soft-offboarded employees for new evaluations)
   const availableRms = useMemo(() => {
-    if (!franchise) return rmDirectory;
+    const activeList = rmDirectory.filter((r) => r.status !== 'inactive');
+    if (!franchise) return activeList;
     const norm = (s) => (s || '').toLowerCase().replace(/[-_\s]/g, '').replace(/ii$/, '2').replace(/i$/, '1');
     const target = norm(franchise);
-    return rmDirectory.filter((r) => norm(r.team_name) === target);
+    return activeList.filter((r) => norm(r.team_name) === target);
   }, [rmDirectory, franchise]);
 
   // Selected RM details

@@ -31,7 +31,15 @@ import {
   Save,
   RefreshCw,
   Layers,
-  ArrowRight
+  ArrowRight,
+  UserMinus,
+  UserX,
+  RotateCcw,
+  Archive,
+  UserCheck,
+  History,
+  Database,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function UserManagement() {
@@ -42,12 +50,22 @@ export default function UserManagement() {
     hierarchy, 
     updateHierarchy, 
     rmDirectory, 
-    updateRmMapping 
+    updateRmMapping,
+    deactivateRm,
+    reactivateRm,
+    qaAudits
   } = useData();
 
-  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles' | 'scope'
+  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles' | 'scope' | 'offboard'
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+
+  // Offboarding state
+  const [offboardSubTab, setOffboardSubTab] = useState('active'); // 'active' | 'archived'
+  const [offboardSearch, setOffboardSearch] = useState('');
+  const [deactivatingRm, setDeactivatingRm] = useState(null);
+  const [deactivateReason, setDeactivateReason] = useState('Resignation / Separation');
+  const [customDeactivateNote, setCustomDeactivateNote] = useState('');
 
   // Drawer / Modal states
   const [modalMode, setModalMode] = useState('none'); // 'create' | 'edit' | 'reset-password'
@@ -95,20 +113,71 @@ export default function UserManagement() {
     return list.sort();
   }, [rmDirectory]);
 
-  // Filtered users
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const mName = (u.name || '').toLowerCase();
-        const mEmail = (u.email || '').toLowerCase();
-        const mDesig = (u.designation || '').toLowerCase();
-        return mName.includes(q) || mEmail.includes(q) || mDesig.includes(q);
-      }
-      return true;
-    });
-  }, [users, roleFilter, searchQuery]);
+  // Active & Inactive RMs
+  const activeRms = useMemo(() => {
+    return (rmDirectory || []).filter((r) => r.status !== 'inactive');
+  }, [rmDirectory]);
+
+  const inactiveRms = useMemo(() => {
+    return (rmDirectory || []).filter((r) => r.status === 'inactive');
+  }, [rmDirectory]);
+
+  const filteredActiveRms = useMemo(() => {
+    if (!offboardSearch) return activeRms;
+    const q = offboardSearch.toLowerCase();
+    return activeRms.filter(
+      (r) =>
+        (r.rm_name || '').toLowerCase().includes(q) ||
+        (r.team_name || '').toLowerCase().includes(q) ||
+        (r.captain_name || '').toLowerCase().includes(q) ||
+        (r.manager_name || '').toLowerCase().includes(q)
+    );
+  }, [activeRms, offboardSearch]);
+
+  const filteredInactiveRms = useMemo(() => {
+    if (!offboardSearch) return inactiveRms;
+    const q = offboardSearch.toLowerCase();
+    return inactiveRms.filter(
+      (r) =>
+        (r.rm_name || '').toLowerCase().includes(q) ||
+        (r.team_name || '').toLowerCase().includes(q) ||
+        (r.captain_name || '').toLowerCase().includes(q) ||
+        (r.manager_name || '').toLowerCase().includes(q) ||
+        (r.deactivationReason || '').toLowerCase().includes(q)
+    );
+  }, [inactiveRms, offboardSearch]);
+
+  const handleConfirmDeactivate = () => {
+    if (!deactivatingRm) return;
+    try {
+      const fullReason = customDeactivateNote
+        ? `${deactivateReason} - ${customDeactivateNote}`
+        : deactivateReason;
+      deactivateRm(deactivatingRm.rm_name, fullReason);
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully soft-offboarded "${deactivatingRm.rm_name}". Employee removed from active operations with zero impact on historical audits or tickets!`,
+      });
+      setDeactivatingRm(null);
+      setCustomDeactivateNote('');
+      setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleReactivate = (rm) => {
+    try {
+      reactivateRm(rm.rm_name);
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully restored "${rm.rm_name}" to active status under Captain ${rm.captain_name || 'Direct'}!`,
+      });
+      setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
 
   const handleOpenCreate = () => {
     setFormData({
@@ -236,6 +305,15 @@ export default function UserManagement() {
             }`}
           >
             Supervisory Scope Assignment
+          </button>
+          <button
+            onClick={() => setActiveTab('offboard')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              activeTab === 'offboard' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <UserMinus className="w-3.5 h-3.5" />
+            <span>Remove / Offboard Employee {inactiveRms.length > 0 ? `(${inactiveRms.length} Offboarded)` : ''}</span>
           </button>
           <button
             onClick={() => setActiveTab('roles')}
@@ -418,8 +496,8 @@ export default function UserManagement() {
                   className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
                   required
                 >
-                  <option value="">-- Choose Agent from {rmDirectory.length} Active RMs --</option>
-                  {rmDirectory.map((rm) => (
+                  <option value="">-- Choose Agent from {activeRms.length} Active RMs --</option>
+                  {activeRms.map((rm) => (
                     <option key={rm.id || rm.rm_name} value={rm.rm_name}>
                       {rm.rm_name} ({rm.team_name || 'Unity-II'} • {rm.captain_name || 'Direct'} • {rm.manager_name || 'General'})
                     </option>
@@ -507,7 +585,7 @@ export default function UserManagement() {
                 </p>
               </div>
               <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 font-mono">
-                {rmDirectory.length} Total Agents
+                {activeRms.length} Active Agents{inactiveRms.length > 0 ? ` • ${inactiveRms.length} Offboarded` : ''}
               </span>
             </div>
 
@@ -562,6 +640,283 @@ export default function UserManagement() {
               })}
             </div>
           </div>
+
+        </div>
+      )}
+
+      {/* TAB: EMPLOYEE SOFT OFFBOARDING / DEACTIVATION (Zero Database Impact) */}
+      {activeTab === 'offboard' && (
+        <div className="space-y-6">
+          
+          {/* Hero Explanatory Banner */}
+          <div className="bg-gradient-to-r from-purple-900/10 via-slate-900/5 to-slate-900/10 dark:from-purple-950/40 dark:via-slate-900/60 dark:to-slate-900/30 border border-purple-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center space-x-2">
+                <span className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                  <Database className="w-5 h-5" />
+                </span>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  Employee Separation & Soft Offboarding Console
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 flex items-center space-x-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>Zero Database Impact Guarantee</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Safely offboard departing or reassigned staff from active operational lists (new QA scorecards, live dialer queues, and supervisory reassignments). 
+                <strong> 100% of historical data is preserved:</strong> past sales tickets, call records, and completed audits remain permanently retained and verifiable in the database.
+              </p>
+            </div>
+
+            {/* Quick Summary Pill */}
+            <div className="flex items-center space-x-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs shadow-sm self-stretch md:self-auto justify-around">
+              <div className="text-center px-3 border-r border-slate-100 dark:border-slate-800">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Active RMs</div>
+                <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">{activeRms.length}</div>
+              </div>
+              <div className="text-center px-3 border-r border-slate-100 dark:border-slate-800">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Offboarded</div>
+                <div className="text-lg font-black text-amber-600 dark:text-amber-400">{inactiveRms.length}</div>
+              </div>
+              <div className="text-center px-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Audits Preserved</div>
+                <div className="text-lg font-black text-purple-600 dark:text-purple-400">{(qaAudits || []).length}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls Bar & Subtabs */}
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Sub-tab Switcher */}
+            <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800">
+              <button
+                onClick={() => setOffboardSubTab('active')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                  offboardSubTab === 'active'
+                    ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Active Operations Roster ({activeRms.length})</span>
+              </button>
+              <button
+                onClick={() => setOffboardSubTab('archived')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                  offboardSubTab === 'archived'
+                    ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Archive className="w-3.5 h-3.5 text-amber-500" />
+                <span>Offboarded / Inactive Archive ({inactiveRms.length})</span>
+              </button>
+            </div>
+
+            {/* Search Box */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={offboardSearch}
+                onChange={(e) => setOffboardSearch(e.target.value)}
+                placeholder="Search RM, franchise, captain..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* Sub-tab 1: Active Roster */}
+          {offboardSubTab === 'active' && (
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+                    <UserCheck className="w-4 h-4 text-emerald-500" />
+                    <span>Active Relationship Managers in Live System</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Click "Deactivate Employee" to soft-remove any agent who has left or separated. Past tickets and audits remain 100% intact.
+                  </p>
+                </div>
+                <span className="text-xs text-slate-400 font-mono">
+                  Showing {filteredActiveRms.length} of {activeRms.length} Active
+                </span>
+              </div>
+
+              <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider z-10">
+                    <tr>
+                      <th className="py-3 px-4">Employee / RM Name</th>
+                      <th className="py-3 px-4">Franchise / Team</th>
+                      <th className="py-3 px-4">Pod Captain & Senior Manager</th>
+                      <th className="py-3 px-4">Historical Data Protection</th>
+                      <th className="py-3 px-4 text-right">Operational Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {filteredActiveRms.map((rm) => {
+                      const rmAuditsCount = (qaAudits || []).filter(
+                        (a) => (a.rm_name || '').toLowerCase() === rm.rm_name.toLowerCase()
+                      ).length;
+                      return (
+                        <tr key={rm.id || rm.rm_name} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                              <span>{rm.rm_name}</span>
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active"></span>
+                            </div>
+                            <div className="text-[11px] text-slate-400 font-mono">
+                              Dialer ID: {rm.dialer_id || 'N/A'} • ID: #{rm.id}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                              {rm.team_name || 'Unity-II'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                            <div className="font-medium text-xs">{rm.captain_name || 'Direct Supervision'}</div>
+                            <div className="text-[11px] text-slate-500">Mgr: {rm.manager_name || 'General Management'}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center space-x-1 text-slate-600 dark:text-slate-400 text-[11px]">
+                              <Database className="w-3.5 h-3.5 text-blue-500" />
+                              <span>{rmAuditsCount} QA Audits Logged</span>
+                            </div>
+                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                              ✓ Historical records locked & preserved
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => {
+                                setDeactivatingRm(rm);
+                                setDeactivateReason('Resignation / Separation');
+                                setCustomDeactivateNote('');
+                              }}
+                              className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-bold text-xs transition-all flex items-center space-x-1.5 ml-auto"
+                            >
+                              <UserMinus className="w-3.5 h-3.5" />
+                              <span>Deactivate Employee</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Sub-tab 2: Offboarded / Inactive Archive */}
+          {offboardSubTab === 'archived' && (
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+                    <Archive className="w-4 h-4 text-amber-500" />
+                    <span>Offboarded / Inactive Employees Archive</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    These employees are hidden from active scorecard dropdowns. All historical audits, tickets, and logs remain 100% preserved.
+                  </p>
+                </div>
+                <span className="text-xs text-slate-400 font-mono">
+                  {inactiveRms.length} Offboarded
+                </span>
+              </div>
+
+              {inactiveRms.length === 0 ? (
+                <div className="p-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                    No Employees Currently Offboarded
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    All {rmDirectory.length} Relationship Managers are active in operational lists. When an employee is soft-deactivated, they will appear here with full restore options.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider z-10">
+                      <tr>
+                        <th className="py-3 px-4">Employee / RM Name</th>
+                        <th className="py-3 px-4">Last Franchise / Team</th>
+                        <th className="py-3 px-4">Last Captain & Manager</th>
+                        <th className="py-3 px-4">Separation Reason & Date</th>
+                        <th className="py-3 px-4">Database History</th>
+                        <th className="py-3 px-4 text-right">Restore Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredInactiveRms.map((rm) => {
+                        const rmAuditsCount = (qaAudits || []).filter(
+                          (a) => (a.rm_name || '').toLowerCase() === rm.rm_name.toLowerCase()
+                        ).length;
+                        return (
+                          <tr key={rm.id || rm.rm_name} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors bg-amber-50/20 dark:bg-amber-950/10">
+                            <td className="py-3 px-4">
+                              <div className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                                <span>{rm.rm_name}</span>
+                                <span className="px-1.5 py-0.5 rounded text-[9px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold uppercase">
+                                  Offboarded
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono">
+                                Dialer ID: {rm.dialer_id || 'N/A'} • ID: #{rm.id}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                {rm.team_name || 'Unity-II'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                              <div className="font-medium text-xs">{rm.captain_name || 'Direct'}</div>
+                              <div className="text-[11px] text-slate-500">Mgr: {rm.manager_name || 'General'}</div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="font-semibold text-slate-900 dark:text-slate-200">
+                                {rm.deactivationReason || 'Separated / Soft Offboarded'}
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono">
+                                Date: {rm.deactivatedAt ? rm.deactivatedAt.slice(0, 10) : 'Recent'}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold">
+                                <Database className="w-3.5 h-3.5" />
+                                <span>{rmAuditsCount} Past Audits Preserved</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                100% database integrity maintained
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <button
+                                onClick={() => handleReactivate(rm)}
+                                className="px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs transition-all flex items-center space-x-1.5 ml-auto"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Reactivate Employee</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       )}
@@ -730,6 +1085,107 @@ export default function UserManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Soft Deactivation Confirmation */}
+      {deactivatingRm && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            
+            <div className="flex items-start space-x-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                <UserMinus className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                  Soft-Deactivate Employee
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Remove from active operations without deleting historical data.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Employee:</span>
+                <span className="font-bold text-slate-900 dark:text-white">{deactivatingRm.rm_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Team / Franchise:</span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">{deactivatingRm.team_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Pod Captain:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">{deactivatingRm.captain_name}</span>
+              </div>
+            </div>
+
+            {/* Zero DB Impact Guarantee Box */}
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs space-y-1">
+              <div className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Zero Database Impact Guarantee</span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                This employee will be hidden from new QA evaluations, live dialer lists, and active supervisory pods. 
+                <strong> No records are deleted.</strong> All past sales tickets, call recordings, and historical QA scorecards remain 100% intact in the database.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Separation Reason
+                </label>
+                <select
+                  value={deactivateReason}
+                  onChange={(e) => setDeactivateReason(e.target.value)}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                >
+                  <option value="Resignation / Separation">Resignation / Voluntary Separation</option>
+                  <option value="End of Employment Contract">End of Employment Contract</option>
+                  <option value="Role Transition / Department Transfer">Role Transition / Department Transfer</option>
+                  <option value="Medical / Extended Leave">Medical / Extended Leave</option>
+                  <option value="Disciplinary / Offboarded">Disciplinary / Involuntary Separation</option>
+                  <option value="Other / Administrative Deactivation">Other / Administrative Deactivation</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Additional Note (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={customDeactivateNote}
+                  onChange={(e) => setCustomDeactivateNote(e.target.value)}
+                  placeholder="e.g. Last working day Nov 24, 2026"
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setDeactivatingRm(null)}
+                className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeactivate}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 flex items-center space-x-1.5"
+              >
+                <UserMinus className="w-3.5 h-3.5" />
+                <span>Confirm Soft Deactivation</span>
+              </button>
+            </div>
+
           </div>
         </div>
       )}
