@@ -111,12 +111,11 @@ The application will automatically detect Vite and the serverless functions unde
 
 ---
 
-## 19. Employee Soft-Offboarding, Pod Captain Resignation Auto-Failover, Role Promotion & Accidental Offboarding Revert (Nov 24, 2026)
-- **Zero Database Impact Soft-Offboarding:** Employees who leave or separate are marked `status: 'inactive'` with a formal separation timestamp and reason. All historical L2 financial records, QA audit scorecards, and RM telephony history remain 100% intact with zero data loss or foreign key distortion.
-- **Pod Captain Resignation Protocol (Auto-Failover):** When a Pod Captain separates, their active subordinate agents temporarily report directly to the immediate Senior Manager (`captain_name` becomes immediate manager, hierarchy tree updates dynamically) so no agents are ever orphaned.
-- **Pod Succession & Role Promotion:** Leadership can promote an active employee to Pod Captain or Senior Manager and assign team members directly under their supervisory pod in a dedicated promotion modal.
-- **Accidental Offboarding Protection & Revert Protocol:** 
-  1. Instant "Revert Offboarding Mistake" button in top alert banner right after offboarding.
-  2. Quick-revert bar at the top of the Offboarding console for recently offboarded employees.
-  3. "Revert Offboarding" button in the Inactive Archive table that restores the employee and reinstates all original pod relationships and subordinate agents.
-- **Ronika Banerjee & Ishani Dey Hierarchy Sync:** Unified mapping ensures agents remain cleanly synchronized with Unity-II under Arshi Afreen Jamal and Arijit Nath.
+## 19. Dedicated Captain Resignation & Succession Tab, Auto-Failover & Revert Protocol (Nov 24, 2026)
+- **First-Class Captain Resignation & Succession Tab:** Created a dedicated, prominent tab in `UserManagement.jsx` navigation bar: **"Captain Resignation & Succession"** styled with amber accent and live failover indicators.
+- **Pod Leadership Status & Failover Health Grid:** Live cards for all 5 operational pods (Unity-II, Catlyst-II, Catlyst-I, SoarZone-II, SoarZone-I) showing active Captain, Senior Manager, supervised RM count, and real-time failover state.
+- **Console 1: Captain Resignation & Manager Failover:** Select any active Pod Captain, view supervised RMs in real-time, select separation reason, and execute instant failover to their Senior Manager (`Arijit Nath`, `Surajit Laha`, or `Niladri Bhadra`) with zero lost records.
+- **Console 2: Leadership Succession & Role Promotion:** Select candidate RM, choose promotion tier (Pod Captain or Senior Manager), select target pod, and assign designated team members.
+- **Accidental Resignation & Offboarding Revert Center:** 1-click restore table with instant green "Revert Resignation" button to reinstate the employee and reconnect their subordinate pod hierarchy.
+- **Offboarding Tab Deep-Link Banner:** Added guidance banner in the "Remove / Offboard Employee" tab with a 1-click button to jump directly to the Captain Resignation tab.
+- **Zero Database Impact:** Inactive employees remain preserved across all historical L2 disbursements, call logs, and completed QA scorecards.

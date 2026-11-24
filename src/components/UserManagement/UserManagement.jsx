@@ -79,6 +79,11 @@ export default function UserManagement() {
     assignedAgents: [],
   });
 
+  // Dedicated Captain Resignation tab state
+  const [resigningCaptainName, setResigningCaptainName] = useState('Arshi Afreen Jamal');
+  const [captainSeparationReason, setCaptainSeparationReason] = useState('Resignation / Separation');
+  const [captainSeparationNotes, setCaptainSeparationNotes] = useState('');
+
   // Drawer / Modal states
   const [modalMode, setModalMode] = useState('none'); // 'create' | 'edit' | 'reset-password'
   const [selectedUser, setSelectedUser] = useState(null);
@@ -260,6 +265,93 @@ export default function UserManagement() {
     }
   };
 
+  // Active Captains List (RMs who supervise other agents or have Captain designation)
+  const activeCaptainsList = useMemo(() => {
+    const captainNames = new Set(
+      activeRms
+        .filter((r) => r.captain_name && r.captain_name.toLowerCase() !== r.rm_name.toLowerCase())
+        .map((r) => r.captain_name.toLowerCase())
+    );
+    return activeRms.filter(
+      (r) =>
+        captainNames.has(r.rm_name.toLowerCase()) ||
+        (r.designation || '').toLowerCase().includes('captain')
+    );
+  }, [activeRms]);
+
+  // Keep resigningCaptainName pointing to an active captain
+  useEffect(() => {
+    if (!resigningCaptainName && activeCaptainsList.length > 0) {
+      setResigningCaptainName(activeCaptainsList[0].rm_name);
+    }
+  }, [activeCaptainsList, resigningCaptainName]);
+
+  // Inactive / separated captains
+  const inactiveCaptainsList = useMemo(() => {
+    return (inactiveRms || []).filter(
+      (r) =>
+        r.wasCaptain ||
+        (r.designation || '').toLowerCase().includes('captain') ||
+        (activeRms || []).some(
+          (sub) => (sub.previousCaptain || '').toLowerCase() === r.rm_name.toLowerCase()
+        )
+    );
+  }, [inactiveRms, activeRms]);
+
+  // Subordinates currently in temporary Senior Manager supervision
+  const failoverAgents = useMemo(() => {
+    return (activeRms || []).filter((r) => r.tempSupervisedByManager || r.previousCaptain);
+  }, [activeRms]);
+
+  // Pods health overview
+  const podsOverview = useMemo(() => {
+    const teams = ['Unity-II', 'Catlyst-II', 'Catlyst-I', 'SoarZone-II', 'SoarZone-I'];
+    return teams.map((teamName) => {
+      const teamRms = activeRms.filter((r) => (r.team_name || '').toLowerCase() === teamName.toLowerCase());
+      const captain = teamRms.find((r) => activeCaptainsList.some((c) => c.rm_name.toLowerCase() === r.rm_name.toLowerCase()));
+      const failovers = teamRms.filter((r) => r.tempSupervisedByManager);
+      const seniorManager = teamRms[0]?.manager_name || (teamName.startsWith('Unity') ? 'Arijit Nath' : teamName.startsWith('Catlyst') ? 'Surajit Laha' : 'Niladri Bhadra');
+      return {
+        teamName,
+        captainName: captain ? captain.rm_name : null,
+        seniorManager,
+        totalRms: teamRms.length,
+        failoverCount: failovers.length,
+        isFailover: !captain || failovers.length > 0,
+      };
+    });
+  }, [activeRms, activeCaptainsList]);
+
+  const handleExecuteCaptainResignation = (captainNameToResign) => {
+    const targetName = captainNameToResign || resigningCaptainName;
+    if (!targetName) {
+      alert('Please select a Pod Captain to process resignation.');
+      return;
+    }
+    const captainObj = activeRms.find((r) => r.rm_name.toLowerCase() === targetName.toLowerCase());
+    if (!captainObj) return;
+
+    const subRms = getSubordinatesOfCaptain(targetName);
+    const mgr = captainObj.manager_name || 'Arijit Nath';
+    const fullReason = captainSeparationNotes
+      ? `${captainSeparationReason} - ${captainSeparationNotes}`
+      : captainSeparationReason;
+
+    try {
+      deactivateRm(targetName, fullReason);
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully processed resignation for Pod Captain "${targetName}". All ${subRms.length} subordinates now report temporarily to Senior Manager "${mgr}". Zero data loss!`,
+        canRevert: true,
+        revertTarget: targetName,
+      });
+      setCaptainSeparationNotes('');
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 10000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
+    }
+  };
+
   const handleOpenCreate = () => {
     setFormData({
       name: '',
@@ -370,7 +462,7 @@ export default function UserManagement() {
         </div>
 
         {/* Tab Controls */}
-        <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
           <button
             onClick={() => setActiveTab('users')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -385,7 +477,21 @@ export default function UserManagement() {
               activeTab === 'scope' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Supervisory Scope Assignment
+            Supervisory Scope
+          </button>
+          <button
+            onClick={() => setActiveTab('captain-resignation')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+              activeTab === 'captain-resignation'
+                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                : 'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-300/80 dark:border-amber-800/80'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-600 dark:text-amber-300" />
+            <span>Captain Resignation & Succession</span>
+            {failoverAgents.length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title={`${failoverAgents.length} agents in failover mode`} />
+            )}
           </button>
           <button
             onClick={() => setActiveTab('offboard')}
@@ -394,7 +500,7 @@ export default function UserManagement() {
             }`}
           >
             <UserMinus className="w-3.5 h-3.5" />
-            <span>Remove / Offboard Employee {inactiveRms.length > 0 ? `(${inactiveRms.length} Offboarded)` : ''}</span>
+            <span>Remove / Offboard Employee {inactiveRms.length > 0 ? `(${inactiveRms.length})` : ''}</span>
           </button>
           <button
             onClick={() => setActiveTab('roles')}
@@ -402,7 +508,7 @@ export default function UserManagement() {
               activeTab === 'roles' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Role Permission Matrix
+            Role Matrix
           </button>
         </div>
       </div>
@@ -736,9 +842,514 @@ export default function UserManagement() {
         </div>
       )}
 
+      {/* TAB: CAPTAIN RESIGNATION & SUCCESSION PROTOCOL */}
+      {activeTab === 'captain-resignation' && (
+        <div className="space-y-6">
+          
+          {/* Hero Banner */}
+          <div className="bg-gradient-to-r from-amber-900/10 via-slate-900/5 to-amber-900/10 dark:from-amber-950/40 dark:via-slate-900/60 dark:to-slate-900/30 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center space-x-2">
+                <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+                  <ShieldAlert className="w-5 h-5" />
+                </span>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  Pod Captain Resignation & Succession Protocol
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex items-center space-x-1">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Auto-Failover to Senior Manager</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                When a Pod Captain resigns, their subordinate agents <strong>automatically and temporarily report directly to their immediate Senior Manager</strong> so operations, call queues, and L2 audits continue without interruption. Once leadership selects a successor, promote that employee to Captain to re-establish the pod.
+              </p>
+            </div>
+
+            {/* Quick Summary Pill */}
+            <div className="flex items-center space-x-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs shadow-sm self-stretch md:self-auto justify-around">
+              <div className="text-center px-3 border-r border-slate-100 dark:border-slate-800">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Active Captains</div>
+                <div className="text-lg font-black text-amber-600 dark:text-amber-400">{activeCaptainsList.length}</div>
+              </div>
+              <div className="text-center px-3 border-r border-slate-100 dark:border-slate-800">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">In Failover</div>
+                <div className="text-lg font-black text-rose-600 dark:text-rose-400">{failoverAgents.length}</div>
+              </div>
+              <div className="text-center px-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Active Pods</div>
+                <div className="text-lg font-black text-purple-600 dark:text-purple-400">{podsOverview.length}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pod Status Overview Grid */}
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                <Building2 className="w-4 h-4 text-amber-500" />
+                <span>Live Pod Leadership Status & Failover Health</span>
+              </h3>
+              <span className="text-[11px] text-slate-400">5 Operational Pods</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {podsOverview.map((pod) => (
+                <div
+                  key={pod.teamName}
+                  className={`p-3.5 rounded-xl border text-xs transition-all ${
+                    pod.isFailover
+                      ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50'
+                      : 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-bold text-slate-900 dark:text-white">{pod.teamName}</span>
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        pod.isFailover ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'
+                      }`}
+                    />
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
+                  </div>
+                  <div className="text-[11px] mt-1">
+                    {pod.captainName ? (
+                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                        Captain: {pod.captainName} ({pod.totalRms} RMs)
+                      </span>
+                    ) : (
+                      <span className="text-rose-600 dark:text-rose-400 font-bold">
+                        ⚠️ No Active Captain ({pod.totalRms} RMs under Manager)
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                    {pod.captainName ? (
+                      <button
+                        onClick={() => {
+                          setResigningCaptainName(pod.captainName);
+                        }}
+                        className="text-[10px] font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 flex items-center space-x-1"
+                      >
+                        <span>Select to Resign →</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setPromotionData((prev) => ({
+                            ...prev,
+                            targetTeam: pod.teamName,
+                            assignedAgents: activeRms
+                              .filter((r) => (r.team_name || '').toLowerCase() === pod.teamName.toLowerCase())
+                              .map((r) => r.rm_name),
+                          }));
+                          setPromotionModalOpen(true);
+                        }}
+                        className="text-[10px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 flex items-center space-x-1"
+                      >
+                        <span>Promote Successor →</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dual Action Consoles */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Console 1: Execute Captain Resignation */}
+            <div className="bg-white dark:bg-[#0e1320] border border-amber-200/80 dark:border-amber-900/40 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                  <UserMinus className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Step 1: Process Captain Resignation
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Safely separate a Pod Captain and auto-route their team to the Senior Manager.
+                  </p>
+                </div>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Select Pod Captain
+                  </label>
+                  <select
+                    value={resigningCaptainName}
+                    onChange={(e) => setResigningCaptainName(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    {activeCaptainsList.map((capt) => {
+                      const count = getSubordinatesOfCaptain(capt.rm_name).length;
+                      return (
+                        <option key={capt.rm_name} value={capt.rm_name}>
+                          {capt.rm_name} ({capt.team_name} • {count} Supervised RMs • Mgr: {capt.manager_name})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Subordinates & Failover Preview */}
+                {(() => {
+                  const targetCapt = activeRms.find(
+                    (r) => r.rm_name.toLowerCase() === (resigningCaptainName || '').toLowerCase()
+                  );
+                  const subRms = getSubordinatesOfCaptain(resigningCaptainName);
+                  const mgrName = targetCapt?.manager_name || 'Arijit Nath';
+                  return (
+                    <div className="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-amber-900 dark:text-amber-200">
+                          Supervised Pod Members ({subRms.length} RMs):
+                        </span>
+                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono">
+                          Team: {targetCapt?.team_name || 'Unity-II'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                        {subRms.map((rm) => (
+                          <span
+                            key={rm.rm_name}
+                            className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80 text-[11px] text-slate-800 dark:text-slate-200"
+                          >
+                            {rm.rm_name}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="pt-2 border-t border-amber-200/70 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-medium text-[11px] flex items-start space-x-1.5">
+                        <ArrowRight className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Failover Destination:</strong> All {subRms.length} agents will temporarily report directly to Senior Manager <strong>{mgrName}</strong>. Zero tickets or calls orphaned.
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Separation Reason
+                  </label>
+                  <select
+                    value={captainSeparationReason}
+                    onChange={(e) => setCaptainSeparationReason(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                  >
+                    <option value="Resignation / Separation">Official Resignation / Separation</option>
+                    <option value="Career Advancement / Better Offer">Career Advancement / External Offer</option>
+                    <option value="Personal Reasons / Relocation">Personal Reasons / Relocation</option>
+                    <option value="Internal Department Transfer">Internal Department Transfer</option>
+                    <option value="Health / Medical Leave">Health / Extended Medical Leave</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Handover Notes (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={captainSeparationNotes}
+                    onChange={(e) => setCaptainSeparationNotes(e.target.value)}
+                    placeholder="e.g. Completed handover meeting with Senior Manager"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleExecuteCaptainResignation(resigningCaptainName)}
+                  disabled={!resigningCaptainName}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/20 transition-all flex items-center justify-center space-x-2"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Execute Captain Resignation & Failover to Manager</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Console 2: Succession & Leadership Promotion */}
+            <div className="bg-white dark:bg-[#0e1320] border border-purple-200/80 dark:border-purple-900/40 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">
+                  <Sparkles className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Step 2: Leadership Succession & Role Promotion
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Once a replacement is selected, promote that employee to Captain or Senior Manager.
+                  </p>
+                </div>
+              </div>
+
+              {/* Promotion Form */}
+              <form onSubmit={handleConfirmPromotion} className="space-y-4 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Select Employee to Promote
+                  </label>
+                  <select
+                    value={promotionData.candidateName}
+                    onChange={(e) => {
+                      const candidate = e.target.value;
+                      const matched = activeRms.find((r) => r.rm_name === candidate);
+                      const currentTeam = matched?.team_name || 'Unity-II';
+                      // Auto-select subordinate agents from that team
+                      const teamAgents = activeRms
+                        .filter(
+                          (r) =>
+                            (r.team_name || '').toLowerCase() === currentTeam.toLowerCase() &&
+                            r.rm_name.toLowerCase() !== candidate.toLowerCase()
+                        )
+                        .map((r) => r.rm_name);
+                      setPromotionData((prev) => ({
+                        ...prev,
+                        candidateName: candidate,
+                        targetTeam: currentTeam,
+                        assignedAgents: teamAgents,
+                      }));
+                    }}
+                    required
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">-- Choose Candidate from {activeRms.length} Active RMs --</option>
+                    {activeRms.map((rm) => (
+                      <option key={rm.rm_name} value={rm.rm_name}>
+                        {rm.rm_name} ({rm.team_name} • Current Supervisor: {rm.captain_name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Promote To Role
+                    </label>
+                    <select
+                      value={promotionData.targetRole}
+                      onChange={(e) =>
+                        setPromotionData((prev) => ({ ...prev, targetRole: e.target.value }))
+                      }
+                      className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
+                    >
+                      <option value="captain">Pod Captain (Leads a Pod)</option>
+                      <option value="manager">Senior Manager (Executive)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Target Franchise / Team
+                    </label>
+                    <select
+                      value={promotionData.targetTeam}
+                      onChange={(e) => {
+                        const newTeam = e.target.value;
+                        const teamAgents = activeRms
+                          .filter(
+                            (r) =>
+                              (r.team_name || '').toLowerCase() === newTeam.toLowerCase() &&
+                              r.rm_name.toLowerCase() !== (promotionData.candidateName || '').toLowerCase()
+                          )
+                          .map((r) => r.rm_name);
+                        setPromotionData((prev) => ({
+                          ...prev,
+                          targetTeam: newTeam,
+                          assignedAgents: teamAgents,
+                        }));
+                      }}
+                      className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
+                    >
+                      {teamsList.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Subordinate Agent Selection Checkboxes */}
+                {promotionData.targetRole === 'captain' && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Assign Team Members to New Captain ({promotionData.assignedAgents.length} selected):
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allTeam = activeRms
+                            .filter(
+                              (r) =>
+                                (r.team_name || '').toLowerCase() ===
+                                  (promotionData.targetTeam || 'Unity-II').toLowerCase() &&
+                                r.rm_name.toLowerCase() !==
+                                  (promotionData.candidateName || '').toLowerCase()
+                            )
+                            .map((r) => r.rm_name);
+                          setPromotionData((prev) => ({ ...prev, assignedAgents: allTeam }));
+                        }}
+                        className="text-[10px] text-purple-600 hover:text-purple-700 font-bold"
+                      >
+                        Select All Team
+                      </button>
+                    </div>
+                    <div className="max-h-36 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1 text-xs">
+                      {activeRms
+                        .filter(
+                          (r) =>
+                            r.rm_name.toLowerCase() !== (promotionData.candidateName || '').toLowerCase()
+                        )
+                        .map((rm) => {
+                          const isChecked = promotionData.assignedAgents.includes(rm.rm_name);
+                          return (
+                            <label
+                              key={rm.rm_name}
+                              className="flex items-center space-x-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-slate-800 dark:text-slate-200"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setPromotionData((prev) => ({
+                                    ...prev,
+                                    assignedAgents: checked
+                                      ? [...prev.assignedAgents, rm.rm_name]
+                                      : prev.assignedAgents.filter((a) => a !== rm.rm_name),
+                                  }));
+                                }}
+                                className="rounded text-purple-600 focus:ring-purple-500"
+                              />
+                              <span className="font-medium">{rm.rm_name}</span>
+                              <span className="text-[10px] text-slate-400">
+                                ({rm.team_name} • Current: {rm.captain_name})
+                              </span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!promotionData.candidateName}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Confirm Promotion & Reassign Pod</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Accidental Resignation & Offboarding Revert Center */}
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <RotateCcw className="w-4 h-4 text-emerald-600" />
+                  <span>Accidental Resignation & Offboarding Revert Center</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Revert any accidental separation or resignation with 1 click. Restores the employee to active operations and reinstates all original pod hierarchy.
+                </p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                {inactiveRms.length} Offboarded Records
+              </span>
+            </div>
+
+            {inactiveRms.length > 0 ? (
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="py-2.5 px-4">Employee</th>
+                      <th className="py-2.5 px-4">Role / Pod</th>
+                      <th className="py-2.5 px-4">Separation Date & Reason</th>
+                      <th className="py-2.5 px-4 text-right">Revert Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {inactiveRms.map((rm) => (
+                      <tr key={rm.rm_name} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-slate-900 dark:text-white">{rm.rm_name}</div>
+                          <div className="text-[11px] text-slate-400 font-mono">{rm.dialer_id || rm.rm_name}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            rm.wasCaptain ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          }`}>
+                            {rm.wasCaptain ? 'Pod Captain' : rm.designation || 'Relationship Manager'}
+                          </span>
+                          <div className="text-[11px] text-slate-500 mt-0.5">{rm.team_name} • Sup: {rm.captain_name || 'Direct'}</div>
+                        </td>
+                        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                          <div className="font-medium">{rm.deactivationDate || 'Recent'}</div>
+                          <div className="text-[11px] text-slate-400 italic">{rm.deactivationReason || 'Resignation'}</div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => handleRevertOffboard(rm.rm_name)}
+                            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm ml-auto"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Revert Resignation</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  All Staff & Pod Captains are Active
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">
+                  There are no separated or offboarded employees requiring restoration. If an employee is offboarded by mistake in the future, their restoration card will appear here for 1-click reinstatement.
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+      )}
+
       {/* TAB: EMPLOYEE SOFT OFFBOARDING / DEACTIVATION (Zero Database Impact) */}
       {activeTab === 'offboard' && (
         <div className="space-y-6">
+          
+          {/* Quick Nav Banner to Captain Resignation */}
+          <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center space-x-2 text-amber-900 dark:text-amber-200 font-medium">
+              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Looking to process a Pod Captain's resignation with auto-failover to Senior Manager?</span>
+            </div>
+            <button
+              onClick={() => setActiveTab('captain-resignation')}
+              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 self-end sm:self-auto"
+            >
+              Go to Captain Resignation Tab →
+            </button>
+          </div>
           
           {/* Hero Explanatory Banner */}
           <div className="bg-gradient-to-r from-purple-900/10 via-slate-900/5 to-slate-900/10 dark:from-purple-950/40 dark:via-slate-900/60 dark:to-slate-900/30 border border-purple-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
