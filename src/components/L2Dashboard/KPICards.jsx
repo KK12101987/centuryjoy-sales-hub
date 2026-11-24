@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../context/DataContext';
+import { useData } from '../../context/DataContext';
 import { 
   IndianRupee, 
   Ticket, 

@@ -1,62 +1,67 @@
-# Feature: Interactive L2 Dashboard with Resilient Data Ingestion
+# Feature Implementation Trace
 
-## 1. Feature Specification
-- **ID:** FEAT-001
-- **Title:** Executive L2 Operations Dashboard with Dynamic Excel Ingestion
-- **Target Environment:** Local dev server (`http://localhost:5173`), prepared for 100% free static deployment (Vercel / Netlify / GitHub Pages).
-- **Core Requirements:**
-  1. Executive KPIs (₹40.50 Cr, 2,688 tickets, Avg ticket ₹1.51 L, SLA TAT 0.6 days).
-  2. Dual-Stream Hierarchy:
-     - 4 Senior Managers ONLY (Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal).
-     - Physical Teams (NO CAPTAIN): `<Manager Name> - Physical Team`, badged `No Captain • Direct Supervision`.
-     - Digital Teams (CAPTAIN-LED): Led by 7 dedicated Pod Captains.
-  3. Dedicated Invoice Audit PODs: Auditable (1,925 tickets | ₹29.72 Cr) vs Non-Auditable (763 tickets | ₹10.78 Cr) with 1-click filtering.
-  4. 1-click Light/Dark Mode toggle in the navbar with CenturyPly Option 2 enterprise design (signature Century Red `#E31E24`, slate/navy, monogram badges, no photos, no external logo).
-  5. L2 Approver Workloads (8 Reviewers) & Turnaround Time (TAT) metrics.
-  6. Daily approval velocity bar chart & channel breakdown (CenturyJoy vs. CenturyJoyApp).
-  7. Searchable, filterable, and paginated Ticket Explorer with CSV export.
-  8. Resilient Ingestion Section: Drag-and-drop Excel/CSV upload with fuzzy header matching, fallback column mapper modal, data normalizer, and replace/append options.
-  9. Strict Watermark & Anti-Tamper Protocol (Rule 19): Hover-only visibility, continuous DOM watcher, coupled kill switch.
+## FEATURE-001: Consolidated Executive Integration Dashboard
+* **Status:** DELIVERED & VERIFIED
+* **Description:** High-level executive dashboard synthesizing metrics across L2 Approvals, RM Calling Telephony, and QA Call Quality into a unified command center.
+* **Key Components:**
+  * Tri-factor executive KPI cards (Finance, Telephony, QA).
+  * Senior Management Cross-Performance Comparison Table (Surajit Laha, Niladri Bhadra, Arijit Nath, Amit Singal).
+  * Stream filter (All, Digital Pods, Physical Teams) and Manager filter.
 
-## 2. Approach & Rationale ("Why Before What")
-- **Framework:** Vite + React + Tailwind CSS + Lucide Icons + Recharts / Chart.js.
-  - *Why:* Instant build, zero runtime backend cost, sub-millisecond filtering on 2,688+ records, pure static output ready for immediate hosting.
-- **Data Ingestion:** Client-side SheetJS (`xlsx`) library.
-  - *Why:* Operates offline and in-browser without sending sensitive financial CRM data to third-party upload servers.
-- **Security:** Defensive sanitization against formula injection (`=cmd|'`) and strict schema type casting.
+## FEATURE-002: User, Role & Supervisory Scope Governance Console
+* **Status:** DELIVERED & VERIFIED
+* **Description:** 3-tier administration console allowing the creation, editing, deletion of users, Role-Based Access Control matrix, and interactive Supervisory Scope Assignment.
+* **Key Components:**
+  * User Accounts CRUD with protected account safety (Kushal Kar developer account protected).
+  * Granular Role Permission Matrix (Super Admin, Senior Manager, Pod Captain, QA Auditor, Executive Viewer).
+  * Supervisory Scope Assignment UI with live organizational tree visualization and instant cross-portal synchronization.
 
-## 3. Implementation Steps
-1. Create `process_data.py` to compile initial `data.json` and `hierarchy.json`.
-2. Scaffold Vite + React + Tailwind app structure.
-3. Implement `integrity.js` and `Watermark.jsx` with coupled kill-switch.
-4. Implement `columnMatcher.js` and `UploadModal.jsx` for resilient file ingestion.
-5. Implement KPI summary, hierarchy drilldown, L2 workload, and Ticket Explorer components.
-6. Verify locally via automated checks and launch local server.
+## FEATURE-003: 41 Sub-Parameters QA Scorecard with Proportional Point Allocation
+* **Status:** DELIVERED & VERIFIED
+* **Description:** Call quality evaluation scorecard featuring 41 evaluation checkpoints, 3-state evaluation (`Pass`, `Missed`, `N/A`), and fatal zero-overrides.
 
-## 4. Verification & Testing
-- Automated test script validating record counts, sum totals, hierarchy match rates, and column matcher aliases:
-  - Total records: `2,688`
-  - Total amount: `₹404,977,923.49`
-  - Hierarchy matched: `2,688 (100.00%)` (0 Unassigned)
-  - Senior Managers: `4` (Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal)
-  - Auditable Invoices POD: `1,925 tickets (₹29.72 Cr)`
-  - Non-Auditable Invoices POD: `763 tickets (₹10.78 Cr)`
-  - Digital Pods: `7 Captains` | Physical Teams: `4 Teams (Direct Supervision)`
-- Production build verified: `npm run build` generated `dist/` successfully with 0 errors.
-- Local server active: `http://localhost:5173/` tested and responding with HTTP 200.
-- Anti-tamper watermark & coupled integrity verification active.
+## FEATURE-004: QA Scorecard UI Streamlining & Executive Scoring Command Ribbon
+* **Status:** DELIVERED & VERIFIED
+* **User Feedback:**
+  1. Removed redundant data collection checkboxes (FTS Scheme Inquiry, AID Club Benefits Pitch, TCW Discussed).
+  2. Redesigned the sticky live scoring ribbon into an executive command console.
+* **Key Enhancements:**
+  * Multi-tier dynamic hero score badge (Crimson Fatal, Amber Coaching, Emerald Benchmark Met, Pink Below Target).
+  * Real-time metadata indicators: Awarded Points, Evaluated Parameters Count (X of 11), and Active RM Context.
+  * Desktop progress meter track showing live percentage fill.
+  * High-contrast "Submit & Save Audit" action button with Lucide Save icon.
+* **Verification:** Tested live with browser subagent on `http://localhost:5173` with screenshot verified.
 
----
+## FEATURE-005: Option 2 "Minimalist Frosted Capsule" Live Implementation
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** User reviewed 4 mockup concepts and selected "Option 2".
+* **Key Enhancements:**
+  * Replaced the blocky square score badge with an ultra-sleek horizontal frosted glass capsule: `[ ● 84.00% | COACHING ]`.
+  * Dynamic status styling: Emerald for 85%+ (Benchmark Met), Amber for 70-84% (Coaching), Rose for <70% (Below Target), and pulsing crimson beacon for Fatal (0%).
+  * Integrated compact metadata: `Quality Audit Scorecard · {RM_NAME}`, `Awarded: X / Y Pts • Z of 11 Evaluated`.
+  * Desktop live Pass Ratio progress track and high-contrast emerald "Submit & Save Audit" button.
+* **Verification:** Build passed with 0 errors in 38.18s. Browser subagent verified live calculation, RM selection ("Debapriya Basu"), and checklist evaluation with screenshot captured at `option_2_verified.png`.
 
-## 5. FEAT-004: Multi-Dataset Architecture (October 2026 Live & November 2026 Test)
-- **ID:** FEAT-004
-- **Date:** 2026-11-19
-- **Core Requirements:**
-  1. Ingest `L2 Approved_Test.xlsx` (November 2026: 326 tickets, ₹5.14 Cr).
-  2. Map unassigned RMs (Sholanki Dhar & Ishani Dey) to Captain Arshi Afreen Jamal and Senior Manager Arijit Nath.
-  3. Support Option 1: Multi-Dataset Switcher dropdown in the top navbar allowing instant toggling between October 2026 Live and November 2026 Test datasets.
-  4. Persist user selection across browser reloads via `localStorage` key `century_active_dataset`.
-  5. Dynamically refresh KPIs, Monetary Bifurcation matrices, and cadence charts on dataset change.
-- **Verification:**
-  - Automated CDP tests confirmed October baseline (2,688 tickets | ₹40.50 Cr) toggles seamlessly to November (326 tickets | ₹5.14 Cr: 250 auditable @ ₹3.89 Cr, 76 non-auditable @ ₹1.25 Cr) and back.
-
+## FEATURE-006: Universal Upload Center & Interactive Month Switcher (Phase 1)
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** User reported missing upload mechanisms across the application and missing merger components.
+* **Key Enhancements:**
+  1. **Universal Upload Center Modal (`UploadCenterModal.jsx`):**
+     * Multi-tab modal covering L2 Approvals, RM Telephony Dump, QA Audits, and Dialer Calls.
+     * Auto-detects column mappings with interactive dropdown overrides.
+     * One-click "Download Blank Template" button generating `Agent_Performance_Template.xlsx` using SheetJS.
+     * Dynamic missing RM detection prompting instant Captain and Manager assignment.
+     * Historical QA audit spreadsheet importer across all 11 evaluation categories.
+     * Dialer export importer loading phone numbers, durations, and audio recording links.
+  2. **Header Interactive Month Switcher Dropdown:**
+     * Prominently displayed pill in `Navbar.jsx` with real-time financial Cr metrics and ticket counts for October 2026, November 2026, and Consolidated (All Months).
+     * Accessible across all dashboards with instant responsive filtering.
+  3. **Direct In-Page Ingestion Triggers:**
+     * "Upload L2 Data" button in `L2DashboardMain.jsx`.
+     * "Upload Dialer Dump" button in `RMProductivity.jsx`.
+     * "Upload QA / Dialer" button in `QaDashboard.jsx`.
+  4. **Dialer Call Queue & 1-Click Audit:**
+     * 286 dialer records loaded from SQLite database into `dialerCalls` store.
+     * Filterable by Standard (>=58s), Short (<58s), 00:00:00 (Verify), and Disposed.
+     * Audio listening link (`🎧`) and "Audit Now" button that instantly pre-populates the QA Scorecard and displays the active call audio banner.
+* **Verification:** Production build passed cleanly in 33.39s. Visual inspection verified by browser subagent.

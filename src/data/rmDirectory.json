@@ -1,0 +1,488 @@
+[
+  {
+    "id": 238,
+    "rm_name": "Debapriya Basu",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "Debopriya_basu",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 239,
+    "rm_name": "Pritha Bhattacharya",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "PRITHA_B",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 240,
+    "rm_name": "Suvra Sen",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "Suvra_Sen",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 241,
+    "rm_name": "Arshi Afreen Jamal",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "Arshi_Afreen_J",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 242,
+    "rm_name": "Md Sadik",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "MD_Sadik",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 243,
+    "rm_name": "Shalini Bose",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "Shalini_B",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 244,
+    "rm_name": "Ronika Banerjee",
+    "team_name": "Vibrant",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "Ronika_B",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 245,
+    "rm_name": "Ishani Dey",
+    "team_name": "Vibrant",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "I_Dey",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 246,
+    "rm_name": "Sujita Hazra",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "S_Hazra",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 247,
+    "rm_name": "Sholanki Dhar",
+    "team_name": "Unity-II",
+    "captain_name": "Arshi Afreen Jamal",
+    "mobile_number": "",
+    "dialer_id": "S_Dhar",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 248,
+    "rm_name": "Srabani Chakraborti",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "SRABONICH",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 249,
+    "rm_name": "Sk Shamsher Ali",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "Sk_Shamsher_Ali",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 250,
+    "rm_name": "Aparna Biswas",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "apabiswas",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 251,
+    "rm_name": "SWASITKA KOLLA",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "Swastika_Kolla",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 252,
+    "rm_name": "Naga Sindhuja",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "Naga_CH",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 253,
+    "rm_name": "Rajrupa Dey",
+    "team_name": "Unity-I",
+    "captain_name": "Mousumi Chakraborty",
+    "mobile_number": "",
+    "dialer_id": "R_Dey",
+    "manager_name": "Arijit Nath"
+  },
+  {
+    "id": 254,
+    "rm_name": "Anubha Arora",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Anubha_Arora",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 255,
+    "rm_name": "Jyotirmayee Sardar",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Jyotirmayee_S",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 256,
+    "rm_name": "Ishika Shyamal",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Ishika_shyamal",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 257,
+    "rm_name": "Akash Kumar Shaw",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Akash__Shaw",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 258,
+    "rm_name": "Kaushani Saha",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Kaushani_Saha",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 259,
+    "rm_name": "Nasima Banu",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "nasima",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 260,
+    "rm_name": "Payal Bhattacharya",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "P_Bhattacharya",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 261,
+    "rm_name": "Anjali Sahani",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "Anjali_Sahani",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 262,
+    "rm_name": "Rajeswari Mondal",
+    "team_name": "Catlyst-II",
+    "captain_name": "Nasima Banu",
+    "mobile_number": "",
+    "dialer_id": "R_MONDAL",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 263,
+    "rm_name": "Abhishek Chatterjee",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "ABHISHEKCH",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 264,
+    "rm_name": "Md Essam",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "MD_ESSAM",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 265,
+    "rm_name": "Solanki Tapadar",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "SOLANKI_TAPADAR",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 266,
+    "rm_name": "Saheli Roy",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "Saheli_Roy",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 267,
+    "rm_name": "Jerry Jose",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "Jerry_Josh",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 268,
+    "rm_name": "Pallabi Chura",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "PALLABI_CHURA",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 269,
+    "rm_name": "Rishita Hazra",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "RISHITA_HAZRA",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 270,
+    "rm_name": "Sanjukta Biswas",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "SANJUKTA_BISWAS",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 271,
+    "rm_name": "Sanhita Dutta",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "SANHITAD",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 272,
+    "rm_name": "Uma Beriwal",
+    "team_name": "Catlyst-I",
+    "captain_name": "Pallabi Chura",
+    "mobile_number": "",
+    "dialer_id": "Uma_B",
+    "manager_name": "Surajit Laha"
+  },
+  {
+    "id": 273,
+    "rm_name": "Ranjana Mohajan",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "ranmahajan",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 274,
+    "rm_name": "Koyel Bhandari",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "koybhandari",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 275,
+    "rm_name": "Sudeshna Das",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "suddas",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 276,
+    "rm_name": "Hemant Sharma",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "hemsharma",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 277,
+    "rm_name": "Vinayak Burman",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "vinburman",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 278,
+    "rm_name": "Alisha Jaiswal",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "alisha",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 279,
+    "rm_name": "Bondita Borkotoky",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "bondita",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 280,
+    "rm_name": "Taniya Bhattacharjee",
+    "team_name": "SoarZone-II",
+    "captain_name": "Ranjana Mohajan",
+    "mobile_number": "",
+    "dialer_id": "taniya",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 282,
+    "rm_name": "Laxmi Sharma",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "laxsharma",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 283,
+    "rm_name": "Ananya Dhara",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "anadhara",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 284,
+    "rm_name": "SNEHA BISWAS MUKHERJEE",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "snebiswas",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 285,
+    "rm_name": "Ria Majumdar",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "riamojumder",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 286,
+    "rm_name": "Sraboni Roy",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "sraroy",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 287,
+    "rm_name": "Pritam Mondal",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "primondal",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 288,
+    "rm_name": "Arunraj Singh Rehal",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "arusingh",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 289,
+    "rm_name": "Shiuli Bhattacharjee",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "shiuli",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 290,
+    "rm_name": "Krupa Joshi",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "krujoshi",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 291,
+    "rm_name": "Jutirmoy Mazumder",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "jutmojumder",
+    "manager_name": "Niladri Bhadra"
+  },
+  {
+    "id": 292,
+    "rm_name": "Satashri Roy",
+    "team_name": "SoarZone-I",
+    "captain_name": "Shiuli Bhattacharjee",
+    "mobile_number": "",
+    "dialer_id": "satroy",
+    "manager_name": "Niladri Bhadra"
+  }
+]

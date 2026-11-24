@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../context/DataContext';
+import { useData } from '../../context/DataContext';
 import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, ShieldAlert, CheckCircle2, User } from 'lucide-react';
 
 function formatINR(val) {

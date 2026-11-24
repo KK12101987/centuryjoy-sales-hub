@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../context/DataContext';
+import { useData } from '../../context/DataContext';
 import { Calendar, Smartphone, Building2 } from 'lucide-react';
 
 function formatINR(val) {

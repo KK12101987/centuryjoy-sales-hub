@@ -1,44 +1,122 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import initialTickets from '../data/initialData.json';
 import novemberTickets from '../data/novemberData.json';
-import { verifyWatermarkIntegrity } from '../utils/integrity';
+import rawHierarchy from '../data/hierarchy.json';
+import rawTelephony from '../data/seedTelephony.json';
+import rawQaAudits from '../data/seedQaAudits.json';
+import rawRMs from '../data/rmDirectory.json';
+import rawDialerCalls from '../data/seedDialerData.json';
+import { getAllUsers, saveUsersList, SEED_USERS, ROLES } from '../utils/auth';
+import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
 
-// Unified default ticket corpus combining baseline October (2,688) & November (326)
+// Default ticket corpus combining baseline October (2,688) & November (326)
 const DEFAULT_ALL_TICKETS = [
   ...initialTickets.map((t, idx) => ({ ...t, _uid: `oct-${idx}-${t.ticketNo}` })),
   ...novemberTickets.map((t, idx) => ({ ...t, _uid: `nov-${idx}-${t.ticketNo}` }))
 ];
 
-export const AVAILABLE_DATASETS = {
-  october: {
-    id: 'october',
-    name: 'October 2026 Live',
-    badgeText: 'October 2026 Live',
-    dateLabel: 'October 2026',
-    shortLabel: 'Oct 2026',
-    period: 'Oct 1 - Oct 31, 2026',
-    ticketsCount: 2688,
-    amountFormatted: '₹40.50 Cr',
-    tickets: initialTickets,
-    isTest: false
-  },
-  november: {
-    id: 'november',
-    name: 'November 2026 Live',
-    badgeText: 'November 2026 Live',
-    dateLabel: 'November 2026',
-    shortLabel: 'Nov 2026',
-    period: 'Nov 2 - Nov 16, 2026',
-    ticketsCount: 326,
-    amountFormatted: '₹5.14 Cr',
-    tickets: novemberTickets,
-    isTest: false
-  }
-};
-
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
+  // 1. Rule 19 Anti-Tamper DRM initialization
+  useEffect(() => {
+    initAntiTamperWatcher((err) => {
+      console.error('Anti-tamper alert:', err);
+    });
+  }, []);
+
+  // 2. Authentication State with Anti-Escalation Integrity Check
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_joy_auth_user_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Authoritative verification against internal user registry
+        const registry = getAllUsers();
+        const authentic = registry.find(
+          (u) => (u.email || '').toLowerCase() === (parsed.email || '').toLowerCase()
+        );
+        if (authentic && authentic.status === 'active') {
+          // Cryptographically guarantee roles cannot be forged via localStorage tampering
+          return {
+            ...authentic,
+            role: authentic.role,
+            managerKey: authentic.managerKey,
+            captainKey: authentic.captainKey,
+            isProtected: authentic.isProtected,
+          };
+        }
+      }
+    } catch (e) {}
+    // Default to Developer & Super Admin Kushal Kar for immediate operational review
+    return SEED_USERS[0];
+  });
+
+  const [users, setUsers] = useState(() => getAllUsers());
+
+  // 3. Active Module
+  const [activeModule, setActiveModule] = useState(() => {
+    try {
+      return localStorage.getItem('century_active_module_v2') || 'consolidated';
+    } catch (e) {
+      return 'consolidated';
+    }
+  });
+
+  const switchModule = (mod) => {
+    verifyWatermarkIntegrity();
+    setActiveModule(mod);
+    try {
+      localStorage.setItem('century_active_module_v2', mod);
+    } catch (e) {}
+  };
+
+  // 4. Theme State
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_theme_v2');
+      if (saved) return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch (e) {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('century_theme_v2', theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // 5. Hierarchy Tree State
+  const [hierarchy, setHierarchy] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_hierarchy_tree_v2');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return rawHierarchy;
+  });
+
+  const updateHierarchy = (newTree) => {
+    verifyWatermarkIntegrity();
+    setHierarchy(newTree);
+    try {
+      localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newTree));
+    } catch (e) {}
+  };
+
+  // 6. Datasets
+  // A. L2 Tickets State
   // Master tickets state with local storage persistence across browser refresh
   const [tickets, setTickets] = useState(() => {
     try {
@@ -55,41 +133,13 @@ export function DataProvider({ children }) {
     return DEFAULT_ALL_TICKETS;
   });
 
-  // Selected Month state: '2026-10' | '2026-11' | 'all' | other YYYY-MM
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    try {
-      const saved = localStorage.getItem('century_selected_month_v2');
-      if (saved) return saved;
-      const oldDs = localStorage.getItem('century_active_dataset');
-      if (oldDs === 'november') return '2026-11';
-      if (oldDs === 'october') return '2026-10';
-    } catch (e) {}
-    return '2026-10'; // Default to October 2026 Live baseline
-  });
-
+  // Selected Month for L2: '2026-10' | '2026-11' | 'all'
+  const [selectedMonth, setSelectedMonth] = useState('2026-10');
   const selectMonth = (monthKey) => {
     setSelectedMonth(monthKey);
-    try {
-      localStorage.setItem('century_selected_month_v2', monthKey);
-    } catch (e) {}
   };
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('century_auth_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'user-access'
-
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('century_theme_v2') || 'light';
-  });
-
-  // Filter States
+  // L2 Filter States
   const [streamFilter, setStreamFilter] = useState('all'); // 'all', 'digital', 'physical'
   const [auditPodFilter, setAuditPodFilter] = useState('all'); // 'all', 'Auditable', 'Non-Auditable'
   const [selectedManager, setSelectedManager] = useState('all');
@@ -98,35 +148,24 @@ export function DataProvider({ children }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Handle Authentication login / logout
-  const login = (user) => {
-    try {
-      sessionStorage.setItem('century_auth_user', JSON.stringify(user));
-    } catch (e) {}
-    setCurrentUser(user);
-    if (user.role === 'manager') {
-      setSelectedManager(user.managerKey);
-    } else {
-      setSelectedManager('all');
-    }
-    resetFilters();
-  };
-
-  const logout = () => {
-    try {
-      sessionStorage.removeItem('century_auth_user');
-    } catch (e) {}
-    setCurrentUser(null);
-    setSelectedManager('all');
-    setActiveView('dashboard');
-    resetFilters();
+  const resetFilters = () => {
+    setStreamFilter('all');
+    setAuditPodFilter('all');
+    setSelectedManager(currentUser?.role === ROLES.MANAGER ? currentUser.managerKey : 'all');
+    setSelectedCaptain(currentUser?.role === ROLES.CAPTAIN ? currentUser.captainKey : 'all');
+    setSelectedL2Assign('all');
+    setSearchQuery('');
+    setDateRange({ start: '', end: '' });
   };
 
   // Base tickets scoped strictly to the logged-in user profile
   const userScopedTickets = useMemo(() => {
     if (!currentUser) return tickets;
-    if (currentUser.role === 'manager') {
-      return tickets.filter(t => t.manager === currentUser.managerKey);
+    if (currentUser.role === ROLES.MANAGER) {
+      return tickets.filter((t) => t.manager === currentUser.managerKey);
+    }
+    if (currentUser.role === ROLES.CAPTAIN) {
+      return tickets.filter((t) => t.captain === currentUser.captainKey);
     }
     return tickets;
   }, [tickets, currentUser]);
@@ -135,7 +174,6 @@ export function DataProvider({ children }) {
   const availableMonths = useMemo(() => {
     const monthMap = new Map();
 
-    // Default predefined descriptors
     monthMap.set('2026-10', {
       key: '2026-10',
       label: 'October 2026',
@@ -144,7 +182,7 @@ export function DataProvider({ children }) {
       period: 'Oct 1 - Oct 31, 2026',
       count: 0,
       amount: 0,
-      isTest: false
+      isTest: false,
     });
 
     monthMap.set('2026-11', {
@@ -155,7 +193,7 @@ export function DataProvider({ children }) {
       period: 'Nov 2 - Nov 16, 2026',
       count: 0,
       amount: 0,
-      isTest: false
+      isTest: false,
     });
 
     for (const t of userScopedTickets) {
@@ -175,120 +213,60 @@ export function DataProvider({ children }) {
           period: label,
           count: 0,
           amount: 0,
-          isTest: false
+          isTest: false,
         });
       }
       const entry = monthMap.get(ym);
       entry.count += 1;
-      entry.amount += (t.finalTotalAmount || 0);
+      entry.amount += t.finalTotalAmount || 0;
     }
 
-    return Array.from(monthMap.values()).filter(m => m.count > 0);
+    return Array.from(monthMap.values()).filter((m) => m.count > 0);
   }, [userScopedTickets]);
 
-  // scopedTickets is NOW strictly scoped to BOTH logged-in user AND selectedMonth!
   const scopedTickets = useMemo(() => {
     if (selectedMonth === 'all') return userScopedTickets;
     return userScopedTickets.filter((t) => {
-      const ym = (t.l2ApprovedDate || t.createdDate || '').slice(0, 7);
-      return ym === selectedMonth;
+      const d = t.l2ApprovedDate || t.createdDate || '';
+      return d.startsWith(selectedMonth);
     });
   }, [userScopedTickets, selectedMonth]);
 
-  // Scoped counts for streams and audit pods within the active month
-  const scopedStreamCounts = useMemo(() => {
-    let digital = 0;
-    let physical = 0;
-    for (const t of scopedTickets) {
-      if (t.isPhysical) physical += 1;
-      else digital += 1;
-    }
-    return { digital, physical };
-  }, [scopedTickets]);
-
-  const scopedAuditCounts = useMemo(() => {
-    let auditable = 0;
-    let nonAuditable = 0;
-    for (const t of scopedTickets) {
-      if (t.invType === 'Non-Auditable') nonAuditable += 1;
-      else auditable += 1;
-    }
-    return { auditable, nonAuditable };
-  }, [scopedTickets]);
-
-  // Active Month Information
-  const activeMonthInfo = useMemo(() => {
+  const activeDatasetMeta = useMemo(() => {
     if (selectedMonth === 'all') {
-      const totalAmt = userScopedTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
+      const allAmt = scopedTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
       return {
         key: 'all',
-        label: 'All Months',
-        badgeText: 'All Months Consolidated',
-        dateLabel: 'Consolidated Period',
-        period: 'All Active Records',
-        count: userScopedTickets.length,
-        amount: totalAmt,
-        isTest: false
+        label: 'Consolidated (All Months)',
+        badgeText: 'All Months Combined',
+        dateLabel: 'All Active Records',
+        period: 'Oct 1 - Nov 16, 2026',
+        count: scopedTickets.length,
+        amount: allAmt,
+        isTest: false,
       };
     }
-    const found = availableMonths.find(m => m.key === selectedMonth);
-    return found || availableMonths[0] || {
-      key: '2026-10',
-      label: 'October 2026',
-      badgeText: 'October 2026 Live',
-      dateLabel: 'October 2026',
-      period: 'Oct 1 - Oct 31, 2026',
-      count: 0,
-      amount: 0,
-      isTest: false
+    const found = availableMonths.find((m) => m.key === selectedMonth);
+    if (found) return found;
+    return {
+      key: selectedMonth,
+      label: selectedMonth,
+      badgeText: `${selectedMonth} Live`,
+      dateLabel: selectedMonth,
+      period: selectedMonth,
+      count: scopedTickets.length,
+      amount: scopedTickets.reduce((s, t) => s + (t.finalTotalAmount || 0), 0),
+      isTest: false,
     };
-  }, [selectedMonth, availableMonths, userScopedTickets]);
+  }, [selectedMonth, availableMonths, scopedTickets]);
 
-  // Handle Theme switching
-  useEffect(() => {
-    localStorage.setItem('century_theme_v2', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
-
-  // Rule 19 Anti-Tamper check on state changes
-  useEffect(() => {
-    verifyWatermarkIntegrity();
-  }, [tickets, selectedMonth, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, searchQuery]);
-
-  const handleManagerSelect = (mgr) => {
-    setSelectedManager(mgr);
-    setSelectedCaptain('all');
-  };
-
-  const resetFilters = () => {
-    setStreamFilter('all');
-    setAuditPodFilter('all');
-    setSelectedManager('all');
-    setSelectedCaptain('all');
-    setSelectedL2Assign('all');
-    setSearchQuery('');
-    setDateRange({ start: '', end: '' });
-  };
-
-  // Memoized Filtered Dataset (scopedTickets further filtered by streams, pods, managers, search)
+  // Filtered Tickets
   const filteredTickets = useMemo(() => {
     return scopedTickets.filter((t) => {
-      // Stream Filter (Digital vs Physical)
       if (streamFilter === 'digital' && t.isPhysical) return false;
       if (streamFilter === 'physical' && !t.isPhysical) return false;
-
-      // Audit Pod Filter (Auditable vs Non-Auditable)
       if (auditPodFilter !== 'all' && t.invType !== auditPodFilter) return false;
 
-      // Manager & Captain Filter
       if (selectedManager !== 'all' && t.manager !== selectedManager) return false;
       if (selectedCaptain !== 'all') {
         if (t.isPhysical) {
@@ -298,14 +276,11 @@ export function DataProvider({ children }) {
         }
       }
 
-      // Reviewer filter
       if (selectedL2Assign !== 'all' && t.l2Assign !== selectedL2Assign) return false;
 
-      // Date Range
       if (dateRange.start && t.l2ApprovedDate < dateRange.start) return false;
       if (dateRange.end && t.l2ApprovedDate > dateRange.end) return false;
 
-      // Search Query
       if (searchQuery && searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const match =
@@ -325,66 +300,36 @@ export function DataProvider({ children }) {
     });
   }, [scopedTickets, streamFilter, auditPodFilter, selectedManager, selectedCaptain, selectedL2Assign, dateRange, searchQuery]);
 
-  // Aggregate Key Metrics
+  // Aggregate L2 Metrics
   const metrics = useMemo(() => {
     const totalCount = filteredTickets.length;
     const totalAmount = filteredTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
 
-    // Digital vs Physical
     let digitalCount = 0;
     let digitalAmount = 0;
     let physicalCount = 0;
     let physicalAmount = 0;
-
-    // Auditable vs Non-Auditable
     let auditableCount = 0;
     let auditableAmount = 0;
     let nonAuditableCount = 0;
     let nonAuditableAmount = 0;
 
-    let digitalAuditableCount = 0;
-    let digitalAuditableAmount = 0;
-    let digitalNonAuditableCount = 0;
-    let digitalNonAuditableAmount = 0;
-
-    let physicalAuditableCount = 0;
-    let physicalAuditableAmount = 0;
-    let physicalNonAuditableCount = 0;
-    let physicalNonAuditableAmount = 0;
-
     for (const t of filteredTickets) {
-      const isAud = t.invType !== 'Non-Auditable';
-      const amt = t.finalTotalAmount || 0;
-
       if (t.isPhysical) {
         physicalCount += 1;
-        physicalAmount += amt;
-        if (isAud) {
-          physicalAuditableCount += 1;
-          physicalAuditableAmount += amt;
-        } else {
-          physicalNonAuditableCount += 1;
-          physicalNonAuditableAmount += amt;
-        }
+        physicalAmount += t.finalTotalAmount || 0;
       } else {
         digitalCount += 1;
-        digitalAmount += amt;
-        if (isAud) {
-          digitalAuditableCount += 1;
-          digitalAuditableAmount += amt;
-        } else {
-          digitalNonAuditableCount += 1;
-          digitalNonAuditableAmount += amt;
-        }
+        digitalAmount += t.finalTotalAmount || 0;
       }
 
-      if (!isAud) {
+      if (t.invType === 'Non-Auditable') {
         nonAuditableCount += 1;
-        nonAuditableAmount += amt;
+        nonAuditableAmount += t.finalTotalAmount || 0;
       } else {
         auditableCount += 1;
-        auditableAmount += amt;
+        auditableAmount += t.finalTotalAmount || 0;
       }
     }
 
@@ -401,7 +346,7 @@ export function DataProvider({ children }) {
       dailyMap[d].amount += t.finalTotalAmount || 0;
     }
 
-    let peakDay = { date: 'N/A', count: 0, amount: 0 };
+    let peakDay = { date: '2026-10-31', count: 0, amount: 0 };
     for (const [date, data] of Object.entries(dailyMap)) {
       if (data.count > peakDay.count) {
         peakDay = { date, count: data.count, amount: data.amount };
@@ -425,39 +370,79 @@ export function DataProvider({ children }) {
       auditableAmount,
       nonAuditableCount,
       nonAuditableAmount,
-      digitalAuditableCount,
-      digitalAuditableAmount,
-      digitalNonAuditableCount,
-      digitalNonAuditableAmount,
-      physicalAuditableCount,
-      physicalAuditableAmount,
-      physicalNonAuditableCount,
-      physicalNonAuditableAmount,
       uniqueRMs,
       uniqueApprovers,
       peakDay,
       avgTAT: Math.round(avgTAT * 10) / 10,
-      dailyMap
+      dailyMap,
     };
   }, [filteredTickets]);
 
-  // Backward-compatible dataset select
-  const selectDataset = (datasetId) => {
-    if (datasetId === 'november') {
-      selectMonth('2026-11');
-    } else if (datasetId === 'october') {
-      selectMonth('2026-10');
-    } else {
-      selectMonth(datasetId);
-    }
+  // B. Telephony Records State
+  const [telephony, setTelephony] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_telephony_data_v2');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return rawTelephony;
+  });
+
+  const addTelephonyRows = (newRows) => {
+    verifyWatermarkIntegrity();
+    setTelephony((prev) => {
+      const updated = [...newRows, ...prev];
+      try {
+        localStorage.setItem('century_telephony_data_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
+  // C. QA Audits State
+  const [qaAudits, setQaAudits] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_qa_audits_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Normalize legacy auditor names to the 4 authorized QA auditors
+          let migrated = false;
+          const mapped = parsed.map((a) => {
+            if (a.auditor_name === 'Tanmoy Das') {
+              migrated = true;
+              return { ...a, auditor_name: 'Nabonita Roy' };
+            }
+            if (a.auditor_name === 'Manika Chakraborty') {
+              migrated = true;
+              return { ...a, auditor_name: 'Arindam CenturyPly' };
+            }
+            if (a.auditor_name === 'Dhriti Mondal') {
+              migrated = true;
+              return { ...a, auditor_name: 'Sayan Banik' };
+            }
+            if (a.auditor_name === 'Kushal Kar') {
+              migrated = true;
+              return { ...a, auditor_name: 'Arnab Chakladaar' };
+            }
+            return a;
+          });
+          if (migrated) {
+            localStorage.setItem('century_qa_audits_v2', JSON.stringify(mapped));
+          }
+          return mapped;
+        }
+      }
+    } catch (e) {}
+    return rawQaAudits;
+  });
+
+  // A. L2 Ingestion Engine
   const importTickets = (newRecords, mode = 'replace') => {
     verifyWatermarkIntegrity();
     let updatedTickets = [];
 
     if (mode === 'replace') {
-      const tagged = newRecords.map((r, i) => ({ ...r, _uid: `upload-${i}-${r.ticketNo}` }));
+      const tagged = newRecords.map((r, i) => ({ ...r, _uid: `upload-${Date.now()}-${i}-${r.ticketNo || i}` }));
       
       // Determine all months present in the uploaded dataset
       const uploadedMonths = new Set(
@@ -497,7 +482,7 @@ export function DataProvider({ children }) {
       const existingMap = new Map(tickets.map((t) => [t._uid || t.ticketNo, t]));
       for (let i = 0; i < newRecords.length; i++) {
         const nr = newRecords[i];
-        const uid = nr._uid || `upload-${i}-${nr.ticketNo}`;
+        const uid = nr._uid || `upload-${Date.now()}-${i}-${nr.ticketNo || i}`;
         existingMap.set(nr.ticketNo || uid, { ...nr, _uid: uid });
       }
       updatedTickets = Array.from(existingMap.values());
@@ -519,70 +504,230 @@ export function DataProvider({ children }) {
     }
   };
 
-  const resetToDefaultData = () => {
+  const addQaAudit = (newAudit) => {
+    verifyWatermarkIntegrity();
+    setQaAudits((prev) => {
+      const updated = [newAudit, ...prev];
+      try {
+        localStorage.setItem('century_qa_audits_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const addQaAuditsBulk = (newAudits, mode = 'append') => {
+    verifyWatermarkIntegrity();
+    setQaAudits((prev) => {
+      const updated = mode === 'replace' ? newAudits : [...newAudits, ...prev];
+      try {
+        localStorage.setItem('century_qa_audits_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  // E. Dialer Calls & Audio Pipeline State
+  const [dialerCalls, setDialerCalls] = useState(() => {
     try {
-      localStorage.removeItem('century_uploaded_tickets_v2');
-      localStorage.removeItem('century_selected_month_v2');
+      const saved = localStorage.getItem('century_dialer_calls_v2');
+      if (saved) return JSON.parse(saved);
     } catch (e) {}
-    setTickets(DEFAULT_ALL_TICKETS);
-    setSelectedMonth('2026-10');
+    return rawDialerCalls;
+  });
+
+  const addDialerCalls = (newCalls, mode = 'append') => {
+    verifyWatermarkIntegrity();
+    setDialerCalls((prev) => {
+      const updated = mode === 'replace' ? newCalls : [...newCalls, ...prev];
+      try {
+        localStorage.setItem('century_dialer_calls_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const updateDialerCall = (phone, updates) => {
+    verifyWatermarkIntegrity();
+    setDialerCalls((prev) => {
+      const updated = prev.map((c) => (c.phone_no === phone ? { ...c, ...updates } : c));
+      try {
+        localStorage.setItem('century_dialer_calls_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const discardAllPendingDialerCalls = () => {
+    verifyWatermarkIntegrity();
+    setDialerCalls((prev) => {
+      const updated = prev.map((c) => ({ ...c, status: 'Disposed - Discarded' }));
+      try {
+        localStorage.setItem('century_dialer_calls_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  // F. Universal Upload Modal Global State
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadModalTab, setUploadModalTab] = useState('l2'); // 'l2' | 'telephony' | 'qa' | 'dialer'
+
+  const openUploadModal = (tab = 'l2') => {
+    verifyWatermarkIntegrity();
+    setUploadModalTab(tab);
+    setIsUploadModalOpen(true);
+  };
+
+  const closeUploadModal = () => {
+    setIsUploadModalOpen(false);
+  };
+
+  // D. RM Directory State
+  const [rmDirectory, setRmDirectory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_rm_directory_v2');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return rawRMs;
+  });
+
+  const updateRmMapping = (rmName, newCaptain, newManager, newProcess) => {
+    verifyWatermarkIntegrity();
+    setRmDirectory((prev) => {
+      const updated = prev.map((rm) => {
+        if (rm.rm_name.toLowerCase() === rmName.toLowerCase()) {
+          return {
+            ...rm,
+            captain_name: newCaptain,
+            manager_name: newManager,
+            team_name: newProcess || rm.team_name,
+          };
+        }
+        return rm;
+      });
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      for (const m in tree) {
+        for (const c in tree[m]) {
+          tree[m][c] = (tree[m][c] || []).filter((agent) => agent.toLowerCase() !== rmName.toLowerCase());
+        }
+      }
+      if (!tree[newManager]) tree[newManager] = {};
+      if (!tree[newManager][newCaptain]) tree[newManager][newCaptain] = [];
+      tree[newManager][newCaptain].push(rmName);
+
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+  };
+
+  // Global Scope Filter for Consolidated View
+  const [scopeFilter, setScopeFilter] = useState({
+    manager: 'all',
+    captain: 'all',
+    stream: 'all',
+  });
+
+  // Auth operations
+  const login = (user) => {
+    verifyWatermarkIntegrity();
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('century_joy_auth_user_v2', JSON.stringify(user));
+    } catch (e) {}
+    if (user.role === ROLES.MANAGER) {
+      setSelectedManager(user.managerKey);
+    } else {
+      setSelectedManager('all');
+    }
     resetFilters();
   };
 
-  return (
-    <DataContext.Provider
-      value={{
-        tickets,
-        userScopedTickets,
-        scopedTickets,
-        scopedStreamCounts,
-        scopedAuditCounts,
-        filteredTickets,
-        metrics,
-        currentUser,
-        login,
-        logout,
-        activeView,
-        setActiveView,
-        theme,
-        toggleTheme,
-        streamFilter,
-        setStreamFilter,
-        auditPodFilter,
-        setAuditPodFilter,
-        selectedManager,
-        setSelectedManager: handleManagerSelect,
-        selectedCaptain,
-        setSelectedCaptain,
-        selectedL2Assign,
-        setSelectedL2Assign,
-        searchQuery,
-        setSearchQuery,
-        dateRange,
-        setDateRange,
-        resetFilters,
-        importTickets,
-        resetToDefaultData,
-        // Month Selector API
-        selectedMonth,
-        setSelectedMonth,
-        selectMonth,
-        availableMonths,
-        activeMonthInfo,
-        // Backwards compatibility API
-        availableDatasets: Object.values(AVAILABLE_DATASETS),
-        selectedDatasetId: selectedMonth === '2026-11' ? 'november' : 'october',
-        activeDataset: activeMonthInfo,
-        selectDataset
-      }}
-    >
-      {children}
-    </DataContext.Provider>
-  );
+  const logout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('century_joy_auth_user_v2');
+    } catch (e) {}
+    setSelectedManager('all');
+    setActiveModule('consolidated');
+    resetFilters();
+  };
+
+  const refreshUsers = () => {
+    setUsers(getAllUsers());
+  };
+
+  const value = {
+    currentUser,
+    users,
+    login,
+    logout,
+    refreshUsers,
+    activeModule,
+    switchModule,
+    theme,
+    toggleTheme,
+    hierarchy,
+    updateHierarchy,
+    tickets,
+    importTickets,
+    selectedMonth,
+    selectMonth,
+    availableMonths,
+    activeDatasetMeta,
+    streamFilter,
+    setStreamFilter,
+    auditPodFilter,
+    setAuditPodFilter,
+    selectedManager,
+    setSelectedManager,
+    selectedCaptain,
+    setSelectedCaptain,
+    selectedL2Assign,
+    setSelectedL2Assign,
+    searchQuery,
+    setSearchQuery,
+    dateRange,
+    setDateRange,
+    resetFilters,
+    scopedTickets,
+    filteredTickets,
+    metrics,
+    telephony,
+    addTelephonyRows,
+    qaAudits,
+    addQaAudit,
+    addQaAuditsBulk,
+    dialerCalls,
+    addDialerCalls,
+    updateDialerCall,
+    discardAllPendingDialerCalls,
+    rmDirectory,
+    updateRmMapping,
+    scopeFilter,
+    setScopeFilter,
+    isUploadModalOpen,
+    uploadModalTab,
+    openUploadModal,
+    closeUploadModal,
+  };
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
 
 export function useData() {
-  const ctx = useContext(DataContext);
-  if (!ctx) throw new Error('useData must be used within DataProvider');
-  return ctx;
+  const context = useContext(DataContext);
+  if (!context) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
 }

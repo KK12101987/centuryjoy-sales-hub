@@ -1,71 +1,63 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { DataProvider, useData } from './context/DataContext';
-import LoginPage from './components/LoginPage';
-import Navbar from './components/Navbar';
-import UserAccessPage from './components/UserAccessPage';
-import KPICards from './components/KPICards';
-import ManagerBreakdown from './components/ManagerBreakdown';
-import AuditPodsSection from './components/AuditPodsSection';
-import DigitalPodsSection from './components/DigitalPodsSection';
-import PhysicalTeamsSection from './components/PhysicalTeamsSection';
-import AnalyticsCharts from './components/AnalyticsCharts';
-import MonetaryBifurcationSection from './components/MonetaryBifurcationSection';
-import UploadModal from './components/UploadModal';
-import Watermark from './components/Watermark';
+import Navbar from './components/Common/Navbar';
+import LoginPage from './components/Common/LoginPage';
+import Watermark from './components/Common/Watermark';
+import UploadCenterModal from './components/Common/UploadCenterModal';
+import ConsolidatedDashboard from './components/ConsolidatedDashboard/ConsolidatedDashboard';
+import L2DashboardMain from './components/L2Dashboard/L2DashboardMain';
+import RMProductivity from './components/RMProductivity/RMProductivity';
+import QaDashboard from './components/QaDashboard/QaDashboard';
+import UserManagement from './components/UserManagement/UserManagement';
 
-function DashboardContent({ onOpenUpload }) {
-  const { currentUser, activeView, setActiveView } = useData();
+import ErrorBoundary from './components/Common/ErrorBoundary';
+
+function AppContent() {
+  const { currentUser, activeModule, isUploadModalOpen, closeUploadModal, uploadModalTab } = useData();
 
   if (!currentUser) {
     return <LoginPage />;
   }
 
-  // Dedicated Standalone Page for Developer User Access
-  const isDeveloper = currentUser.role === 'admin' || (currentUser.name && currentUser.name.toLowerCase().includes('kushal'));
-  if (activeView === 'user-access' && isDeveloper) {
-    return <UserAccessPage onBack={() => setActiveView('dashboard')} />;
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-800 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-150">
       
-      {/* Navigation & Header with Light/Dark Mode Toggle and Manager Profile */}
-      <Navbar onOpenUpload={onOpenUpload} />
+      {/* Global Navigation Header */}
+      <Navbar />
 
-      {/* Main Dashboard Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Executive KPI Summary Cards */}
-        <KPICards />
+      {/* Mandatory Rule 19 DRM Watermark verification */}
+      <Watermark />
 
-        {/* Senior Management Leadership View */}
-        <ManagerBreakdown />
+      {/* Universal Upload Center Modal */}
+      <UploadCenterModal 
+        isOpen={isUploadModalOpen} 
+        onClose={closeUploadModal} 
+        initialTab={uploadModalTab} 
+      />
 
-        {/* Dedicated Invoice Audit Compliance PODs */}
-        <AuditPodsSection />
-
-        {/* Dual Stream Presentation: Digital Pods & Physical Teams */}
-        <div className="space-y-6">
-          {/* Digital Teams (Captain-Led Pods) */}
-          <DigitalPodsSection />
-
-          {/* Physical Teams (No Captain - Direct Manager Supervision) */}
-          <PhysicalTeamsSection />
-        </div>
-
-        {/* Daily Velocity & Approval Cadence Timeline - Admin / Developer / All-Team Governance */}
-        {(currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all') && <AnalyticsCharts />}
-
-        {/* Monetary Value Bifurcation (Auditable vs Non-Auditable) */}
-        <MonetaryBifurcationSection />
-
+      {/* Main Content Viewport */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeModule === 'consolidated' && <ConsolidatedDashboard />}
+        {activeModule === 'l2' && <L2DashboardMain />}
+        {activeModule === 'productivity' && <RMProductivity />}
+        {activeModule === 'qa' && <QaDashboard />}
+        {activeModule === 'users' && <UserManagement />}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#070a12] py-4 text-center text-xs text-slate-500 transition-colors">
+      {/* Executive Footer */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-4 text-center text-xs text-slate-500 transition-colors">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span>Century Joy Sales & Revenue Hub • Performance & Governance Portal</span>
-          <span className="text-[11px] text-slate-400">Strictly Internal & Confidential</span>
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Century Joy Enterprise System
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">v5.0 Unified Release</span>
+          </div>
+
+          <div className="text-[11px] text-slate-400">
+            CenturyPly • Financial Reconciliation, Telephony & QA
+          </div>
         </div>
       </footer>
 
@@ -74,20 +66,11 @@ function DashboardContent({ onOpenUpload }) {
 }
 
 export default function App() {
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-
   return (
-    <DataProvider>
-      <DashboardContent onOpenUpload={() => setIsUploadOpen(true)} />
-
-      {/* Dynamic Upload Modal */}
-      <UploadModal 
-        isOpen={isUploadOpen} 
-        onClose={() => setIsUploadOpen(false)} 
-      />
-
-      {/* Rule 19 Author Watermark: Always active */}
-      <Watermark />
-    </DataProvider>
+    <ErrorBoundary>
+      <DataProvider>
+        <AppContent />
+      </DataProvider>
+    </ErrorBoundary>
   );
 }

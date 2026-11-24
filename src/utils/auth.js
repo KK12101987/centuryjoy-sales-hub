@@ -1,92 +1,87 @@
 /**
- * Authentication & Manager Access Configuration (Dynamic User Registry)
- * Supports dynamic user creation, role assignment, supervisory scope management,
- * password recovery, and enterprise credential verification.
+ * Authentication, RBAC & Supervisory Scope Management
+ * Unified User Registry for Century Joy Complete Dashboard
  */
+
+export const ROLES = {
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  CAPTAIN: 'captain',
+  AUDITOR: 'auditor',
+  VIEWER: 'viewer',
+};
+
+export const ROLE_DEFINITIONS = {
+  [ROLES.ADMIN]: {
+    label: 'Super Admin / Developer',
+    description: 'Unrestricted enterprise access across all dashboards, user management, and configuration',
+    badgeColor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+    canManageUsers: true,
+    canAssignScope: true,
+    canUploadData: true,
+    canViewAllFinancials: true,
+    canConductAudits: true,
+  },
+  [ROLES.MANAGER]: {
+    label: 'Senior Manager',
+    description: 'Oversees assigned Digital Pods (via Captains) and Direct Physical Teams',
+    badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    canManageUsers: false,
+    canAssignScope: false,
+    canUploadData: true,
+    canViewAllFinancials: false, // Scoped to their division
+    canConductAudits: false,
+  },
+  [ROLES.CAPTAIN]: {
+    label: 'Pod Captain',
+    description: 'Directly manages assigned pod agents; monitors daily dialing metrics & QA scores',
+    badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+    canManageUsers: false,
+    canAssignScope: false,
+    canUploadData: false,
+    canViewAllFinancials: false,
+    canConductAudits: false,
+  },
+  [ROLES.AUDITOR]: {
+    label: 'Quality Auditor',
+    description: 'Conducts call quality assessments, evaluates 41 sub-parameters, and reviews 7 QC tools',
+    badgeColor: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    canManageUsers: false,
+    canAssignScope: false,
+    canUploadData: true,
+    canViewAllFinancials: false,
+    canConductAudits: true,
+  },
+  [ROLES.VIEWER]: {
+    label: 'Executive Viewer',
+    description: 'Read-only access to high-level consolidated KPI dashboards',
+    badgeColor: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+    canManageUsers: false,
+    canAssignScope: false,
+    canUploadData: false,
+    canViewAllFinancials: false,
+    canConductAudits: false,
+  },
+};
 
 export const SEED_USERS = [
   {
     name: 'Kushal Kar',
     email: 'kushal.centuryply@gmail.com',
-    role: 'admin',
+    role: ROLES.ADMIN,
     managerKey: 'all',
-    designation: 'Developer (Full System Access)',
+    designation: 'Developer & Super Admin (Full Access)',
     isPhysicalOnly: false,
     initialPassword: 'Kushal@2026',
     recoveryPin: 'CP-7777',
     status: 'active',
     isProtected: true,
-    createdAt: '2026-10-01T00:00:00.000Z'
-  },
-  {
-    name: 'Niladri Bhadra',
-    email: 'niladri.bhadra@centuryply.com',
-    role: 'manager',
-    managerKey: 'Niladri Bhadra',
-    designation: 'Senior Manager',
-    isPhysicalOnly: false,
-    initialPassword: 'Niladri@2026',
-    recoveryPin: 'CP-1001',
-    status: 'active',
-    isProtected: false,
-    createdAt: '2026-10-01T00:00:00.000Z'
-  },
-  {
-    name: 'Surajit Laha',
-    email: 'surajit.laha@centuryply.com',
-    role: 'manager',
-    managerKey: 'Surajit Laha',
-    designation: 'Senior Manager',
-    isPhysicalOnly: false,
-    initialPassword: 'Surajit@2026',
-    recoveryPin: 'CP-1002',
-    status: 'active',
-    isProtected: false,
-    createdAt: '2026-10-01T00:00:00.000Z'
-  },
-  {
-    name: 'Arijit Nath',
-    email: 'arijit.nath@centuryply.com',
-    role: 'manager',
-    managerKey: 'Arijit Nath',
-    designation: 'Senior Manager',
-    isPhysicalOnly: false,
-    initialPassword: 'Arijit@2026',
-    recoveryPin: 'CP-1003',
-    status: 'active',
-    isProtected: false,
-    createdAt: '2026-10-01T00:00:00.000Z'
-  },
-  {
-    name: 'Amit Singal',
-    email: 'amit.singal@centuryply.com',
-    role: 'manager',
-    managerKey: 'Amit Singal',
-    designation: 'Senior Manager',
-    isPhysicalOnly: true,
-    initialPassword: 'Amit@2026',
-    recoveryPin: 'CP-1004',
-    status: 'active',
-    isProtected: false,
-    createdAt: '2026-10-01T00:00:00.000Z'
-  },
-  {
-    name: 'Executive Leadership',
-    email: 'admin@centuryply.com',
-    role: 'admin',
-    managerKey: 'all',
-    designation: 'Executive Director (All Teams)',
-    isPhysicalOnly: false,
-    initialPassword: 'Century@2026',
-    recoveryPin: 'CP-9999',
-    status: 'active',
-    isProtected: false,
-    createdAt: '2026-10-01T00:00:00.000Z'
+    createdAt: '2026-10-01T00:00:00.000Z',
   },
   {
     name: 'Tanmoy Kar',
     email: 'tanmoykar.centuryply@gmail.com',
-    role: 'admin',
+    role: ROLES.ADMIN,
     managerKey: 'all',
     designation: 'Senior Manager (Leadership & Full Access)',
     isPhysicalOnly: false,
@@ -94,18 +89,297 @@ export const SEED_USERS = [
     recoveryPin: 'CP-2026',
     status: 'active',
     isProtected: false,
-    createdAt: '2026-11-20T00:00:00.000Z'
-  }
+    createdAt: '2026-11-20T00:00:00.000Z',
+  },
+
+  {
+    name: 'Niladri Bhadra',
+    email: 'niladri.bhadra@centuryply.com',
+    role: ROLES.MANAGER,
+    managerKey: 'Niladri Bhadra',
+    designation: 'Senior Manager',
+    isPhysicalOnly: false,
+    initialPassword: 'Niladri@2026',
+    recoveryPin: 'CP-1001',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Surajit Laha',
+    email: 'surajit.laha@centuryply.com',
+    role: ROLES.MANAGER,
+    managerKey: 'Surajit Laha',
+    designation: 'Senior Manager',
+    isPhysicalOnly: false,
+    initialPassword: 'Surajit@2026',
+    recoveryPin: 'CP-1002',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Arijit Nath',
+    email: 'arijit.nath@centuryply.com',
+    role: ROLES.MANAGER,
+    managerKey: 'Arijit Nath',
+    designation: 'Senior Manager',
+    isPhysicalOnly: false,
+    initialPassword: 'Arijit@2026',
+    recoveryPin: 'CP-1003',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Amit Singal',
+    email: 'amit.singal@centuryply.com',
+    role: ROLES.MANAGER,
+    managerKey: 'Amit Singal',
+    designation: 'Senior Manager (Field Operations)',
+    isPhysicalOnly: true,
+    initialPassword: 'Amit@2026',
+    recoveryPin: 'CP-1004',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  // Captains
+  {
+    name: 'Arshi Afreen Jamal',
+    email: 'arshi.afreen@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Arijit Nath',
+    captainKey: 'Arshi Afreen Jamal',
+    designation: 'Pod Captain (Unity-II / Vibrant)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2001',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Mousumi Chakraborty',
+    email: 'mousumi.c@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Arijit Nath',
+    captainKey: 'Mousumi Chakraborty',
+    designation: 'Pod Captain (Unity-I)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2002',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Nasima Banu',
+    email: 'nasima.banu@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Surajit Laha',
+    captainKey: 'Nasima Banu',
+    designation: 'Pod Captain (Catlyst-II)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2003',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Pallabi Chura',
+    email: 'pallabi.chura@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Surajit Laha',
+    captainKey: 'Pallabi Chura',
+    designation: 'Pod Captain (Catlyst-I)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2004',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Ranjana Mohajan',
+    email: 'ranjana.m@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Niladri Bhadra',
+    captainKey: 'Ranjana Mohajan',
+    designation: 'Pod Captain (Dynamic Pod)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2005',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Shiuli Bhattacharjee',
+    email: 'shiuli.b@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Niladri Bhadra',
+    captainKey: 'Shiuli Bhattacharjee',
+    designation: 'Pod Captain (Apex Pod)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2006',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  {
+    name: 'Silpa Palchina',
+    email: 'silpa.palchina@centuryply.com',
+    role: ROLES.CAPTAIN,
+    managerKey: 'Arijit Nath',
+    captainKey: 'Silpa Palchina',
+    designation: 'Pod Captain (Zenith Pod)',
+    isPhysicalOnly: false,
+    initialPassword: 'Captain@2026',
+    recoveryPin: 'CP-2007',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
+  // QA Auditors
+  {
+    name: 'Nabonita Roy',
+    email: 'nabonita.roy@centuryply.com',
+    role: ROLES.AUDITOR,
+    qaScope: 'all',
+    managerKey: 'all',
+    designation: 'Lead Quality and Backend',
+    isPhysicalOnly: false,
+    initialPassword: 'Nabonita@2026',
+    recoveryPin: 'CP-4001',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-11-23T00:00:00.000Z',
+  },
+  {
+    name: 'Arindam CenturyPly',
+    email: 'arindam.centuryply@gmail.com',
+    role: ROLES.AUDITOR,
+    qaScope: 'all',
+    managerKey: 'all',
+    designation: 'Senior Quality Auditor',
+    isPhysicalOnly: false,
+    initialPassword: 'Arindam@2026',
+    recoveryPin: 'CP-4002',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-11-23T00:00:00.000Z',
+  },
+  {
+    name: 'Sayan Banik',
+    email: 'sayanbanik.centuryply@gmail.com',
+    role: ROLES.AUDITOR,
+    qaScope: 'self',
+    managerKey: 'all',
+    designation: 'Quality Auditor',
+    isPhysicalOnly: false,
+    initialPassword: 'Sayan@2026',
+    recoveryPin: 'CP-4003',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-11-23T00:00:00.000Z',
+  },
+  {
+    name: 'Arnab Chakladaar',
+    email: 'arnabcenturyply2024@gmail.com',
+    role: ROLES.AUDITOR,
+    qaScope: 'self',
+    managerKey: 'all',
+    designation: 'Quality Auditor',
+    isPhysicalOnly: false,
+    initialPassword: 'Arnab@2026',
+    recoveryPin: 'CP-4004',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-11-23T00:00:00.000Z',
+  },
+  {
+    name: 'Executive Leadership',
+    email: 'admin@centuryply.com',
+    role: ROLES.ADMIN,
+    managerKey: 'all',
+    designation: 'Executive Director (All Teams)',
+    isPhysicalOnly: false,
+    initialPassword: 'Century@2026',
+    recoveryPin: 'CP-9999',
+    status: 'active',
+    isProtected: false,
+    createdAt: '2026-10-01T00:00:00.000Z',
+  },
 ];
 
-export const AUTHORIZED_USERS = SEED_USERS;
-
-const USERS_STORAGE_KEY = 'century_users_registry_v1';
-const PASSWORD_STORAGE_KEY = 'century_user_passwords_v1';
-
 /**
- * Retrieves all registered users from persistent browser storage
+ * Official QA Auditor Roster & Scoped Visibility Registry
+ * Only these designated accounts are permitted to perform call quality evaluations.
+ * - Lead Quality and Backend: Nabonita Roy (Can audit all, sees all audits)
+ * - Senior Quality Auditor: Arindam CenturyPly (Can audit all, sees all audits)
+ * - Quality Auditor: Sayan Banik (Can audit calls, sees ONLY own audits)
+ * - Quality Auditor: Arnab Chakladaar (Can audit calls, sees ONLY own audits)
  */
+export const AUTHORIZED_AUDITORS = [
+  {
+    name: 'Nabonita Roy',
+    email: 'nabonita.roy@centuryply.com',
+    designation: 'Lead Quality and Backend',
+    qaScope: 'all',
+    role: ROLES.AUDITOR,
+    initialPassword: 'Nabonita@2026',
+  },
+  {
+    name: 'Arindam CenturyPly',
+    email: 'arindam.centuryply@gmail.com',
+    designation: 'Senior Quality Auditor',
+    qaScope: 'all',
+    role: ROLES.AUDITOR,
+    initialPassword: 'Arindam@2026',
+  },
+  {
+    name: 'Sayan Banik',
+    email: 'sayanbanik.centuryply@gmail.com',
+    designation: 'Quality Auditor',
+    qaScope: 'self',
+    role: ROLES.AUDITOR,
+    initialPassword: 'Sayan@2026',
+  },
+  {
+    name: 'Arnab Chakladaar',
+    email: 'arnabcenturyply2024@gmail.com',
+    designation: 'Quality Auditor',
+    qaScope: 'self',
+    role: ROLES.AUDITOR,
+    initialPassword: 'Arnab@2026',
+  },
+];
+
+export const AUTHORIZED_AUDITOR_EMAILS = AUTHORIZED_AUDITORS.map((a) => a.email.toLowerCase());
+
+export function isAuthorizedAuditor(user) {
+  if (!user) return false;
+  if (user.role === ROLES.ADMIN) return true;
+  const userEmail = (user.email || '').trim().toLowerCase();
+  return AUTHORIZED_AUDITOR_EMAILS.includes(userEmail);
+}
+
+export function getAuditorScope(user) {
+  if (!user) return 'none';
+  if (user.role === ROLES.ADMIN) return 'all';
+  const userEmail = (user.email || '').trim().toLowerCase();
+  const matched = AUTHORIZED_AUDITORS.find((a) => a.email.toLowerCase() === userEmail);
+  if (matched) return matched.qaScope;
+  if (user.qaScope) return user.qaScope;
+  return user.role === ROLES.AUDITOR ? 'self' : 'none';
+}
+
+const USERS_STORAGE_KEY = 'century_joy_users_registry_v2';
+const SCOPE_STORAGE_KEY = 'century_joy_supervisory_scope_v2';
+
 export function getAllUsers() {
   if (typeof window === 'undefined') return SEED_USERS;
   try {
@@ -119,14 +393,31 @@ export function getAllUsers() {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(SEED_USERS));
       return SEED_USERS;
     }
-    
-    // Ensure all SEED_USERS (Developer Kushal Kar, Tanmoy Kar, etc.) are present in the active registry
+    // Ensure all SEED_USERS (Developer Kushal Kar, Tanmoy Kar, Nabonita Roy, etc.) are present and synchronized
     let modified = false;
     for (const seed of SEED_USERS) {
-      const exists = parsed.some(u => (u.email || '').toLowerCase() === seed.email.toLowerCase());
-      if (!exists) {
+      const idx = parsed.findIndex((u) => (u.email || '').toLowerCase() === seed.email.toLowerCase());
+      if (idx === -1) {
         parsed.push(seed);
         modified = true;
+      } else {
+        // Synchronize updated scopes, designations, and passwords
+        if (seed.qaScope && parsed[idx].qaScope !== seed.qaScope) {
+          parsed[idx].qaScope = seed.qaScope;
+          modified = true;
+        }
+        if (seed.designation && parsed[idx].designation !== seed.designation) {
+          parsed[idx].designation = seed.designation;
+          modified = true;
+        }
+        if (seed.initialPassword && parsed[idx].initialPassword !== seed.initialPassword) {
+          parsed[idx].initialPassword = seed.initialPassword;
+          modified = true;
+        }
+        if (seed.name && parsed[idx].name !== seed.name) {
+          parsed[idx].name = seed.name;
+          modified = true;
+        }
       }
     }
     if (modified) {
@@ -138,385 +429,78 @@ export function getAllUsers() {
   }
 }
 
-/**
- * Saves users list to persistent browser storage and notifies listeners
- */
 export function saveUsersList(users) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
     window.dispatchEvent(new Event('century_users_updated'));
   } catch (e) {
-    console.error('Failed to save users list to localStorage:', e);
+    console.error('Failed to save users list:', e);
   }
 }
 
-/**
- * Reads user password overrides from persistent browser storage
- */
-export function getStoredPasswords() {
-  if (typeof window === 'undefined') return {};
-  try {
-    const raw = localStorage.getItem(PASSWORD_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    return {};
+export function createUser(userData) {
+  const users = getAllUsers();
+  const normalizedEmail = (userData.email || '').trim().toLowerCase();
+  if (users.some((u) => (u.email || '').toLowerCase() === normalizedEmail)) {
+    throw new Error(`A user with email "${normalizedEmail}" already exists.`);
   }
-}
-
-/**
- * Saves user password overrides to persistent browser storage
- */
-export function saveStoredPasswords(map) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(PASSWORD_STORAGE_KEY, JSON.stringify(map));
-  } catch (e) {}
-}
-
-/**
- * Finds user profile by corporate email or name prefix across the dynamic registry
- */
-export function findUserByEmail(email) {
-  if (!email) return null;
-  const cleanEmail = email.trim().toLowerCase();
-  const allUsers = getAllUsers();
-  
-  // 1. Exact email match
-  const exact = allUsers.find(u => (u.email || '').toLowerCase() === cleanEmail);
-  if (exact) return exact;
-
-  // 2. Check if Kushal Kar (master developer)
-  if (cleanEmail.includes('kushal')) {
-    return allUsers.find(u => (u.email || '').toLowerCase() === 'kushal.centuryply@gmail.com') || SEED_USERS[0];
-  }
-
-  // 2b. Check if Tanmoy Kar (handles tanmoykar, tanmoy.centuryply, etc.)
-  if (cleanEmail.includes('tanmoy')) {
-    return allUsers.find(u => (u.email || '').toLowerCase().includes('tanmoy') || (u.name || '').toLowerCase().includes('tanmoy')) ||
-           SEED_USERS.find(u => u.name.toLowerCase().includes('tanmoy'));
-  }
-
-  // 3. Fallback for seeded manager names in email or prefix
-  if (cleanEmail.includes('niladri')) {
-    return allUsers.find(u => u.managerKey === 'Niladri Bhadra');
-  }
-  if (cleanEmail.includes('surajit')) {
-    return allUsers.find(u => u.managerKey === 'Surajit Laha');
-  }
-  if (cleanEmail.includes('arijit')) {
-    return allUsers.find(u => u.managerKey === 'Arijit Nath');
-  }
-  if (cleanEmail.includes('amit')) {
-    return allUsers.find(u => u.managerKey === 'Amit Singal');
-  }
-  if (cleanEmail.includes('admin') || cleanEmail.includes('exec') || cleanEmail.includes('director')) {
-    return allUsers.find(u => (u.email || '').toLowerCase() === 'admin@centuryply.com' || u.role === 'admin');
-  }
-
-  // 4. Prefix match fallback (before @)
-  const prefix = cleanEmail.split('@')[0];
-  const byPrefix = allUsers.find(u => {
-    const uPrefix = (u.email || '').split('@')[0].toLowerCase();
-    return uPrefix === prefix || uPrefix.includes(prefix) || prefix.includes(uPrefix.split('.')[0]);
-  });
-  if (byPrefix) return byPrefix;
-
-  return null;
-}
-
-/**
- * Retrieves effective active password for an email (custom updated password or initial seed)
- */
-export function getUserPassword(email) {
-  const user = findUserByEmail(email);
-  if (!user) return null;
-  const store = getStoredPasswords();
-  const normalizedEmail = (user.email || '').toLowerCase();
-  return store[normalizedEmail] || user.initialPassword;
-}
-
-/**
- * Verifies email and password credentials with account status checks
- */
-export function verifyUserPassword(email, inputPassword) {
-  const user = findUserByEmail(email);
-  if (!user) {
-    return { success: false, error: 'Corporate email address not recognized.' };
-  }
-
-  // Check if account has been suspended by Developer
-  if (user.status === 'suspended') {
-    return { 
-      success: false, 
-      error: 'This corporate account has been suspended by Developer Kushal Kar. Access restricted.' 
-    };
-  }
-
-  const effectivePassword = getUserPassword(user.email);
-  if (effectivePassword === inputPassword) {
-    return { success: true, user };
-  }
-
-  return { success: false, error: 'Incorrect password. Please verify and try again.' };
-}
-
-/**
- * Updates a user's password from their own profile
- */
-export function updateUserPassword(email, oldPassword, newPassword) {
-  const user = findUserByEmail(email);
-  if (!user) {
-    return { success: false, error: 'User profile not found.' };
-  }
-
-  const currentPassword = getUserPassword(user.email);
-  if (currentPassword !== oldPassword) {
-    return { success: false, error: 'Current password does not match.' };
-  }
-
-  if (!newPassword || newPassword.trim().length < 6) {
-    return { success: false, error: 'New password must contain at least 6 characters.' };
-  }
-
-  if (newPassword.trim() === oldPassword) {
-    return { success: false, error: 'New password must be different from current password.' };
-  }
-
-  const store = getStoredPasswords();
-  store[user.email.toLowerCase()] = newPassword.trim();
-  saveStoredPasswords(store);
-
-  return { success: true, message: 'Password updated successfully!' };
-}
-
-/**
- * Recovers and sets a new password using Self-Service Recovery PIN (Option 1)
- */
-export function recoverUserPassword(email, recoveryPin, newPassword) {
-  const user = findUserByEmail(email);
-  if (!user) {
-    return { success: false, error: 'Corporate email address not recognized.' };
-  }
-
-  const cleanPin = (recoveryPin || '').trim().toUpperCase();
-  const expectedPin = (user.recoveryPin || '').toUpperCase();
-
-  if (!cleanPin || cleanPin !== expectedPin) {
-    return { 
-      success: false, 
-      error: 'Invalid recovery PIN. Please check your assigned recovery PIN or contact Developer Kushal Kar.' 
-    };
-  }
-
-  if (!newPassword || newPassword.trim().length < 6) {
-    return { success: false, error: 'New password must contain at least 6 characters.' };
-  }
-
-  const store = getStoredPasswords();
-  store[user.email.toLowerCase()] = newPassword.trim();
-  saveStoredPasswords(store);
-
-  return { 
-    success: true, 
-    message: 'Password successfully reset! You can now log in with your new credentials.',
-    user 
+  const newUser = {
+    name: userData.name.trim(),
+    email: normalizedEmail,
+    role: userData.role || ROLES.VIEWER,
+    managerKey: userData.managerKey || 'all',
+    captainKey: userData.captainKey || null,
+    designation: userData.designation?.trim() || ROLE_DEFINITIONS[userData.role]?.label || 'Staff Member',
+    isPhysicalOnly: Boolean(userData.isPhysicalOnly),
+    initialPassword: userData.initialPassword || 'Century@2026',
+    recoveryPin: `CP-${Math.floor(1000 + Math.random() * 9000)}`,
+    status: 'active',
+    isProtected: false,
+    createdAt: new Date().toISOString(),
   };
+  const updated = [...users, newUser];
+  saveUsersList(updated);
+  return newUser;
 }
 
-/**
- * Resets a user's password back to their initial password
- */
-export function resetPasswordToDefault(email) {
-  const user = findUserByEmail(email);
-  if (!user) return false;
-  const store = getStoredPasswords();
-  delete store[user.email.toLowerCase()];
-  saveStoredPasswords(store);
+export function updateUser(email, updates) {
+  const users = getAllUsers();
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const index = users.findIndex((u) => (u.email || '').toLowerCase() === normalizedEmail);
+  if (index === -1) {
+    throw new Error(`User with email "${email}" not found.`);
+  }
+  // Prevent removing developer superadmin
+  if (users[index].isProtected && updates.role && updates.role !== ROLES.ADMIN) {
+    throw new Error('Cannot downgrade developer / superadmin role.');
+  }
+  users[index] = { ...users[index], ...updates, updatedAt: new Date().toISOString() };
+  saveUsersList(users);
+  return users[index];
+}
+
+export function deleteUser(email) {
+  const users = getAllUsers();
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const target = users.find((u) => (u.email || '').toLowerCase() === normalizedEmail);
+  if (!target) {
+    throw new Error(`User with email "${email}" not found.`);
+  }
+  if (target.isProtected) {
+    throw new Error('Protected system accounts cannot be deleted.');
+  }
+  const updated = users.filter((u) => (u.email || '').toLowerCase() !== normalizedEmail);
+  saveUsersList(updated);
   return true;
 }
 
-/* ==========================================================================
-   DEVELOPER ADMINISTRATION & USER MANAGEMENT APIS (Kushal Kar Master Access)
-   ========================================================================== */
-
-/**
- * Creates a fresh user in the dynamic registry
- */
-export function createUser({
-  name,
-  email,
-  initialPassword,
-  role = 'manager',
-  managerKey = 'all',
-  designation = 'Senior Manager',
-  isPhysicalOnly = false,
-  recoveryPin
-}) {
-  if (!name || !name.trim()) {
-    return { success: false, error: 'Full Name is required.' };
-  }
-
-  const cleanEmail = (email || '').trim().toLowerCase();
-  if (!cleanEmail || !cleanEmail.includes('@')) {
-    return { success: false, error: 'A valid corporate email address is required.' };
-  }
-
-  if (!initialPassword || initialPassword.trim().length < 6) {
-    return { success: false, error: 'Initial password must be at least 6 characters long.' };
-  }
-
-  const allUsers = getAllUsers();
-  const existing = allUsers.find(u => (u.email || '').toLowerCase() === cleanEmail);
-  if (existing) {
-    return { success: false, error: `A user with email ${cleanEmail} already exists in the registry.` };
-  }
-
-  const generatedPin = recoveryPin && recoveryPin.trim() 
-    ? recoveryPin.trim().toUpperCase() 
-    : `CP-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const newUser = {
-    id: `usr_${Date.now()}`,
-    name: name.trim(),
-    email: cleanEmail,
-    role,
-    managerKey,
-    designation: designation.trim(),
-    isPhysicalOnly: Boolean(isPhysicalOnly),
-    initialPassword: initialPassword.trim(),
-    recoveryPin: generatedPin,
-    status: 'active',
-    isProtected: false,
-    createdAt: new Date().toISOString()
-  };
-
-  const updatedUsers = [newUser, ...allUsers];
-  saveUsersList(updatedUsers);
-
-  // Store password
-  const store = getStoredPasswords();
-  store[cleanEmail] = initialPassword.trim();
-  saveStoredPasswords(store);
-
-  return { success: true, user: newUser, message: `User ${name.trim()} successfully created!` };
-}
-
-/**
- * Updates an existing user's details and access scope
- */
-export function updateUser(originalEmail, updates) {
-  const cleanEmail = (originalEmail || '').trim().toLowerCase();
-  const allUsers = getAllUsers();
-  const index = allUsers.findIndex(u => (u.email || '').toLowerCase() === cleanEmail);
-
-  if (index === -1) {
-    return { success: false, error: 'User not found in registry.' };
-  }
-
-  const currentUser = allUsers[index];
-
-  // Prevent modifying critical developer role or email
-  if (currentUser.isProtected) {
-    updates.role = 'admin';
-    updates.status = 'active';
-  }
-
-  const updatedUser = {
-    ...currentUser,
-    ...updates,
-    email: updates.email ? updates.email.trim().toLowerCase() : currentUser.email,
-    name: updates.name ? updates.name.trim() : currentUser.name,
-    designation: updates.designation ? updates.designation.trim() : currentUser.designation,
-    recoveryPin: updates.recoveryPin ? updates.recoveryPin.trim().toUpperCase() : currentUser.recoveryPin
-  };
-
-  // If password was also updated in the form
-  if (updates.newPassword && updates.newPassword.trim().length >= 6) {
-    const store = getStoredPasswords();
-    store[updatedUser.email.toLowerCase()] = updates.newPassword.trim();
-    saveStoredPasswords(store);
-  }
-
-  allUsers[index] = updatedUser;
-  saveUsersList(allUsers);
-
-  return { success: true, user: updatedUser, message: 'User access successfully updated!' };
-}
-
-/**
- * Allows the Developer to directly reset any user's password
- */
-export function adminResetUserPassword(email, newPassword) {
-  if (!newPassword || newPassword.trim().length < 6) {
-    return { success: false, error: 'New password must be at least 6 characters.' };
-  }
-
-  const user = findUserByEmail(email);
-  if (!user) {
-    return { success: false, error: 'User profile not found.' };
-  }
-
-  const store = getStoredPasswords();
-  store[user.email.toLowerCase()] = newPassword.trim();
-  saveStoredPasswords(store);
-
-  return { 
-    success: true, 
-    message: `Password for ${user.name} (${user.email}) successfully reset!` 
-  };
-}
-
-/**
- * Toggles user status between active and suspended
- */
 export function toggleUserStatus(email) {
-  const cleanEmail = (email || '').trim().toLowerCase();
-  const allUsers = getAllUsers();
-  const index = allUsers.findIndex(u => (u.email || '').toLowerCase() === cleanEmail);
-
-  if (index === -1) {
-    return { success: false, error: 'User not found.' };
-  }
-
-  if (allUsers[index].isProtected || cleanEmail.includes('kushal')) {
-    return { success: false, error: 'Developer account cannot be suspended.' };
-  }
-
-  const newStatus = allUsers[index].status === 'suspended' ? 'active' : 'suspended';
-  allUsers[index].status = newStatus;
-  saveUsersList(allUsers);
-
-  return { 
-    success: true, 
-    status: newStatus,
-    message: `User ${allUsers[index].name} account is now ${newStatus}.` 
-  };
-}
-
-/**
- * Deletes a user from the dynamic registry
- */
-export function deleteUser(email) {
-  const cleanEmail = (email || '').trim().toLowerCase();
-  const allUsers = getAllUsers();
-  const user = allUsers.find(u => (u.email || '').toLowerCase() === cleanEmail);
-
-  if (!user) {
-    return { success: false, error: 'User not found.' };
-  }
-
-  if (user.isProtected || cleanEmail.includes('kushal')) {
-    return { success: false, error: 'Developer account is protected and cannot be deleted.' };
-  }
-
-  const filtered = allUsers.filter(u => (u.email || '').toLowerCase() !== cleanEmail);
-  saveUsersList(filtered);
-
-  // Clean up password store
-  const store = getStoredPasswords();
-  delete store[cleanEmail];
-  saveStoredPasswords(store);
-
-  return { success: true, message: `User ${user.name} removed from registry.` };
+  const users = getAllUsers();
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const user = users.find((u) => (u.email || '').toLowerCase() === normalizedEmail);
+  if (!user) return false;
+  if (user.isProtected) throw new Error('Protected system accounts cannot be suspended.');
+  const newStatus = user.status === 'active' ? 'suspended' : 'active';
+  return updateUser(email, { status: newStatus });
 }

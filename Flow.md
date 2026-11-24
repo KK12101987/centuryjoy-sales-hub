@@ -1,42 +1,86 @@
-# Flow of Execution & Traceability
+# System Flow & Data Journey
 
-## System Flow Architecture
-
-```mermaid
-flowchart TD
-    subgraph Data Layer
-        L2_EXCEL["L2 data_Oct'26.xlsx"] --> PY_SCRIPT["process_data.py"]
-        RM_EXCEL["RM_Cap_MGR.xlsx"] --> PY_SCRIPT
-        PY_SCRIPT --> CLEAN_JSON["src/data/initialData.json"]
-        PY_SCRIPT --> HIERARCHY_JSON["src/data/hierarchy.json"]
-    end
-
-    subgraph Client Application [React + Vite]
-        CLEAN_JSON --> APP_STATE["Application State (DataContext)"]
-        UPLOAD_UI["Upload Section (.xlsx / .csv)"] --> SHEETJS["In-Browser Parser (SheetJS)"]
-        SHEETJS --> COLUMN_MATCHER["Fuzzy Column Matcher & Normalizer"]
-        COLUMN_MATCHER -->|If ambiguous| MAPPER_MODAL["Interactive Column Mapper UI"]
-        MAPPER_MODAL --> APP_STATE
-        COLUMN_MATCHER -->|Auto-matched| APP_STATE
-
-        APP_STATE --> INTEGRITY_CHECK["Security & Integrity Watcher (Rule 19)"]
-        INTEGRITY_CHECK -->|Passed| DASHBOARD_VIEWS["Dashboard Views"]
-        INTEGRITY_CHECK -->|Tampered| KILL_SWITCH["Catastrophic Failure Protocol"]
-
-        subgraph Dashboard Views
-            DASHBOARD_VIEWS --> KPI_CARDS["Executive KPI Cards"]
-            DASHBOARD_VIEWS --> DRILLDOWN["Manager > Captain > RM Drilldown"]
-            DASHBOARD_VIEWS --> L2_METRICS["L2 Approver Workload & TAT"]
-            DASHBOARD_VIEWS --> TIMELINE["Daily Trends & Channel Mix"]
-            DASHBOARD_VIEWS --> TICKET_TABLE["Searchable Ticket Explorer + CSV Export"]
-        end
-    end
+## 1. Authentication & Scope Initialization Flow
+```
+User visits app
+  │
+  ├─► Check session in localStorage ('century_joy_auth_user_v2')
+  │     ├── Present ──► Cross-verify against getAllUsers() registry
+  │     │                 ├── Match & Active ──► Load User & Enforce Scopes
+  │     │                 └── Mismatch/Suspended ──► Clear & Show LoginPage
+  │     └── Missing ──► Default to Super Admin (Dev Mode) or Render LoginPage
+  │
+  └─► Initialize Rule 19 Anti-Tamper Watcher
+        ├── Attach MutationObserver to document.body
+        └── Start 1,200ms background interval checking watermark integrity
 ```
 
-## Traceability Map
+## 2. Module Execution & Navigation Flow
+```
+User clicks module tab in Navbar
+  │
+  ├── 'consolidated' ──► ConsolidatedDashboard.jsx
+  │                        ├── Filter by stream (All / Digital / Physical)
+  │                        ├── Filter by Senior Manager
+  │                        └── Render Tri-Factor KPIs & Manager Matrix
+  │
+  ├── 'l2' ───────────► L2DashboardMain.jsx
+  │                        ├── Load scopedTickets (October 2,688 / November 326)
+  │                        ├── Calculate Auditable vs Non-Auditable split
+  │                        └── Render ManagerBreakdown & Monetary Bifurcation
+  │
+  ├── 'productivity' ─► RMProductivity.jsx
+  │                        ├── Aggregate 1,868 telephony records
+  │                        ├── Calculate Dials, Connected, Talk Time (HH:MM:SS)
+  │                        └── Render Hierarchical Drilldown Tree
+  │
+  ├── 'qa' ───────────► QaDashboard.jsx
+  │                        ├── Render 41 Sub-parameters checklist
+  │                        ├── Calculate Proportional Score & Fatal Check
+  │                        └── Render 7 QC Tools & Past Audit Explorer
+  │
+  └── 'users' ────────► UserManagement.jsx
+                           ├── User Accounts CRUD
+                           ├── Role Permission Matrix
+                           └── Supervisory Scope Assignment UI
+```
 
-1. **Raw Ingestion:** `L2 data_Oct'26.xlsx` & `RM_Cap_MGR.xlsx` $\rightarrow$ normalized via `process_data.py` into initial static bundles for zero-latency local startup.
-2. **Dynamic Ingestion:** `src/components/UploadModal.jsx` reads uploaded binary Excel via `xlsx` library, passes records through `src/utils/columnMatcher.js` and `src/utils/normalizer.js`.
-3. **Hierarchy Mapping:** Unmatched RM names are fuzzy-matched against `src/data/hierarchy.json` to assign Manager and Captain.
-4. **Data Store:** `src/context/DataContext.jsx` maintains live ticket state, filtered state, date filters, and aggregations.
-5. **Watermark & Integrity Engine:** `src/components/Watermark.jsx` and `src/utils/integrity.js` continuously observe DOM nodes and string integrity.
+## 3. Supervisory Scope Reassignment Flow
+```
+Admin selects Agent (e.g. "Debapriya Basu") in UserManagement
+  │
+  ├─► Chooses Target Senior Manager (e.g. "Surajit Laha")
+  ├─► Chooses Target Pod Captain (e.g. "Nasima Banu")
+  ├─► Clicks "Confirm Scope Transfer"
+  │
+  ▼
+updateRmMapping(agent, newCaptain, newManager) in DataContext
+  │
+  ├── Updates rmDirectory state & localStorage
+  ├── Modifies hierarchy.json tree dynamically
+  └── Triggers immediate re-render across Consolidated, L2, RM & QA views
+```
+
+## 4. Universal Data Ingestion & Month Switching Flow
+```
+User clicks "Upload Data" or switches Month in Navbar
+  │
+  ├── Month Switcher Dropdown
+  │     ├── Select "October 2026 Live" (2,688 tickets • ₹39.81 Cr)
+  │     ├── Select "November 2026 Live" (326 tickets • ₹5.83 Cr)
+  │     └── Select "All Months Consolidated" (3,014 tickets • ₹45.64 Cr)
+  │           └── Updates selectedMonth in DataContext ──► Re-evaluates scopedTickets
+  │
+  └── Universal Upload Center Modal (UploadCenterModal.jsx)
+        ├── Tab 1: L2 Financials ──► autoDetectColumnMapping ──► transformUploadedData ──► importTickets()
+        ├── Tab 2: RM Telephony ──► downloadTemplate() / parse rows ──► detect missing RMs ──► addTelephonyRows()
+        ├── Tab 3: QA Historical Audits ──► parse 11 parameter columns ──► addQaAuditsBulk()
+        └── Tab 4: Dialer Call Records ──► parse phone, audio links, durations ──► addDialerCalls()
+                                                                                      │
+                                                                                      ▼
+                                                                        1-Click "Audit Now" in QA Dashboard
+                                                                        auto-fills Scorecard with active audio
+```
+  ├── Re-keys historical telephony records
+  └── Syncs across all dashboards in real-time
+```

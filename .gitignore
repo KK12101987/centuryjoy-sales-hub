@@ -1,17 +1,18 @@
 # Dependencies
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor & System
-.vscode
-.idea
+# Editor & OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-# Excel Lock & Scratch files
+# Large bundles & Temporary files
+*.zip
 ~$*
 *.tmp
-__pycache__
+__pycache__/
 *.pyc

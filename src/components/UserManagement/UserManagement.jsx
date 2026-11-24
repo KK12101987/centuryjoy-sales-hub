@@ -1,0 +1,705 @@
+import React, { useState, useMemo } from 'react';
+import { useData } from '../../context/DataContext';
+import { 
+  getAllUsers, 
+  createUser, 
+  updateUser, 
+  deleteUser, 
+  toggleUserStatus, 
+  ROLE_DEFINITIONS, 
+  ROLES 
+} from '../../utils/auth';
+import { 
+  Users, 
+  UserPlus, 
+  ShieldCheck, 
+  KeyRound, 
+  Search, 
+  Edit3, 
+  Trash2, 
+  Lock, 
+  Mail, 
+  User, 
+  ToggleLeft, 
+  ToggleRight, 
+  CheckCircle2, 
+  AlertCircle, 
+  Building2, 
+  ShieldAlert, 
+  Sparkles,
+  GitBranch,
+  Save,
+  RefreshCw,
+  Layers,
+  ArrowRight
+} from 'lucide-react';
+
+export default function UserManagement() {
+  const { 
+    currentUser, 
+    users, 
+    refreshUsers, 
+    hierarchy, 
+    updateHierarchy, 
+    rmDirectory, 
+    updateRmMapping 
+  } = useData();
+
+  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles' | 'scope'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+
+  // Drawer / Modal states
+  const [modalMode, setModalMode] = useState('none'); // 'create' | 'edit' | 'reset-password'
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [alertMsg, setAlertMsg] = useState({ type: '', text: '' });
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: ROLES.VIEWER,
+    managerKey: 'all',
+    captainKey: '',
+    designation: '',
+    initialPassword: 'Century@2026',
+    isPhysicalOnly: false,
+  });
+
+  // Scope assignment state
+  const [scopeTransfer, setScopeTransfer] = useState({
+    agentName: '',
+    targetManager: 'Surajit Laha',
+    targetCaptain: 'Nasima Banu',
+    effectiveDate: new Date().toISOString().split('T')[0],
+  });
+
+  const managersList = ['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal'];
+  const captainsList = [
+    'Arshi Afreen Jamal',
+    'Mousumi Chakraborty',
+    'Nasima Banu',
+    'Pallabi Chura',
+    'Ranjana Mohajan',
+    'Shiuli Bhattacharjee',
+    'Silpa Palchina',
+    'Direct Supervision (Physical)'
+  ];
+
+  // Filtered users
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const mName = (u.name || '').toLowerCase();
+        const mEmail = (u.email || '').toLowerCase();
+        const mDesig = (u.designation || '').toLowerCase();
+        return mName.includes(q) || mEmail.includes(q) || mDesig.includes(q);
+      }
+      return true;
+    });
+  }, [users, roleFilter, searchQuery]);
+
+  const handleOpenCreate = () => {
+    setFormData({
+      name: '',
+      email: '',
+      role: ROLES.VIEWER,
+      managerKey: 'all',
+      captainKey: '',
+      designation: '',
+      initialPassword: 'Century@2026',
+      isPhysicalOnly: false,
+    });
+    setAlertMsg({ type: '', text: '' });
+    setModalMode('create');
+  };
+
+  const handleOpenEdit = (user) => {
+    setSelectedUser(user);
+    setFormData({
+      name: user.name || '',
+      email: user.email || '',
+      role: user.role || ROLES.VIEWER,
+      managerKey: user.managerKey || 'all',
+      captainKey: user.captainKey || '',
+      designation: user.designation || '',
+      initialPassword: user.initialPassword || '',
+      isPhysicalOnly: Boolean(user.isPhysicalOnly),
+    });
+    setAlertMsg({ type: '', text: '' });
+    setModalMode('edit');
+  };
+
+  const handleSaveUser = (e) => {
+    e.preventDefault();
+    try {
+      if (modalMode === 'create') {
+        createUser(formData);
+        setAlertMsg({ type: 'success', text: `User ${formData.name} successfully created.` });
+      } else if (modalMode === 'edit') {
+        updateUser(selectedUser.email, formData);
+        setAlertMsg({ type: 'success', text: `User ${formData.name} updated successfully.` });
+      }
+      refreshUsers();
+      setTimeout(() => setModalMode('none'), 1200);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleDelete = (user) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user "${user.name}"?`)) return;
+    try {
+      deleteUser(user.email);
+      refreshUsers();
+      setAlertMsg({ type: 'success', text: `User ${user.name} removed successfully.` });
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleToggleStatus = (user) => {
+    try {
+      toggleUserStatus(user.email);
+      refreshUsers();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Scope transfer execute
+  const handleExecuteScopeTransfer = (e) => {
+    e.preventDefault();
+    if (!scopeTransfer.agentName) {
+      alert('Please select an agent to reassign.');
+      return;
+    }
+    try {
+      updateRmMapping(
+        scopeTransfer.agentName,
+        scopeTransfer.targetCaptain,
+        scopeTransfer.targetManager,
+        'CenturyJoy Pod'
+      );
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully reassigned ${scopeTransfer.agentName} to Captain ${scopeTransfer.targetCaptain} under Manager ${scopeTransfer.targetManager}. Changes synced across all dashboards!`,
+      });
+      setTimeout(() => setAlertMsg({ type: '', text: '' }), 4000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      
+      {/* Header & Tabs */}
+      <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span>User & Supervisory Scope Governance Console</span>
+            </h1>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Enterprise administration: Role-Based Access Control, Account Lifecycles, and Supervisory Tree Scopes.
+          </p>
+        </div>
+
+        {/* Tab Controls */}
+        <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'users' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            User Accounts ({users.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('scope')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'scope' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Supervisory Scope Assignment
+          </button>
+          <button
+            onClick={() => setActiveTab('roles')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'roles' ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Role Permission Matrix
+          </button>
+        </div>
+      </div>
+
+      {alertMsg.text && (
+        <div className={`p-4 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
+          alertMsg.type === 'success' 
+            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' 
+            : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200'
+        }`}>
+          {alertMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+          <span>{alertMsg.text}</span>
+        </div>
+      )}
+
+      {/* TAB 1: USER ACCOUNTS CRUD */}
+      {activeTab === 'users' && (
+        <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+          
+          {/* Controls Bar */}
+          <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search user, email, role..."
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 focus:outline-none"
+              >
+                <option value="all">All Roles</option>
+                <option value={ROLES.ADMIN}>Super Admin</option>
+                <option value={ROLES.MANAGER}>Senior Manager</option>
+                <option value={ROLES.CAPTAIN}>Pod Captain</option>
+                <option value={ROLES.AUDITOR}>QA Auditor</option>
+                <option value={ROLES.VIEWER}>Executive Viewer</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleOpenCreate}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 transition-all self-start sm:self-auto"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Create New User</span>
+            </button>
+          </div>
+
+          {/* Users Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                  <th className="py-3 px-4">User</th>
+                  <th className="py-3 px-4">Role & Designation</th>
+                  <th className="py-3 px-4">Supervisory Scope</th>
+                  <th className="py-3 px-4">Credentials & PIN</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredUsers.map((user) => {
+                  const roleDef = ROLE_DEFINITIONS[user.role] || ROLE_DEFINITIONS[ROLES.VIEWER];
+                  return (
+                    <tr key={user.email} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                          <span>{user.name}</span>
+                          {user.isProtected && <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />}
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono">{user.email}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] border ${roleDef.badgeColor}`}>
+                          {roleDef.label}
+                        </span>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{user.designation}</div>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+                        {user.managerKey === 'all' ? (
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">All Enterprise Divisions</span>
+                        ) : (
+                          <span>{user.managerKey} {user.captainKey ? `› ${user.captainKey}` : ''}</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                        <div>Pass: {user.initialPassword || '••••••••'}</div>
+                        <div className="text-slate-400">PIN: {user.recoveryPin}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <button
+                          onClick={() => handleToggleStatus(user)}
+                          disabled={user.isProtected}
+                          className={`flex items-center space-x-1 font-semibold text-[11px] ${
+                            user.status === 'active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
+                          }`}
+                        >
+                          {user.status === 'active' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                          <span className="capitalize">{user.status}</span>
+                        </button>
+                      </td>
+                      <td className="py-3.5 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => handleOpenEdit(user)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="Edit User"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        {!user.isProtected && (
+                          <button
+                            onClick={() => handleDelete(user)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: SUPERVISORY & CAPTAIN SCOPE ASSIGNMENT */}
+      {activeTab === 'scope' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left: Reassignment Action Card */}
+          <div className="lg:col-span-1 bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <GitBranch className="w-4 h-4 text-purple-600" />
+                <span>Supervisory Scope Assignment</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Reassign an active Relationship Manager / Agent to a new Pod Captain or Senior Manager.
+              </p>
+            </div>
+
+            <form onSubmit={handleExecuteScopeTransfer} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Select Relationship Manager (Agent)
+                </label>
+                <select
+                  value={scopeTransfer.agentName}
+                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, agentName: e.target.value }))}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                  required
+                >
+                  <option value="">-- Choose Agent from 54 Active RMs --</option>
+                  {rmDirectory.map((rm) => (
+                    <option key={rm.id || rm.rm_name} value={rm.rm_name}>
+                      {rm.rm_name} ({rm.captain_name || 'Direct'} • {rm.manager_name || 'General'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Target Senior Manager
+                </label>
+                <select
+                  value={scopeTransfer.targetManager}
+                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, targetManager: e.target.value }))}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                >
+                  {managersList.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Target Pod Captain
+                </label>
+                <select
+                  value={scopeTransfer.targetCaptain}
+                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, targetCaptain: e.target.value }))}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                >
+                  {captainsList.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Effective Transfer Date
+                </label>
+                <input
+                  type="date"
+                  value={scopeTransfer.effectiveDate}
+                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, effectiveDate: e.target.value }))}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Confirm Scope Transfer</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Right: Live Organizational Tree View */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <Layers className="w-4 h-4 text-purple-600" />
+                  <span>Live Supervisory Hierarchy Tree</span>
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Senior Managers › Pod Captains › Assigned Relationship Managers
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 font-mono">
+                {rmDirectory.length} Total Agents
+              </span>
+            </div>
+
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+              {managersList.map((mgr) => {
+                const caps = hierarchy.tree?.[mgr] || {};
+                return (
+                  <div key={mgr} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{mgr}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold">
+                          Senior Manager
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        {Object.keys(caps).length} Teams / Pods
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-4 border-l-2 border-blue-200 dark:border-blue-900/60">
+                      {Object.entries(caps).map(([captain, agents]) => (
+                        <div key={captain} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-xl p-3 space-y-1.5 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center space-x-1">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                              <span>{captain}</span>
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400">
+                              {(agents || []).length} RMs
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {(agents || []).slice(0, 6).map((ag) => (
+                              <span key={ag} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                {ag}
+                              </span>
+                            ))}
+                            {(agents || []).length > 6 && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold">
+                                +{(agents || []).length - 6} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* TAB 3: ROLE PERMISSION MATRIX */}
+      {activeTab === 'roles' && (
+        <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Enterprise Role Permission Matrix (RBAC)
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Clear functional breakdown of authority across modules, upload portals, and executive oversight.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(ROLE_DEFINITIONS).map(([roleKey, def]) => (
+              <div key={roleKey} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${def.badgeColor}`}>
+                    {def.label}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {def.description}
+                </p>
+
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Manage Users & Scope:</span>
+                    <span className={def.canManageUsers ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
+                      {def.canManageUsers ? '✓ Allowed' : '— Denied'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Excel / Dialer Data Upload:</span>
+                    <span className={def.canUploadData ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
+                      {def.canUploadData ? '✓ Allowed' : '— Denied'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">All Financial Portals:</span>
+                    <span className={def.canViewAllFinancials ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
+                      {def.canViewAllFinancials ? '✓ Unrestricted' : 'Scoped'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Conduct QA Audits:</span>
+                    <span className={def.canConductAudits ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
+                      {def.canConductAudits ? '✓ Authorized' : '— Denied'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CREATE / EDIT USER MODAL */}
+      {modalMode !== 'none' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                {modalMode === 'create' ? 'Create New User Account' : `Edit Account: ${formData.name}`}
+              </h3>
+              <button
+                onClick={() => setModalMode('none')}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUser} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Official Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  required
+                  disabled={modalMode === 'edit'}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Role Assignment</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value={ROLES.VIEWER}>Executive Viewer</option>
+                  <option value={ROLES.AUDITOR}>Quality Auditor</option>
+                  <option value={ROLES.CAPTAIN}>Pod Captain</option>
+                  <option value={ROLES.MANAGER}>Senior Manager</option>
+                  <option value={ROLES.ADMIN}>Super Admin</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Supervisory Manager Scope</label>
+                <select
+                  value={formData.managerKey}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, managerKey: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none"
+                >
+                  <option value="all">All Managers / Enterprise Unrestricted</option>
+                  {managersList.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation Label</label>
+                <input
+                  type="text"
+                  value={formData.designation}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, designation: e.target.value }))}
+                  placeholder="e.g. Lead Quality Auditor"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Initial Password</label>
+                <input
+                  type="text"
+                  value={formData.initialPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, initialPassword: e.target.value }))}
+                  required
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setModalMode('none')}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20"
+                >
+                  Save Account
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
