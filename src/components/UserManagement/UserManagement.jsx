@@ -53,6 +53,9 @@ export default function UserManagement() {
     updateRmMapping,
     deactivateRm,
     reactivateRm,
+    revertOffboard,
+    promoteEmployee,
+    lastOffboardAction,
     qaAudits
   } = useData();
 
@@ -67,10 +70,19 @@ export default function UserManagement() {
   const [deactivateReason, setDeactivateReason] = useState('Resignation / Separation');
   const [customDeactivateNote, setCustomDeactivateNote] = useState('');
 
+  // Promotion / Succession modal state
+  const [promotionModalOpen, setPromotionModalOpen] = useState(false);
+  const [promotionData, setPromotionData] = useState({
+    candidateName: '',
+    targetRole: 'captain', // 'captain' | 'manager'
+    targetTeam: 'Unity-II',
+    assignedAgents: [],
+  });
+
   // Drawer / Modal states
   const [modalMode, setModalMode] = useState('none'); // 'create' | 'edit' | 'reset-password'
   const [selectedUser, setSelectedUser] = useState(null);
-  const [alertMsg, setAlertMsg] = useState({ type: '', text: '' });
+  const [alertMsg, setAlertMsg] = useState({ type: '', text: '', canRevert: false, revertTarget: '' });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -162,35 +174,89 @@ export default function UserManagement() {
     );
   }, [inactiveRms, offboardSearch]);
 
+  // Subordinates helper
+  const getSubordinatesOfCaptain = (captainName) => {
+    if (!captainName) return [];
+    return (activeRms || []).filter(
+      (r) =>
+        (r.captain_name || '').toLowerCase() === captainName.toLowerCase() &&
+        r.rm_name.toLowerCase() !== captainName.toLowerCase()
+    );
+  };
+
   const handleConfirmDeactivate = () => {
     if (!deactivatingRm) return;
     try {
+      const subRms = getSubordinatesOfCaptain(deactivatingRm.rm_name);
+      const isCapt = subRms.length > 0;
       const fullReason = customDeactivateNote
         ? `${deactivateReason} - ${customDeactivateNote}`
         : deactivateReason;
+
       deactivateRm(deactivatingRm.rm_name, fullReason);
+
+      const successText = isCapt
+        ? `Soft-offboarded Captain "${deactivatingRm.rm_name}". Team of ${subRms.length} RMs temporarily reports directly to Senior Manager "${deactivatingRm.manager_name || 'Arijit Nath'}". Historical records 100% preserved!`
+        : `Soft-offboarded "${deactivatingRm.rm_name}". Removed from active operations with zero database impact!`;
+
       setAlertMsg({
         type: 'success',
-        text: `Successfully soft-offboarded "${deactivatingRm.rm_name}". Employee removed from active operations with zero impact on historical audits or tickets!`,
+        text: successText,
+        canRevert: true,
+        revertTarget: deactivatingRm.rm_name,
       });
       setDeactivatingRm(null);
       setCustomDeactivateNote('');
-      setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 10000);
     } catch (err) {
-      setAlertMsg({ type: 'error', text: err.message });
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
     }
   };
 
-  const handleReactivate = (rm) => {
+  const handleRevertOffboard = (rmName) => {
     try {
-      reactivateRm(rm.rm_name);
+      revertOffboard(rmName);
       setAlertMsg({
         type: 'success',
-        text: `Successfully restored "${rm.rm_name}" to active status under Captain ${rm.captain_name || 'Direct'}!`,
+        text: `Successfully reverted offboarding! Restored "${rmName}" and reinstated all pod hierarchy.`,
+        canRevert: false,
+        revertTarget: '',
       });
-      setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
     } catch (err) {
-      setAlertMsg({ type: 'error', text: err.message });
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
+    }
+  };
+
+  const handleConfirmPromotion = (e) => {
+    e.preventDefault();
+    if (!promotionData.candidateName) {
+      alert('Please select an employee to promote.');
+      return;
+    }
+    try {
+      promoteEmployee(
+        promotionData.candidateName,
+        promotionData.targetRole,
+        promotionData.assignedAgents,
+        promotionData.targetTeam
+      );
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully promoted "${promotionData.candidateName}" to ${promotionData.targetRole === 'manager' ? 'Senior Manager' : 'Pod Captain'}! Assigned team members updated across all systems.`,
+        canRevert: false,
+        revertTarget: '',
+      });
+      setPromotionModalOpen(false);
+      setPromotionData({
+        candidateName: '',
+        targetRole: 'captain',
+        targetTeam: 'Unity-II',
+        assignedAgents: [],
+      });
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
     }
   };
 
@@ -342,13 +408,24 @@ export default function UserManagement() {
       </div>
 
       {alertMsg.text && (
-        <div className={`p-4 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
+        <div className={`p-4 rounded-xl text-xs font-medium border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
           alertMsg.type === 'success' 
             ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' 
             : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200'
         }`}>
-          {alertMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
-          <span>{alertMsg.text}</span>
+          <div className="flex items-center space-x-2">
+            {alertMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />}
+            <span className="font-semibold">{alertMsg.text}</span>
+          </div>
+          {alertMsg.canRevert && alertMsg.revertTarget && (
+            <button
+              onClick={() => handleRevertOffboard(alertMsg.revertTarget)}
+              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 self-end sm:self-auto shadow-md shadow-emerald-700/20"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Revert Offboarding Mistake</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -701,36 +778,86 @@ export default function UserManagement() {
             </div>
           </div>
 
-          {/* Controls Bar & Subtabs */}
-          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Sub-tab Switcher */}
-            <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800">
+          {/* Accidental Offboarding Protection Banner */}
+          {lastOffboardAction && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center space-x-2.5">
+                <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 shrink-0">
+                  <RotateCcw className="w-4 h-4" />
+                </span>
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                    <span>Accidental Offboarding Protection</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-mono">
+                      1-Click Revert Ready
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                    Recently offboarded <strong>{lastOffboardAction.rmName}</strong>
+                    {lastOffboardAction.wasCaptain
+                      ? ` (Pod Captain — ${lastOffboardAction.affectedSubordinateNames?.length || 0} agents temporarily reporting to Senior Manager ${lastOffboardAction.immediateManager})`
+                      : ''}. Offboarded by mistake?
+                  </div>
+                </div>
+              </div>
               <button
-                onClick={() => setOffboardSubTab('active')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                  offboardSubTab === 'active'
-                    ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                onClick={() => handleRevertOffboard(lastOffboardAction.rmName)}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 self-end sm:self-auto shadow-md shadow-amber-600/20 shrink-0"
               >
-                <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Active Operations Roster ({activeRms.length})</span>
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Revert Offboarding Mistake</span>
               </button>
+            </div>
+          )}
+
+          {/* Controls Bar & Subtabs */}
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Sub-tab Switcher */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                <button
+                  onClick={() => setOffboardSubTab('active')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                    offboardSubTab === 'active'
+                      ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Active Operations Roster ({activeRms.length})</span>
+                </button>
+                <button
+                  onClick={() => setOffboardSubTab('archived')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                    offboardSubTab === 'archived'
+                      ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Archive className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Offboarded / Inactive Archive ({inactiveRms.length})</span>
+                </button>
+              </div>
+
               <button
-                onClick={() => setOffboardSubTab('archived')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                  offboardSubTab === 'archived'
-                    ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                onClick={() => {
+                  setPromotionData({
+                    candidateName: activeRms[0]?.rm_name || '',
+                    targetRole: 'captain',
+                    targetTeam: 'Unity-II',
+                    assignedAgents: [],
+                  });
+                  setPromotionModalOpen(true);
+                }}
+                className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 transition-all flex items-center space-x-1.5"
               >
-                <Archive className="w-3.5 h-3.5 text-amber-500" />
-                <span>Offboarded / Inactive Archive ({inactiveRms.length})</span>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Promote to Captain / Manager</span>
               </button>
             </div>
 
             {/* Search Box */}
-            <div className="relative w-full sm:w-72">
+            <div className="relative w-full lg:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
@@ -916,11 +1043,12 @@ export default function UserManagement() {
                             </td>
                             <td className="py-3 px-4 text-right">
                               <button
-                                onClick={() => handleReactivate(rm)}
-                                className="px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs transition-all flex items-center space-x-1.5 ml-auto"
+                                onClick={() => handleRevertOffboard(rm.rm_name)}
+                                className="px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-bold text-xs transition-all flex items-center space-x-1.5 ml-auto shadow-sm"
+                                title="Revert offboarding and reinstate employee"
                               >
                                 <RotateCcw className="w-3.5 h-3.5" />
-                                <span>Reactivate Employee</span>
+                                <span>Revert Offboarding</span>
                               </button>
                             </td>
                           </tr>
@@ -1138,6 +1266,29 @@ export default function UserManagement() {
               </div>
             </div>
 
+            {/* Captain Resignation Warning if applicable */}
+            {(() => {
+              const subRms = getSubordinatesOfCaptain(deactivatingRm.rm_name);
+              if (subRms.length === 0) return null;
+              return (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs space-y-1.5">
+                  <div className="font-bold text-amber-800 dark:text-amber-300 flex items-center space-x-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Pod Captain Resignation Protocol</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                    This employee is a Pod Captain supervising <strong>{subRms.length} active Relationship Managers</strong> under Senior Manager <strong>{deactivatingRm.manager_name || 'Arijit Nath'}</strong>.
+                  </p>
+                  <div className="p-2 rounded-lg bg-amber-100/70 dark:bg-amber-900/40 text-[11px] text-amber-900 dark:text-amber-200 font-semibold flex items-center space-x-1.5">
+                    <span>⚡</span>
+                    <span>
+                      Auto-Failover: All {subRms.length} agents will temporarily report directly to Senior Manager {deactivatingRm.manager_name || 'Arijit Nath'}.
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Zero DB Impact Guarantee Box */}
             <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs space-y-1">
               <div className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1.5">
@@ -1200,6 +1351,157 @@ export default function UserManagement() {
                 <span>Confirm Soft Deactivation</span>
               </button>
             </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Pod Succession & Promotion */}
+      {promotionModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            
+            <div className="flex items-start space-x-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                  Pod Succession & Role Promotion
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Promote an employee to Pod Captain or Senior Manager and assign subordinate teams.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmPromotion} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Select Employee to Promote
+                </label>
+                <select
+                  value={promotionData.candidateName}
+                  onChange={(e) => {
+                    const cand = e.target.value;
+                    const matched = activeRms.find((r) => r.rm_name === cand);
+                    setPromotionData((prev) => ({
+                      ...prev,
+                      candidateName: cand,
+                      targetTeam: matched?.team_name || prev.targetTeam,
+                    }));
+                  }}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold"
+                  required
+                >
+                  <option value="">-- Choose Active Employee --</option>
+                  {activeRms.map((rm) => (
+                    <option key={rm.rm_name} value={rm.rm_name}>
+                      {rm.rm_name} ({rm.team_name} • Current Supervisor: {rm.captain_name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Promotion Role
+                  </label>
+                  <select
+                    value={promotionData.targetRole}
+                    onChange={(e) => setPromotionData((prev) => ({ ...prev, targetRole: e.target.value }))}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-medium"
+                  >
+                    <option value="captain">Promote to Pod Captain</option>
+                    <option value="manager">Promote to Senior Manager</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Assigned Franchise / Team
+                  </label>
+                  <select
+                    value={promotionData.targetTeam}
+                    onChange={(e) => setPromotionData((prev) => ({ ...prev, targetTeam: e.target.value }))}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold"
+                  >
+                    {teamsList.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {promotionData.targetRole === 'captain' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-semibold text-slate-700 dark:text-slate-300">
+                      Assign Team Members to New Captain
+                    </label>
+                    <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold">
+                      {promotionData.assignedAgents.length} Agents Selected
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 mb-2">
+                    Select agents (including those temporarily reporting to Senior Manager) to transfer under this newly promoted captain:
+                  </p>
+
+                  <div className="max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-900/40 space-y-1">
+                    {activeRms
+                      .filter((r) => r.rm_name !== promotionData.candidateName)
+                      .map((rm) => {
+                        const isChecked = promotionData.assignedAgents.includes(rm.rm_name);
+                        return (
+                          <label
+                            key={rm.rm_name}
+                            className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setPromotionData((prev) => ({
+                                  ...prev,
+                                  assignedAgents: checked
+                                    ? [...prev.assignedAgents, rm.rm_name]
+                                    : prev.assignedAgents.filter((a) => a !== rm.rm_name),
+                                }));
+                              }}
+                              className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <span className="text-xs font-medium text-slate-900 dark:text-white">{rm.rm_name}</span>
+                            <span className="text-[10px] text-slate-400">
+                              ({rm.team_name} • Sup: {rm.captain_name})
+                              {rm.tempSupervisedByManager ? ' [Direct to Manager]' : ''}
+                            </span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setPromotionModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 flex items-center space-x-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Approve & Execute Promotion</span>
+                </button>
+              </div>
+            </form>
 
           </div>
         </div>

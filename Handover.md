@@ -108,3 +108,15 @@ The application will automatically detect Vite and the serverless functions unde
 - **Scorecard Opening from History:** Clicking any row or the dedicated "Scorecard" button in the QA History table immediately opens that audit's evaluation scorecard with all historical parameters, scores, feedback, and auditor attribution prepopulated.
 - **Scorecard Navigation Banner:** A top banner displays historical audit context (Audit #, Agent, Score, Auditor) with convenient "Back to History" and "New Blank Audit" actions.
 - **Developer-Only Historical Purge:** An exclusive "Purge Historical Data (Dev)" button is available strictly to developer accounts (`kushal.centuryply@gmail.com`). Includes a two-step confirmation modal to prevent accidental data loss, persistent storage purging, and a "Restore Default Audits" capability.
+
+---
+
+## 19. Employee Soft-Offboarding, Pod Captain Resignation Auto-Failover, Role Promotion & Accidental Offboarding Revert (Nov 24, 2026)
+- **Zero Database Impact Soft-Offboarding:** Employees who leave or separate are marked `status: 'inactive'` with a formal separation timestamp and reason. All historical L2 financial records, QA audit scorecards, and RM telephony history remain 100% intact with zero data loss or foreign key distortion.
+- **Pod Captain Resignation Protocol (Auto-Failover):** When a Pod Captain separates, their active subordinate agents temporarily report directly to the immediate Senior Manager (`captain_name` becomes immediate manager, hierarchy tree updates dynamically) so no agents are ever orphaned.
+- **Pod Succession & Role Promotion:** Leadership can promote an active employee to Pod Captain or Senior Manager and assign team members directly under their supervisory pod in a dedicated promotion modal.
+- **Accidental Offboarding Protection & Revert Protocol:** 
+  1. Instant "Revert Offboarding Mistake" button in top alert banner right after offboarding.
+  2. Quick-revert bar at the top of the Offboarding console for recently offboarded employees.
+  3. "Revert Offboarding" button in the Inactive Archive table that restores the employee and reinstates all original pod relationships and subordinate agents.
+- **Ronika Banerjee & Ishani Dey Hierarchy Sync:** Unified mapping ensures agents remain cleanly synchronized with Unity-II under Arshi Afreen Jamal and Arijit Nath.

@@ -181,3 +181,18 @@ eplace mode preserving tickets from other months.
      - Implemented `isDeveloperUser()` to restrict purge capabilities strictly to Developer accounts (`kushal.centuryply@gmail.com` / designation).
      - Fixed `DataContext.jsx` to respect empty arrays in `century_qa_audits_v2` and added `purgeAllQaAudits()` and `restoreDefaultQaAudits()`.
      - Added a "Purge Historical Data (Dev)" button in the History tab with an executive confirmation dialog, plus a "Restore Default Audits" fallback for testing.
+
+---
+
+### Decision 032: Pod Captain Resignation Auto-Failover, Role Promotion, and Revert/Undo Protocol
+* **Date:** 2026-11-24
+* **Context:** When employees or pod captains separate, data integrity must not be compromised, agents supervised by the captain must not become orphaned, and leadership must be able to promote new leaders or revert accidental offboarding actions.
+* **Tradeoffs & Alternatives Considered:**
+  1. *Hard Deletion of Records:* Rejected. Deleting RM records breaks historical joins in tickets, telephony, and completed QA audits.
+  2. *Orphaned Agents on Captain Exit:* Rejected. Leaving agents without a captain would create broken reporting trees and unassigned KPIs.
+  3. *Irreversible Offboarding:* Rejected. Accidental clicks by HR or managers would require database rollback.
+* **Chosen Solution:**
+  1. *Soft Deactivation:* Mark `status: 'inactive'` with reason and timestamp while retaining all directories and audit attribution.
+  2. *Captain Resignation Auto-Failover:* Automatically reassign active subordinate agents to report directly to their immediate Senior Manager (`captain_name` = immediate manager, `tempSupervisedByManager: true`, `previousCaptain: rmName`).
+  3. *Pod Succession & Role Promotion:* Dedicated modal to promote a candidate to Pod Captain or Senior Manager, re-clustering subordinate agents under them.
+  4. *Multi-Tier Revert / Rollback Protocol:* Immediate banner undo, quick-revert card, and Inactive Archive "Revert Offboarding" button that restores the captain and auto-reattaches all their subordinate agents.

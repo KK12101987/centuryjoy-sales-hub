@@ -750,10 +750,32 @@ export function DataProvider({ children }) {
     });
   };
 
+  // Track last offboard action for instant 1-click Revert / Undo
+  const [lastOffboardAction, setLastOffboardAction] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_last_offboard_action');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
+
   // Soft Deactivate RM / Employee without affecting the database (preserves all historical audits, tickets, and logs)
+  // Auto-failover: If a Pod Captain resigns, their subordinate team temporarily reports directly to their immediate manager.
   const deactivateRm = (rmName, reason = 'Separated / Soft Offboarded') => {
     verifyWatermarkIntegrity();
     let updatedRm = null;
+
+    // Detect if this employee is currently a Pod Captain for active subordinate agents
+    const targetRm = rmDirectory.find((r) => r.rm_name.toLowerCase() === rmName.toLowerCase());
+    const immediateManager = targetRm?.manager_name || 'Arijit Nath';
+    const subordinateAgents = rmDirectory.filter(
+      (r) =>
+        r.status !== 'inactive' &&
+        (r.captain_name || '').toLowerCase() === rmName.toLowerCase() &&
+        r.rm_name.toLowerCase() !== rmName.toLowerCase()
+    );
+    const isCaptain = subordinateAgents.length > 0;
+    const affectedSubordinateNames = subordinateAgents.map((s) => s.rm_name);
 
     setRmDirectory((prev) => {
       const updated = prev.map((rm) => {
@@ -763,25 +785,61 @@ export function DataProvider({ children }) {
             status: 'inactive',
             deactivatedAt: new Date().toISOString(),
             deactivationReason: reason,
+            wasCaptain: isCaptain,
           };
           return updatedRm;
         }
+
+        // Auto-failover: Subordinate agents temporarily report directly to Senior Manager
+        if (
+          isCaptain &&
+          rm.status !== 'inactive' &&
+          (rm.captain_name || '').toLowerCase() === rmName.toLowerCase() &&
+          rm.rm_name.toLowerCase() !== rmName.toLowerCase()
+        ) {
+          return {
+            ...rm,
+            captain_name: immediateManager, // Temporarily reports directly to immediate manager
+            previousCaptain: rmName,
+            tempSupervisedByManager: true,
+          };
+        }
+
         return rm;
       });
+
       try {
         localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });
 
-    // Remove from active hierarchy tree view so captains don't see inactive agents in their live pods
+    // Update active hierarchy tree
     setHierarchy((prev) => {
       const tree = JSON.parse(JSON.stringify(prev.tree || {}));
-      for (const m in tree) {
-        for (const c in tree[m]) {
-          tree[m][c] = (tree[m][c] || []).filter((agent) => agent.toLowerCase() !== rmName.toLowerCase());
+
+      if (isCaptain && tree[immediateManager]) {
+        // Move pod's agents into manager's direct branch
+        const agentsInPod = tree[immediateManager][rmName] || affectedSubordinateNames;
+        delete tree[immediateManager][rmName];
+
+        if (!tree[immediateManager][immediateManager]) {
+          tree[immediateManager][immediateManager] = [];
+        }
+        agentsInPod.forEach((ag) => {
+          if (ag.toLowerCase() !== rmName.toLowerCase() && !tree[immediateManager][immediateManager].includes(ag)) {
+            tree[immediateManager][immediateManager].push(ag);
+          }
+        });
+      } else {
+        // Regular RM removal from captain's pod
+        for (const m in tree) {
+          for (const c in tree[m]) {
+            tree[m][c] = (tree[m][c] || []).filter((agent) => agent.toLowerCase() !== rmName.toLowerCase());
+          }
         }
       }
+
       const newH = { ...prev, tree };
       try {
         localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
@@ -789,15 +847,33 @@ export function DataProvider({ children }) {
       return newH;
     });
 
+    // Record last action for instant revert capability
+    const actionMeta = {
+      rmName,
+      wasCaptain: isCaptain,
+      immediateManager,
+      affectedSubordinateNames,
+      timestamp: new Date().toISOString(),
+      reason,
+    };
+    setLastOffboardAction(actionMeta);
+    try {
+      localStorage.setItem('century_last_offboard_action', JSON.stringify(actionMeta));
+    } catch (e) {}
+
     return updatedRm;
   };
 
-  // Reactivate / Restore a previously offboarded RM
-  const reactivateRm = (rmName) => {
+  // Revert / Restore an offboarded employee (1-click mistake reversal & full pod restoration)
+  const revertOffboard = (rmName) => {
     verifyWatermarkIntegrity();
     let restoredRm = null;
 
     setRmDirectory((prev) => {
+      const target = prev.find((r) => r.rm_name.toLowerCase() === rmName.toLowerCase());
+      const wasCaptain = target?.wasCaptain;
+      const originalCaptain = rmName;
+
       const updated = prev.map((rm) => {
         if (rm.rm_name.toLowerCase() === rmName.toLowerCase()) {
           restoredRm = {
@@ -805,29 +881,58 @@ export function DataProvider({ children }) {
             status: 'active',
             deactivatedAt: null,
             deactivationReason: null,
+            wasCaptain: false,
           };
           return restoredRm;
         }
+
+        // If this captain's subordinates were temporarily moved under manager, restore them to this captain
+        if (wasCaptain && rm.previousCaptain && rm.previousCaptain.toLowerCase() === rmName.toLowerCase()) {
+          return {
+            ...rm,
+            captain_name: originalCaptain,
+            previousCaptain: null,
+            tempSupervisedByManager: false,
+          };
+        }
+
         return rm;
       });
+
       try {
         localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });
 
-    // Re-add to hierarchy tree under their manager and captain
+    // Restore hierarchy tree
     setHierarchy((prev) => {
       const target = restoredRm || rmDirectory.find((r) => r.rm_name.toLowerCase() === rmName.toLowerCase());
       if (!target) return prev;
       const tree = JSON.parse(JSON.stringify(prev.tree || {}));
       const m = target.manager_name || 'Arijit Nath';
       const c = target.captain_name || 'Arshi Afreen Jamal';
+
       if (!tree[m]) tree[m] = {};
-      if (!tree[m][c]) tree[m][c] = [];
-      if (!tree[m][c].some((a) => a.toLowerCase() === target.rm_name.toLowerCase())) {
-        tree[m][c].push(target.rm_name);
+
+      if (target.wasCaptain) {
+        // Find agents belonging to this restored captain
+        const subAgents = rmDirectory
+          .filter((r) => (r.previousCaptain || '').toLowerCase() === rmName.toLowerCase())
+          .map((r) => r.rm_name);
+
+        // Remove them from manager's direct pool
+        if (tree[m][m]) {
+          tree[m][m] = tree[m][m].filter((ag) => !subAgents.includes(ag));
+        }
+        tree[m][target.rm_name] = subAgents.length > 0 ? subAgents : [target.rm_name];
+      } else {
+        if (!tree[m][c]) tree[m][c] = [];
+        if (!tree[m][c].some((a) => a.toLowerCase() === target.rm_name.toLowerCase())) {
+          tree[m][c].push(target.rm_name);
+        }
       }
+
       const newH = { ...prev, tree };
       try {
         localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
@@ -835,7 +940,104 @@ export function DataProvider({ children }) {
       return newH;
     });
 
+    // Clear last offboard action if matching
+    setLastOffboardAction((prev) => {
+      if (prev?.rmName?.toLowerCase() === rmName.toLowerCase()) {
+        try {
+          localStorage.removeItem('century_last_offboard_action');
+        } catch (e) {}
+        return null;
+      }
+      return prev;
+    });
+
     return restoredRm;
+  };
+
+  // Reactivate RM (alias to revertOffboard for general restores)
+  const reactivateRm = (rmName) => {
+    return revertOffboard(rmName);
+  };
+
+  // Promote Employee to Pod Captain or Senior Manager & assign subordinate pod
+  const promoteEmployee = (candidateName, targetRole = 'captain', assignedAgents = [], teamName = '') => {
+    verifyWatermarkIntegrity();
+    let promotedCandidate = null;
+
+    setRmDirectory((prev) => {
+      const candidate = prev.find((r) => r.rm_name.toLowerCase() === candidateName.toLowerCase());
+      if (!candidate) return prev;
+      const manager = candidate.manager_name || 'Arijit Nath';
+      const finalTeam = teamName || candidate.team_name || 'Unity-II';
+
+      const updated = prev.map((rm) => {
+        // The promoted candidate
+        if (rm.rm_name.toLowerCase() === candidateName.toLowerCase()) {
+          promotedCandidate = {
+            ...rm,
+            designation: targetRole === 'manager' ? 'Senior Manager' : 'Pod Captain',
+            captain_name: targetRole === 'captain' ? candidateName : rm.captain_name,
+            team_name: finalTeam,
+            manager_name: targetRole === 'manager' ? candidateName : manager,
+            status: 'active',
+          };
+          return promotedCandidate;
+        }
+
+        // Subordinate agents assigned to the newly promoted captain
+        if (
+          targetRole === 'captain' &&
+          assignedAgents.some((a) => a.toLowerCase() === rm.rm_name.toLowerCase())
+        ) {
+          return {
+            ...rm,
+            captain_name: candidateName,
+            manager_name: manager,
+            team_name: finalTeam,
+            tempSupervisedByManager: false,
+            previousCaptain: null,
+          };
+        }
+
+        return rm;
+      });
+
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Update active hierarchy tree with new captain/manager branch
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      const candidate = rmDirectory.find((r) => r.rm_name.toLowerCase() === candidateName.toLowerCase());
+      const m = candidate?.manager_name || 'Arijit Nath';
+
+      if (targetRole === 'captain') {
+        if (!tree[m]) tree[m] = {};
+        tree[m][candidateName] = assignedAgents.length > 0 ? assignedAgents : [candidateName];
+
+        // Clean up assigned agents from manager's direct branch or other pods
+        for (const cap in tree[m]) {
+          if (cap !== candidateName) {
+            tree[m][cap] = (tree[m][cap] || []).filter(
+              (ag) => !assignedAgents.includes(ag) && ag !== candidateName
+            );
+          }
+        }
+      } else if (targetRole === 'manager') {
+        if (!tree[candidateName]) tree[candidateName] = {};
+      }
+
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return promotedCandidate;
   };
 
   // Global Scope Filter for Consolidated View
@@ -925,6 +1127,9 @@ export function DataProvider({ children }) {
     updateRmMapping,
     deactivateRm,
     reactivateRm,
+    revertOffboard,
+    promoteEmployee,
+    lastOffboardAction,
     scopeFilter,
     setScopeFilter,
     isUploadModalOpen,
