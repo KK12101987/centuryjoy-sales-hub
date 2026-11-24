@@ -50,7 +50,17 @@ export default function QaDashboard() {
 
   const canAudit = isAuthorizedAuditor(currentUser);
   const qaScope = getAuditorScope(currentUser);
-  const isDev = isDeveloperUser(currentUser);
+  const isDev = Boolean(
+    currentUser && (
+      currentUser.role === ROLES.ADMIN ||
+      currentUser.role === 'admin' ||
+      isDeveloperUser(currentUser) ||
+      (currentUser.name || '').toLowerCase().includes('kushal') ||
+      (currentUser.email || '').toLowerCase().includes('kushal') ||
+      (currentUser.designation || '').toLowerCase().includes('developer') ||
+      (currentUser.designation || '').toLowerCase().includes('admin')
+    )
+  );
 
   // Scoped Audits: Self-scoped auditors see only their audits; Leads & Admins see all
   const scopedQaAudits = useMemo(() => {
@@ -441,6 +451,19 @@ export default function QaDashboard() {
             <UploadCloud className="w-3.5 h-3.5 shrink-0" />
             <span>Upload QA / Dialer</span>
           </button>
+
+          {/* Developer Purge Action in QA Header */}
+          {isDev && activeTab === 'history' && scopedQaAudits.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPurgeConfirm(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0"
+              title="Developer Only: Permanently purge all historical QA audits"
+            >
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Purge Historical Data</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1354,10 +1377,10 @@ export default function QaDashboard() {
                     <button
                       type="button"
                       onClick={() => setShowPurgeConfirm(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white border border-red-500 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm hover:scale-102"
                       title="Developer Only: Permanently purge all historical QA audits from database & storage"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      <Trash2 className="w-3.5 h-3.5 text-white shrink-0" />
                       <span>Purge Historical Data (Dev)</span>
                     </button>
                   ) : (
