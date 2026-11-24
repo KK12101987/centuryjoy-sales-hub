@@ -140,3 +140,24 @@ eplace mode preserving tickets from other months.
   3. **Cleaned Dead Utilities & Context Exports:** Removed uncalled functions (`toTitleCase`, `formatDateNice`) from `formatters.js`, removed dead helper `handleManagerSelect` and unconsumed context keys (`setTickets`, `handleManagerSelect`, `setIsUploadModalOpen`, `setUploadModalTab`) from `DataContext.jsx`.
   4. **Platform Version Policy Alignment:** Added `"engines": { "node": ">=20.0.0" }` in `package.json` to pin the active Node LTS baseline, and configured `build: { target: 'es2022' }` in `vite.config.js` to prevent legacy polyfill emission.
 - **Consequences:** Decreased production CSS bundle size by 14% (`dist/assets/index-*.css` dropped from 79.87 KB to 68.86 KB), eliminated ~198 KB of source clutter, cleaned `node_modules`, and guaranteed 100% platform alignment with modern web standards while keeping Rule 22 DRM watermark intact.
+
+---
+
+## 11. Production Deployment of Unified Portal to Vercel (Nov 24, 2026)
+- **Context:** User requested deploying the complete, unified Century Joy Complete Dashboard to Vercel. Vercel project `centuryjoy-sales-hub` under team `kk12101987s-projects` (`team_E6YrD1KMTzXjQr29ulAXJlCy`) was linked to GitHub repository `KK12101987/centuryjoy-sales-hub`.
+- **Root Cause & Diagnosis:**
+  1. The initial automated CI build failed with exit code 127 (`sh: line 1: vite: command not found`).
+  2. Inspection revealed `package-lock.json` contained 148 references pointing to local Windows directory junctions (`../L2 Dashboard/node_modules/...`), which do not exist on Vercel's Linux build servers.
+  3. Furthermore, project settings were defaulting to unreleased Node 26.x with experimental `install-scripts` behavior.
+- **Actions Taken:**
+  1. Updated Vercel Project setting `nodeVersion` to stable LTS `22.x`.
+  2. Promoted Vite and build plugins (`vite`, `@vitejs/plugin-react`, `tailwindcss`, `postcss`, `autoprefixer`) to explicit dependencies in `package.json`.
+  3. Purged corrupted junction-ridden `package-lock.json` from git repository.
+  4. Committed and pushed clean codebase to GitHub `master` (commit `077fe39`).
+  5. Vercel triggered deployment `dpl_APgLtmZpYS6rX5vbXZFTZAx2rkLo`, which installed cleanly from the npm registry and built Vite production assets in 22s.
+- **Verification & Outcome:**
+  - Deployment State: `READY`
+  - Production URL: `https://centuryjoy-sales-hub.vercel.app`
+  - Preview URL: `https://centuryjoy-sales-c6p0w7ej4-kk12101987s-projects.vercel.app`
+  - Shareable Access URL: `https://centuryjoy-sales-hub.vercel.app/?_vercel_share=930IKTh2rjzhQJ15JvBroZNWIumMEnAR`
+  - All 5 modules and Rule 22 watermark live in production.

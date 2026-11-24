@@ -82,3 +82,22 @@ Connect repository to Vercel or run:
 vercel --prod
 ```
 The application will automatically detect Vite and the serverless functions under `api/`.
+
+---
+
+## 17. Live Vercel Production Deployment Status (Nov 24, 2026)
+- **Deployment Status:** `READY` (Built and deployed successfully).
+- **Project ID:** `prj_fzvHym222XheRPSsIHCkNSofgW3E` (`centuryjoy-sales-hub`)
+- **Team ID:** `team_E6YrD1KMTzXjQr29ulAXJlCy` (`kk12101987s-projects`)
+- **Latest Deployment ID:** `dpl_APgLtmZpYS6rX5vbXZFTZAx2rkLo`
+- **GitHub Repository:** `https://github.com/KK12101987/centuryjoy-sales-hub.git` (branch `master`)
+- **Production URL:** [https://centuryjoy-sales-hub.vercel.app](https://centuryjoy-sales-hub.vercel.app)
+- **Preview Deployment URL:** [https://centuryjoy-sales-c6p0w7ej4-kk12101987s-projects.vercel.app](https://centuryjoy-sales-c6p0w7ej4-kk12101987s-projects.vercel.app)
+- **Bypass / Shareable URL (SSO Authenticated):** [https://centuryjoy-sales-hub.vercel.app/?_vercel_share=930IKTh2rjzhQJ15JvBroZNWIumMEnAR](https://centuryjoy-sales-hub.vercel.app/?_vercel_share=930IKTh2rjzhQJ15JvBroZNWIumMEnAR)
+- **Key Modules Deployed:**
+  1. Consolidated Command Center
+  2. L2 Approvals (Executive Financial Reconciliation)
+  3. RM Telephony Operations
+  4. QA & 7 QC Analytics Suite (with Standard Calls >= 2 min filter & 4-Auditor RBAC)
+  5. User Management & Scope Control
+  6. Rule 22 Watermark & Anti-Tamper protocol (`#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`)
