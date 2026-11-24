@@ -69,8 +69,9 @@ export default function UserManagement() {
   // Scope assignment state
   const [scopeTransfer, setScopeTransfer] = useState({
     agentName: '',
-    targetManager: 'Surajit Laha',
-    targetCaptain: 'Nasima Banu',
+    targetTeam: 'Unity-II',
+    targetManager: 'Arijit Nath',
+    targetCaptain: 'Arshi Afreen Jamal',
     effectiveDate: new Date().toISOString().split('T')[0],
   });
 
@@ -85,6 +86,14 @@ export default function UserManagement() {
     'Silpa Palchina',
     'Direct Supervision (Physical)'
   ];
+
+  // Distinct Teams List
+  const teamsList = useMemo(() => {
+    const list = [...new Set(rmDirectory.map((r) => (r.team_name || '').trim()).filter(Boolean))];
+    if (!list.includes('Unity-II')) list.push('Unity-II');
+    if (!list.includes('Unity-I')) list.push('Unity-I');
+    return list.sort();
+  }, [rmDirectory]);
 
   // Filtered users
   const filteredUsers = useMemo(() => {
@@ -181,11 +190,11 @@ export default function UserManagement() {
         scopeTransfer.agentName,
         scopeTransfer.targetCaptain,
         scopeTransfer.targetManager,
-        'CenturyJoy Pod'
+        scopeTransfer.targetTeam || 'Unity-II'
       );
       setAlertMsg({
         type: 'success',
-        text: `Successfully reassigned ${scopeTransfer.agentName} to Captain ${scopeTransfer.targetCaptain} under Manager ${scopeTransfer.targetManager}. Changes synced across all dashboards!`,
+        text: `Successfully reassigned ${scopeTransfer.agentName} to Franchise / Team "${scopeTransfer.targetTeam || 'Unity-II'}", Captain "${scopeTransfer.targetCaptain}" under Manager "${scopeTransfer.targetManager}". Changes synced across all dashboards!`,
       });
       setTimeout(() => setAlertMsg({ type: '', text: '' }), 4000);
     } catch (err) {
@@ -395,15 +404,40 @@ export default function UserManagement() {
                 </label>
                 <select
                   value={scopeTransfer.agentName}
-                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, agentName: e.target.value }))}
-                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                  onChange={(e) => {
+                    const agent = e.target.value;
+                    const matched = rmDirectory.find((r) => r.rm_name === agent);
+                    setScopeTransfer((prev) => ({
+                      ...prev,
+                      agentName: agent,
+                      targetTeam: matched?.team_name || prev.targetTeam || 'Unity-II',
+                      targetCaptain: matched?.captain_name || prev.targetCaptain || 'Arshi Afreen Jamal',
+                      targetManager: matched?.manager_name || prev.targetManager || 'Arijit Nath',
+                    }));
+                  }}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
                   required
                 >
-                  <option value="">-- Choose Agent from 54 Active RMs --</option>
+                  <option value="">-- Choose Agent from {rmDirectory.length} Active RMs --</option>
                   {rmDirectory.map((rm) => (
                     <option key={rm.id || rm.rm_name} value={rm.rm_name}>
-                      {rm.rm_name} ({rm.captain_name || 'Direct'} • {rm.manager_name || 'General'})
+                      {rm.rm_name} ({rm.team_name || 'Unity-II'} • {rm.captain_name || 'Direct'} • {rm.manager_name || 'General'})
                     </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Target Franchise / Team
+                </label>
+                <select
+                  value={scopeTransfer.targetTeam}
+                  onChange={(e) => setScopeTransfer((prev) => ({ ...prev, targetTeam: e.target.value }))}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-semibold"
+                >
+                  {teamsList.map((t) => (
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>

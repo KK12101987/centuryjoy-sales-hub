@@ -102,7 +102,33 @@ export function DataProvider({ children }) {
   const [hierarchy, setHierarchy] = useState(() => {
     try {
       const saved = localStorage.getItem('century_hierarchy_tree_v2');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.tree?.['Arijit Nath']) {
+          let treeUpdated = false;
+          const arshi = parsed.tree['Arijit Nath']['Arshi Afreen Jamal'] || [];
+          if (!arshi.some((n) => n.toLowerCase() === 'ronika banerjee')) {
+            arshi.push('Ronika Banerjee');
+            treeUpdated = true;
+          }
+          if (!arshi.some((n) => n.toLowerCase() === 'ishani dey')) {
+            arshi.push('Ishani Dey');
+            treeUpdated = true;
+          }
+          if (parsed.tree['Arijit Nath']['Silpa Palchina']) {
+            parsed.tree['Arijit Nath']['Silpa Palchina'] = parsed.tree['Arijit Nath']['Silpa Palchina'].filter(
+              (n) => n.toLowerCase() !== 'ronika banerjee'
+            );
+            treeUpdated = true;
+          }
+          parsed.tree['Arijit Nath']['Arshi Afreen Jamal'] = arshi;
+          if (treeUpdated) {
+            localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(parsed));
+          }
+          return parsed;
+        }
+        return parsed;
+      }
     } catch (e) {}
     return rawHierarchy;
   });
@@ -408,26 +434,33 @@ export function DataProvider({ children }) {
           // Explicitly permit empty array when purged by developer
           if (parsed.length === 0) return [];
 
-          // Normalize legacy auditor names to the 4 authorized QA auditors
+          // Normalize legacy auditor names to the 4 authorized QA auditors and sync Unity-II for Ronika & Ishani
           let migrated = false;
           const mapped = parsed.map((a) => {
-            if (a.auditor_name === 'Tanmoy Das') {
-              migrated = true;
-              return { ...a, auditor_name: 'Nabonita Roy' };
+            let item = { ...a };
+            if (item.rm_name === 'Ronika Banerjee' || item.rm_name === 'Ishani Dey') {
+              if (item.team_name !== 'Unity-II') {
+                item.team_name = 'Unity-II';
+                migrated = true;
+              }
             }
-            if (a.auditor_name === 'Manika Chakraborty') {
+            if (item.auditor_name === 'Tanmoy Das') {
               migrated = true;
-              return { ...a, auditor_name: 'Arindam CenturyPly' };
+              item.auditor_name = 'Nabonita Roy';
             }
-            if (a.auditor_name === 'Dhriti Mondal') {
+            if (item.auditor_name === 'Manika Chakraborty') {
               migrated = true;
-              return { ...a, auditor_name: 'Sayan Banik' };
+              item.auditor_name = 'Arindam CenturyPly';
             }
-            if (a.auditor_name === 'Kushal Kar') {
+            if (item.auditor_name === 'Dhriti Mondal') {
               migrated = true;
-              return { ...a, auditor_name: 'Arnab Chakladaar' };
+              item.auditor_name = 'Sayan Banik';
             }
-            return a;
+            if (item.auditor_name === 'Kushal Kar') {
+              migrated = true;
+              item.auditor_name = 'Arnab Chakladaar';
+            }
+            return item;
           });
           if (migrated) {
             localStorage.setItem('century_qa_audits_v2', JSON.stringify(mapped));
@@ -601,25 +634,67 @@ export function DataProvider({ children }) {
     setIsUploadModalOpen(false);
   };
 
+  // Team name normalizer
+  const normalizeTeamName = (name) => {
+    if (!name) return name;
+    const clean = name.trim();
+    if (/^unity[-_\s]*2$/i.test(clean) || /^unity[-_\s]*ii$/i.test(clean)) return 'Unity-II';
+    if (/^unity[-_\s]*1$/i.test(clean) || /^unity[-_\s]*i$/i.test(clean)) return 'Unity-I';
+    return clean;
+  };
+
   // D. RM Directory State
   const [rmDirectory, setRmDirectory] = useState(() => {
     try {
       const saved = localStorage.getItem('century_rm_directory_v2');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        let parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          let modified = false;
+          parsed = parsed.map((rm) => {
+            const name = (rm.rm_name || '').toLowerCase();
+            // Ensure Ronika Banerjee and Ishani Dey are consistently on Unity-II
+            if (name === 'ronika banerjee' || name === 'ishani dey') {
+              if (rm.team_name !== 'Unity-II' || rm.captain_name !== 'Arshi Afreen Jamal' || rm.manager_name !== 'Arijit Nath') {
+                modified = true;
+                return {
+                  ...rm,
+                  team_name: 'Unity-II',
+                  captain_name: 'Arshi Afreen Jamal',
+                  manager_name: 'Arijit Nath',
+                };
+              }
+            }
+            // Normalize any Unity 2 or Unity 1 variations
+            const normTeam = normalizeTeamName(rm.team_name);
+            if (normTeam !== rm.team_name) {
+              modified = true;
+              return { ...rm, team_name: normTeam };
+            }
+            return rm;
+          });
+          if (modified) {
+            localStorage.setItem('century_rm_directory_v2', JSON.stringify(parsed));
+          }
+          return parsed;
+        }
+      }
     } catch (e) {}
     return rawRMs;
   });
 
   const updateRmMapping = (rmName, newCaptain, newManager, newProcess) => {
     verifyWatermarkIntegrity();
+    const finalTeam = newProcess ? normalizeTeamName(newProcess) : undefined;
+    
     setRmDirectory((prev) => {
       const updated = prev.map((rm) => {
         if (rm.rm_name.toLowerCase() === rmName.toLowerCase()) {
           return {
             ...rm,
-            captain_name: newCaptain,
-            manager_name: newManager,
-            team_name: newProcess || rm.team_name,
+            captain_name: newCaptain || rm.captain_name,
+            manager_name: newManager || rm.manager_name,
+            team_name: finalTeam || rm.team_name,
           };
         }
         return rm;
@@ -630,6 +705,30 @@ export function DataProvider({ children }) {
       return updated;
     });
 
+    // Also sync team_name, captain, manager in QA Audits for this agent
+    setQaAudits((prev) => {
+      let changed = false;
+      const updated = prev.map((audit) => {
+        if (audit.rm_name && audit.rm_name.toLowerCase() === rmName.toLowerCase()) {
+          changed = true;
+          return {
+            ...audit,
+            captain_name: newCaptain || audit.captain_name,
+            manager_name: newManager || audit.manager_name,
+            team_name: finalTeam || audit.team_name,
+          };
+        }
+        return audit;
+      });
+      if (changed) {
+        try {
+          localStorage.setItem('century_qa_audits_v2', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      }
+      return prev;
+    });
+
     setHierarchy((prev) => {
       const tree = JSON.parse(JSON.stringify(prev.tree || {}));
       for (const m in tree) {
@@ -637,9 +736,11 @@ export function DataProvider({ children }) {
           tree[m][c] = (tree[m][c] || []).filter((agent) => agent.toLowerCase() !== rmName.toLowerCase());
         }
       }
-      if (!tree[newManager]) tree[newManager] = {};
-      if (!tree[newManager][newCaptain]) tree[newManager][newCaptain] = [];
-      tree[newManager][newCaptain].push(rmName);
+      const mgr = newManager || 'Arijit Nath';
+      const cap = newCaptain || 'Arshi Afreen Jamal';
+      if (!tree[mgr]) tree[mgr] = {};
+      if (!tree[mgr][cap]) tree[mgr][cap] = [];
+      tree[mgr][cap].push(rmName);
 
       const newH = { ...prev, tree };
       try {
