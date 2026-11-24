@@ -113,6 +113,21 @@ export default function UserManagement() {
     return list.sort();
   }, [rmDirectory]);
 
+  // Filtered users for Tab 1 User Accounts
+  const filteredUsers = useMemo(() => {
+    return (users || []).filter((u) => {
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const mName = (u.name || '').toLowerCase();
+        const mEmail = (u.email || '').toLowerCase();
+        const mDesig = (u.designation || '').toLowerCase();
+        return mName.includes(q) || mEmail.includes(q) || mDesig.includes(q);
+      }
+      return true;
+    });
+  }, [users, roleFilter, searchQuery]);
+
   // Active & Inactive RMs
   const activeRms = useMemo(() => {
     return (rmDirectory || []).filter((r) => r.status !== 'inactive');
