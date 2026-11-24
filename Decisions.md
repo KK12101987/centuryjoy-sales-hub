@@ -161,3 +161,23 @@ eplace mode preserving tickets from other months.
   - Preview URL: `https://centuryjoy-sales-c6p0w7ej4-kk12101987s-projects.vercel.app`
   - Shareable Access URL: `https://centuryjoy-sales-hub.vercel.app/?_vercel_share=930IKTh2rjzhQJ15JvBroZNWIumMEnAR`
   - All 5 modules and Rule 22 watermark live in production.
+
+---
+
+## 12. Audit Scorecard Inspection on Click & Developer-Only Historical Data Purge (Nov 24, 2026)
+- **Context:**
+  1. User reported clicking on an audit in the QA History table was not opening the scorecard.
+  2. User requested a button restricted exclusively to the Developer to purge any and all historical QA audit data.
+- **Root Cause & Diagnosis:**
+  1. The QA History table `<tr>` elements lacked click event listeners, and no individual "Scorecard" action button existed on the rows.
+  2. `QaScorecard` only parsed incoming dialer calls and lacked prepopulation logic for historical audits (`audit_date`, `auditor_name`, parameter scores, feedback).
+  3. `DataContext.jsx`'s `qaAudits` initialization logic checked `parsed.length > 0`, which caused an empty array `[]` saved in localStorage to revert back to `rawQaAudits`.
+- **Actions Taken:**
+  1. **Scorecard Opening from History:**
+     - Connected `handleViewAudit(audit)` to the History table rows and added a dedicated "Scorecard" button to each row.
+     - Enhanced `QaScorecard` to populate historical evaluation data, scores, observation, and auditor details.
+     - Added a "Historical Audit #..." banner with "Back to History" and "New Blank Audit" actions.
+  2. **Developer-Only Historical Purge:**
+     - Implemented `isDeveloperUser()` to restrict purge capabilities strictly to Developer accounts (`kushal.centuryply@gmail.com` / designation).
+     - Fixed `DataContext.jsx` to respect empty arrays in `century_qa_audits_v2` and added `purgeAllQaAudits()` and `restoreDefaultQaAudits()`.
+     - Added a "Purge Historical Data (Dev)" button in the History tab with an executive confirmation dialog, plus a "Restore Default Audits" fallback for testing.

@@ -101,3 +101,10 @@ The application will automatically detect Vite and the serverless functions unde
   4. QA & 7 QC Analytics Suite (with Standard Calls >= 2 min filter & 4-Auditor RBAC)
   5. User Management & Scope Control
   6. Rule 22 Watermark & Anti-Tamper protocol (`#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`)
+
+---
+
+## 18. Audit Click-to-Scorecard & Developer Data Purge (Nov 24, 2026)
+- **Scorecard Opening from History:** Clicking any row or the dedicated "Scorecard" button in the QA History table immediately opens that audit's evaluation scorecard with all historical parameters, scores, feedback, and auditor attribution prepopulated.
+- **Scorecard Navigation Banner:** A top banner displays historical audit context (Audit #, Agent, Score, Auditor) with convenient "Back to History" and "New Blank Audit" actions.
+- **Developer-Only Historical Purge:** An exclusive "Purge Historical Data (Dev)" button is available strictly to developer accounts (`kushal.centuryply@gmail.com`). Includes a two-step confirmation modal to prevent accidental data loss, persistent storage purging, and a "Restore Default Audits" capability.

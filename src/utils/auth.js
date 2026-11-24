@@ -504,3 +504,20 @@ export function toggleUserStatus(email) {
   const newStatus = user.status === 'active' ? 'suspended' : 'active';
   return updateUser(email, { status: newStatus });
 }
+
+/**
+ * Validates whether the active authenticated profile is the authorized Developer / Super Admin.
+ * Developer-only features (e.g. historical data purge) are restricted to this profile.
+ */
+export function isDeveloperUser(user) {
+  if (!user) return false;
+  const email = (user.email || '').toLowerCase().trim();
+  const desig = (user.designation || '').toLowerCase().trim();
+  const role = (user.role || '').toLowerCase().trim();
+  return (
+    email === 'kushal.centuryply@gmail.com' ||
+    desig.includes('developer') ||
+    (role === ROLES.ADMIN && desig.includes('super admin'))
+  );
+}
+

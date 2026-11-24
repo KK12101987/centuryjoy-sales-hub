@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { nf, f1 } from '../../utils/formatters';
-import { isAuthorizedAuditor, getAuditorScope, ROLES } from '../../utils/auth';
+import { isAuthorizedAuditor, getAuditorScope, ROLES, isDeveloperUser } from '../../utils/auth';
 import QaScorecard from './QaScorecard';
 import { 
   CheckCircle2, 
@@ -41,6 +41,8 @@ export default function QaDashboard() {
     dialerCalls, 
     updateDialerCall, 
     discardAllPendingDialerCalls, 
+    purgeAllQaAudits,
+    restoreDefaultQaAudits,
     openUploadModal,
     rmDirectory,
     currentUser
@@ -48,6 +50,7 @@ export default function QaDashboard() {
 
   const canAudit = isAuthorizedAuditor(currentUser);
   const qaScope = getAuditorScope(currentUser);
+  const isDev = isDeveloperUser(currentUser);
 
   // Scoped Audits: Self-scoped auditors see only their audits; Leads & Admins see all
   const scopedQaAudits = useMemo(() => {
@@ -73,6 +76,8 @@ export default function QaDashboard() {
 
   const [activeTab, setActiveTab] = useState('scorecard'); // 'scorecard' | 'dialer' | 'qctools' | 'history'
   const [searchHistory, setSearchHistory] = useState('');
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [purgeNotification, setPurgeNotification] = useState('');
   
   // Pending Calls Tab State
   const [dialerSubTab, setDialerSubTab] = useState('standard'); // 'standard' | 'short' | 'zero' | 'disposed'
@@ -136,6 +141,15 @@ export default function QaDashboard() {
     setSelectedAuditTarget({
       ...call,
       rm_name: matched?.rm_name || call.agent_id
+    });
+    setActiveTab('scorecard');
+  };
+
+  // Handle opening scorecard from a historical audit in History
+  const handleViewAudit = (audit) => {
+    setSelectedAuditTarget({
+      ...audit,
+      isHistorical: true
     });
     setActiveTab('scorecard');
   };
@@ -435,6 +449,10 @@ export default function QaDashboard() {
         <QaScorecard 
           auditTarget={selectedAuditTarget} 
           onClearTarget={() => setSelectedAuditTarget(null)} 
+          onBackToHistory={() => {
+            setSelectedAuditTarget(null);
+            setActiveTab('history');
+          }}
           canAudit={canAudit}
           currentUser={currentUser}
         />
@@ -1304,7 +1322,7 @@ export default function QaDashboard() {
       {/* TAB 4: AUDIT HISTORY */}
       {activeTab === 'history' && (
         <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative max-w-xs w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
@@ -1315,7 +1333,8 @@ export default function QaDashboard() {
                 className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
               />
             </div>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400 font-mono">{filteredHistory.length} Audits Logged</span>
               {qaScope === 'self' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
@@ -1327,8 +1346,52 @@ export default function QaDashboard() {
                   {currentUser?.designation?.includes('Lead') ? 'Lead Quality: All Audits' : 'Full QA Scope'}
                 </span>
               )}
+
+              {/* Developer-Only Purge & Restore Actions */}
+              {isDev && (
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+                  {scopedQaAudits.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowPurgeConfirm(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm hover:scale-102"
+                      title="Developer Only: Permanently purge all historical QA audits from database & storage"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      <span>Purge Historical Data (Dev)</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        restoreDefaultQaAudits();
+                        setPurgeNotification('Default 225 historical audits restored successfully.');
+                        setTimeout(() => setPurgeNotification(''), 4000);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                      title="Developer Only: Restore original 225 audit seed dataset"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Restore Default Audits (225)</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Purge Notification */}
+          {purgeNotification && (
+            <div className="mx-4 sm:mx-6 my-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>{purgeNotification}</span>
+              </div>
+              <button onClick={() => setPurgeNotification('')} className="text-slate-400 hover:text-white cursor-pointer">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
@@ -1340,16 +1403,25 @@ export default function QaDashboard() {
                   <th className="py-3 px-4">Score %</th>
                   <th className="py-3 px-4">Auditor</th>
                   <th className="py-3 px-4">Missed Pointers / Feedback</th>
+                  <th className="py-3 px-4 text-right">Scorecard</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredHistory.map((audit) => (
-                  <tr key={audit.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                  <tr 
+                    key={audit.id} 
+                    onClick={() => handleViewAudit(audit)}
+                    className="hover:bg-amber-500/5 dark:hover:bg-amber-500/10 cursor-pointer transition-colors group"
+                    title="Click to open full audit scorecard"
+                  >
                     <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
                       <div>{audit.audit_date}</div>
-                      <div className="text-[10px] text-slate-400">#{audit.id}</div>
+                      <div className="text-[10px] text-slate-400 group-hover:text-amber-400 flex items-center gap-1 transition-colors">
+                        <span>#{audit.id}</span>
+                        <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
+                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors">
                       {audit.rm_name}
                     </td>
                     <td className="py-3 px-4 text-slate-500">
@@ -1373,10 +1445,100 @@ export default function QaDashboard() {
                     <td className="py-3 px-4 text-slate-500 max-w-xs truncate" title={audit.pointer_missed || audit.feedback}>
                       {audit.pointer_missed || audit.feedback}
                     </td>
+                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => handleViewAudit(audit)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-500/30 transition-all cursor-pointer shadow-sm hover:scale-102"
+                        title="Open and review audit scorecard"
+                      >
+                        <span>Scorecard</span>
+                        <ExternalLink className="w-3 h-3 text-amber-500" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {/* Empty State */}
+            {filteredHistory.length === 0 && (
+              <div className="py-16 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center mx-auto text-slate-400">
+                  <CheckCircle2 className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-200">No Audits Found</div>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {scopedQaAudits.length === 0 
+                    ? "All historical audit records have been purged by Developer. You can conduct new live audits or restore default records."
+                    : "No audits matched your search criteria."}
+                </p>
+                {scopedQaAudits.length === 0 && isDev && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      restoreDefaultQaAudits();
+                      setPurgeNotification('Default 225 historical audits restored.');
+                      setTimeout(() => setPurgeNotification(''), 4000);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer mt-2"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Restore Default Audits (225)</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Developer Purge Confirmation Modal */}
+      {showPurgeConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0e1320] border border-rose-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-500">
+              <div className="p-3 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30">
+                <ShieldAlert className="w-6 h-6 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Purge Historical Audit Data</h3>
+                <p className="text-xs text-rose-500 font-mono">Developer Restricted Action</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Are you sure you want to permanently purge all <strong>{scopedQaAudits.length}</strong> historical audit records? 
+              This will clear all historical scorecards and historical audit data from localStorage and application state.
+            </p>
+
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-[11px] text-rose-700 dark:text-rose-300 space-y-1">
+              <div>• Only Developer accounts can perform or restore this action.</div>
+              <div>• You can restore default test seed records anytime if needed.</div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowPurgeConfirm(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  purgeAllQaAudits();
+                  setShowPurgeConfirm(false);
+                  setPurgeNotification('All historical audits have been permanently purged.');
+                  setTimeout(() => setPurgeNotification(''), 4000);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-900/40 cursor-pointer flex items-center gap-1.5 transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Yes, Purge All Data</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

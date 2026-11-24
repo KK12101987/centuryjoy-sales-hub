@@ -147,7 +147,7 @@ export const PARAMETERS = [
   },
 ];
 
-export default function QaScorecard({ auditTarget = null, onClearTarget = null, canAudit: propCanAudit, currentUser: propCurrentUser }) {
+export default function QaScorecard({ auditTarget = null, onClearTarget = null, onBackToHistory = null, canAudit: propCanAudit, currentUser: propCurrentUser }) {
   const { rmDirectory, addQaAudit, currentUser: contextUser } = useData();
   const currentUser = propCurrentUser || contextUser;
   const canAudit = propCanAudit !== undefined ? propCanAudit : isAuthorizedAuditor(currentUser);
@@ -164,20 +164,98 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
 
   // Keep auditor name in sync with logged-in user
   useEffect(() => {
-    if (currentUser?.name) {
+    if (currentUser?.name && !auditTarget?.isHistorical) {
       setAuditorName(currentUser.name);
     }
-  }, [currentUser]);
+  }, [currentUser, auditTarget]);
 
-  // Prepopulate if incoming auditTarget provided
+  // Prepopulate if incoming auditTarget provided (Dialer call OR Historical Audit)
   useEffect(() => {
     if (auditTarget) {
-      if (auditTarget.phone_no) setMobileNumber(auditTarget.phone_no);
-      if (auditTarget.duration) setCallDuration(auditTarget.duration);
-      if (auditTarget.agent_id || auditTarget.rm_name) setRmName(auditTarget.rm_name || auditTarget.agent_id);
-      if (auditTarget.call_date) setCallDate(auditTarget.call_date.slice(0, 10));
+      if (auditTarget.phone_no || auditTarget.mobile_number) {
+        setMobileNumber(auditTarget.phone_no || auditTarget.mobile_number);
+      } else if (auditTarget.isHistorical) {
+        setMobileNumber("N/A (Historical Call)");
+      }
+
+      if (auditTarget.duration || auditTarget.call_duration) {
+        setCallDuration(auditTarget.duration || auditTarget.call_duration);
+      } else if (auditTarget.isHistorical) {
+        setCallDuration("04:30");
+      }
+
+      if (auditTarget.agent_id || auditTarget.rm_name) {
+        setRmName(auditTarget.rm_name || auditTarget.agent_id);
+      }
+
+      if (auditTarget.team_name || auditTarget.franchise) {
+        setFranchise(auditTarget.team_name || auditTarget.franchise);
+      }
+
+      if (auditTarget.call_date) {
+        setCallDate(String(auditTarget.call_date).slice(0, 10));
+      } else if (auditTarget.audit_date) {
+        setCallDate(String(auditTarget.audit_date).slice(0, 10));
+      }
+
+      if (auditTarget.audit_date) {
+        setAuditDate(String(auditTarget.audit_date).slice(0, 10));
+      }
+
+      if (auditTarget.auditor_name) {
+        setAuditorName(auditTarget.auditor_name);
+      }
+
+      if (auditTarget.observation || auditTarget.feedback) {
+        setObservation(auditTarget.observation || auditTarget.feedback || "");
+      }
+
+      if (auditTarget.pointer_missed) {
+        setPointerMissed(auditTarget.pointer_missed);
+      }
+
+      // Populate scorecard parameters if historical audit
+      if (auditTarget.isHistorical || auditTarget.overall_score !== undefined) {
+        const pMap = auditTarget.parameters || {};
+        const initialScores = {
+          introduction: auditTarget.introduction ?? (pMap.greeting ?? 4),
+          project_registration: auditTarget.project_registration ?? (pMap.project_reg ?? 12),
+          pricing_requirement: auditTarget.pricing_requirement ?? (pMap.need_discovery ?? 8),
+          product_feedback: auditTarget.product_feedback ?? 2.5,
+          upsell: auditTarget.upsell ?? (pMap.upsell ?? 16),
+          marketing_benefit: auditTarget.marketing_benefit ?? (pMap.marketing_benefit ?? 16),
+          call_closure: auditTarget.call_closure ?? (pMap.call_closure ?? 2),
+          softskill: auditTarget.softskill ?? (pMap.softskills ?? 4.5),
+          redemption: auditTarget.redemption ?? (auditTarget.is_fatal ? 0 : 5),
+          gtm_adherence: auditTarget.gtm_adherence ?? (auditTarget.is_fatal ? 0 : 5),
+          crm_update: auditTarget.crm_update ?? (auditTarget.is_fatal ? 0 : 10),
+        };
+        setScores(initialScores);
+      }
     }
   }, [auditTarget]);
+
+  // Reset form to blank state
+  const handleResetForm = () => {
+    setMobileNumber("");
+    setCallDuration("");
+    setCallDate(new Date().toISOString().split("T")[0]);
+    setAuditDate(new Date().toISOString().split("T")[0]);
+    setFranchise("");
+    setRmName("");
+    setCallPresent("Yes");
+    setAuditorName(currentUser?.name || "Nabonita Roy");
+    setScores({});
+    setParamFeedback({});
+    setObservation("");
+    setPointerMissed("");
+    setExpandedCards({});
+    setPointerStates({});
+    setAuditType("standard");
+    setLockMessage("");
+    setMsg("");
+    if (onClearTarget) onClearTarget();
+  };
 
   // Scoring Fields
   const [scores, setScores] = useState({});
@@ -423,19 +501,45 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
   return (
     <div className="space-y-6">
       
-      {/* Active Call Recording Banner */}
+      {/* Active Call / Historical Audit Banner */}
       {auditTarget && (
-        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className={`border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+          auditTarget.isHistorical 
+            ? 'bg-amber-500/10 border-amber-500/30' 
+            : 'bg-indigo-500/10 border-indigo-500/30'
+        }`}>
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 font-bold">
-              🎧 Selected Call for Audit
+            <span className={`p-2 rounded-xl font-bold flex items-center gap-1.5 ${
+              auditTarget.isHistorical 
+                ? 'bg-amber-500/20 text-amber-400' 
+                : 'bg-indigo-500/20 text-indigo-400'
+            }`}>
+              {auditTarget.isHistorical ? '📋 Historical Audit' : '🎧 Selected Call for Audit'}
             </span>
             <div>
-              <div className="font-bold text-white">
-                Phone: {auditTarget.phone_no} • Agent: {auditTarget.rm_name || auditTarget.agent_id} ({auditTarget.duration})
+              <div className="font-bold text-white flex items-center gap-2 flex-wrap">
+                <span>{auditTarget.rm_name || auditTarget.agent_id}</span>
+                {auditTarget.overall_score !== undefined && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-[11px]">
+                      Score: {auditTarget.overall_score}%
+                    </span>
+                  </>
+                )}
+                {auditTarget.auditor_name && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-slate-300">Auditor: {auditTarget.auditor_name}</span>
+                  </>
+                )}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono truncate max-w-md">
-                Status: {auditTarget.status || 'Completed'} • Date: {auditTarget.call_date || 'Recent'}
+              <div className="text-[11px] text-slate-400 font-mono truncate max-w-lg mt-0.5">
+                {auditTarget.isHistorical ? (
+                  <span>Audit #{auditTarget.id} • Date: {auditTarget.audit_date} • Team: {auditTarget.team_name || auditTarget.franchise || 'Unity-II'}</span>
+                ) : (
+                  <span>Phone: {auditTarget.phone_no} • Duration: {auditTarget.duration} • Status: {auditTarget.status || 'Completed'}</span>
+                )}
               </div>
             </div>
           </div>
@@ -450,14 +554,23 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
                 <span>Listen to Recording (.WAV)</span>
               </a>
             )}
-            {onClearTarget && (
+            {onBackToHistory && (
               <button
-                onClick={onClearTarget}
-                className="px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 cursor-pointer"
+                type="button"
+                onClick={onBackToHistory}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold cursor-pointer transition-all flex items-center gap-1 shrink-0"
               >
-                Clear
+                <span>← Back to History</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleResetForm}
+              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 border border-slate-700/60 font-semibold cursor-pointer transition-all flex items-center gap-1 shrink-0"
+              title="Clear target and start a new blank audit"
+            >
+              <span>New Blank Audit</span>
+            </button>
           </div>
         </div>
       )}

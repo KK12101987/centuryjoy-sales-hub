@@ -402,9 +402,12 @@ export function DataProvider({ children }) {
   const [qaAudits, setQaAudits] = useState(() => {
     try {
       const saved = localStorage.getItem('century_qa_audits_v2');
-      if (saved) {
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
+          // Explicitly permit empty array when purged by developer
+          if (parsed.length === 0) return [];
+
           // Normalize legacy auditor names to the 4 authorized QA auditors
           let migrated = false;
           const mapped = parsed.map((a) => {
@@ -524,6 +527,22 @@ export function DataProvider({ children }) {
       } catch (e) {}
       return updated;
     });
+  };
+
+  const purgeAllQaAudits = () => {
+    verifyWatermarkIntegrity();
+    setQaAudits([]);
+    try {
+      localStorage.setItem('century_qa_audits_v2', JSON.stringify([]));
+    } catch (e) {}
+  };
+
+  const restoreDefaultQaAudits = () => {
+    verifyWatermarkIntegrity();
+    setQaAudits(rawQaAudits);
+    try {
+      localStorage.setItem('century_qa_audits_v2', JSON.stringify(rawQaAudits));
+    } catch (e) {}
   };
 
   // E. Dialer Calls & Audio Pipeline State
@@ -707,6 +726,8 @@ export function DataProvider({ children }) {
     qaAudits,
     addQaAudit,
     addQaAuditsBulk,
+    purgeAllQaAudits,
+    restoreDefaultQaAudits,
     dialerCalls,
     addDialerCalls,
     updateDialerCall,
