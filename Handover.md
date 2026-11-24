@@ -111,9 +111,17 @@ The application will automatically detect Vite and the serverless functions unde
 
 ---
 
-## 19. Dedicated Captain Resignation & Succession Tab, Auto-Failover & Revert Protocol (Nov 24, 2026)
+## 19. Dedicated Captain Resignation & Succession Tab, All 7 Digital Teams & Intact Pod Protocol (Nov 24, 2026)
 - **First-Class Captain Resignation & Succession Tab:** Created a dedicated, prominent tab in `UserManagement.jsx` navigation bar: **"Captain Resignation & Succession"** styled with amber accent and live failover indicators.
-- **Pod Leadership Status & Failover Health Grid:** Live cards for all 5 operational pods (Unity-II, Catlyst-II, Catlyst-I, SoarZone-II, SoarZone-I) showing active Captain, Senior Manager, supervised RM count, and real-time failover state.
+- **All 7 Digital Teams Represented:** Fully displays all 7 canonical digital teams across Century Joy:
+  1. `Unity-I` (Manager: Arijit Nath, Captain: Mousumi Chakraborty)
+  2. `Unity-II` (Manager: Arijit Nath, Captain: Arshi Afreen Jamal)
+  3. `Catlyst-I` (Manager: Surajit Laha, Captain: Pallabi Chura)
+  4. `Catlyst-II` (Manager: Surajit Laha, Captain: Nasima Banu)
+  5. `SoarZone-I` (Manager: Niladri Bhadra, Captain: Shiuli Bhattacharjee)
+  6. `SoarZone-II` (Manager: Niladri Bhadra, Captain: Ranjana Mohajan)
+  7. `Zenith Pod` (Manager: Arijit Nath, Captain: Silpa Palchina)
+- **Team Name & Members Intact Guarantee:** When a Pod Captain resigns, the team name (e.g., `Unity-II` or `Unity-I`) and all subordinate team members remain strictly 100% intact as a cohesive unit, temporarily reporting to the immediate Senior Manager (`captain_name` = Senior Manager, `team_name` preserved, pod key retained in `hierarchy.tree`).
 - **Console 1: Captain Resignation & Manager Failover:** Select any active Pod Captain, view supervised RMs in real-time, select separation reason, and execute instant failover to their Senior Manager (`Arijit Nath`, `Surajit Laha`, or `Niladri Bhadra`) with zero lost records.
 - **Console 2: Leadership Succession & Role Promotion:** Select candidate RM, choose promotion tier (Pod Captain or Senior Manager), select target pod, and assign designated team members.
 - **Accidental Resignation & Offboarding Revert Center:** 1-click restore table with instant green "Revert Resignation" button to reinstate the employee and reconnect their subordinate pod hierarchy.

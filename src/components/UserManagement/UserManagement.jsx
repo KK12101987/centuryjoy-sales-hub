@@ -122,12 +122,22 @@ export default function UserManagement() {
     'Direct Supervision (Physical)'
   ];
 
-  // Distinct Teams List
+  // Distinct Teams List (All Canonical Digital Teams + Custom Pods)
   const teamsList = useMemo(() => {
-    const list = [...new Set(rmDirectory.map((r) => (r.team_name || '').trim()).filter(Boolean))];
-    if (!list.includes('Unity-II')) list.push('Unity-II');
-    if (!list.includes('Unity-I')) list.push('Unity-I');
-    return list.sort();
+    const canonical = [
+      'Unity-I',
+      'Unity-II',
+      'Catlyst-I',
+      'Catlyst-II',
+      'SoarZone-I',
+      'SoarZone-II',
+      'Zenith Pod'
+    ];
+    const fromRms = (rmDirectory || [])
+      .map((r) => (r.team_name || '').trim())
+      .filter((t) => t && !t.toLowerCase().includes('physical'));
+    const combined = [...new Set([...canonical, ...fromRms])];
+    return combined.sort();
   }, [rmDirectory]);
 
   // Filtered users for Tab 1 User Accounts
@@ -272,6 +282,18 @@ export default function UserManagement() {
         .filter((r) => r.captain_name && r.captain_name.toLowerCase() !== r.rm_name.toLowerCase())
         .map((r) => r.captain_name.toLowerCase())
     );
+    // Include all canonical digital pod captains
+    const canonical = [
+      'arshi afreen jamal',
+      'mousumi chakraborty',
+      'nasima banu',
+      'pallabi chura',
+      'ranjana mohajan',
+      'shiuli bhattacharjee',
+      'silpa palchina'
+    ];
+    canonical.forEach((c) => captainNames.add(c));
+
     return activeRms.filter(
       (r) =>
         captainNames.has(r.rm_name.toLowerCase()) ||
@@ -303,24 +325,54 @@ export default function UserManagement() {
     return (activeRms || []).filter((r) => r.tempSupervisedByManager || r.previousCaptain);
   }, [activeRms]);
 
-  // Pods health overview
+  // Pods health overview (Guarantees that team name & members remain strictly intact even if captain resigns)
   const podsOverview = useMemo(() => {
-    const teams = ['Unity-II', 'Catlyst-II', 'Catlyst-I', 'SoarZone-II', 'SoarZone-I'];
-    return teams.map((teamName) => {
-      const teamRms = activeRms.filter((r) => (r.team_name || '').toLowerCase() === teamName.toLowerCase());
-      const captain = teamRms.find((r) => activeCaptainsList.some((c) => c.rm_name.toLowerCase() === r.rm_name.toLowerCase()));
+    return teamsList.map((teamName) => {
+      // Find all active RMs belonging to this team (MEMBERS REMAIN INTACT!)
+      const teamRms = activeRms.filter(
+        (r) => (r.team_name || '').toLowerCase() === teamName.toLowerCase()
+      );
+
+      // Find active captain for this pod
+      const activeCaptain =
+        teamRms.find((r) =>
+          activeCaptainsList.some((c) => c.rm_name.toLowerCase() === r.rm_name.toLowerCase())
+        ) ||
+        activeCaptainsList.find(
+          (c) => (c.team_name || '').toLowerCase() === teamName.toLowerCase()
+        );
+
+      // Detect if captain resigned
       const failovers = teamRms.filter((r) => r.tempSupervisedByManager);
-      const seniorManager = teamRms[0]?.manager_name || (teamName.startsWith('Unity') ? 'Arijit Nath' : teamName.startsWith('Catlyst') ? 'Surajit Laha' : 'Niladri Bhadra');
+      const resignedCaptain =
+        failovers[0]?.previousCaptain ||
+        (inactiveRms || []).find(
+          (r) => r.wasCaptain && (r.team_name || '').toLowerCase() === teamName.toLowerCase()
+        )?.rm_name;
+
+      // Executive Senior Manager
+      const seniorManager =
+        teamRms[0]?.manager_name ||
+        (teamName.startsWith('Unity') || teamName.includes('Zenith')
+          ? 'Arijit Nath'
+          : teamName.startsWith('Catlyst')
+          ? 'Surajit Laha'
+          : 'Niladri Bhadra');
+
+      const isFailover = !activeCaptain || failovers.length > 0;
+
       return {
-        teamName,
-        captainName: captain ? captain.rm_name : null,
+        teamName, // TEAM NAME REMAINS INTACT
+        captainName: activeCaptain ? activeCaptain.rm_name : null,
+        resignedCaptainName: resignedCaptain || null,
         seniorManager,
-        totalRms: teamRms.length,
+        totalRms: teamRms.length, // MEMBERS REMAIN INTACT
+        teamMembers: teamRms.map((r) => r.rm_name),
         failoverCount: failovers.length,
-        isFailover: !captain || failovers.length > 0,
+        isFailover,
       };
     });
-  }, [activeRms, activeCaptainsList]);
+  }, [teamsList, activeRms, activeCaptainsList, inactiveRms]);
 
   const handleExecuteCaptainResignation = (captainNameToResign) => {
     const targetName = captainNameToResign || resigningCaptainName;
@@ -890,38 +942,54 @@ export default function UserManagement() {
                 <Building2 className="w-4 h-4 text-amber-500" />
                 <span>Live Pod Leadership Status & Failover Health</span>
               </h3>
-              <span className="text-[11px] text-slate-400">5 Operational Pods</span>
+              <span className="text-[11px] text-slate-400">{podsOverview.length} Operational Digital Teams</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {podsOverview.map((pod) => (
                 <div
                   key={pod.teamName}
                   className={`p-3.5 rounded-xl border text-xs transition-all ${
                     pod.isFailover
-                      ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50'
+                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800/60'
                       : 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-slate-900 dark:text-white">{pod.teamName}</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">{pod.teamName}</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
+                        Digital Pod
+                      </span>
+                    </div>
                     <span
-                      className={`w-2 h-2 rounded-full ${
-                        pod.isFailover ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'
+                      className={`w-2.5 h-2.5 rounded-full ${
+                        pod.isFailover ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
                       }`}
+                      title={pod.isFailover ? 'Captain resigned - Under Senior Manager failover' : 'Active Pod'}
                     />
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
+                    Senior Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
                   </div>
-                  <div className="text-[11px] mt-1">
+                  <div className="text-[11px] mt-1.5">
                     {pod.captainName ? (
-                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                        Captain: {pod.captainName} ({pod.totalRms} RMs)
-                      </span>
+                      <div>
+                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold block">
+                          Captain: {pod.captainName}
+                        </span>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          {pod.totalRms} Active RMs in team
+                        </div>
+                      </div>
                     ) : (
-                      <span className="text-rose-600 dark:text-rose-400 font-bold">
-                        ⚠️ No Active Captain ({pod.totalRms} RMs under Manager)
-                      </span>
+                      <div className="p-2 rounded-lg bg-amber-100/70 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800">
+                        <span className="text-amber-800 dark:text-amber-300 font-bold block text-[11px]">
+                          ⚠️ Captain Resigned{pod.resignedCaptainName ? ` (${pod.resignedCaptainName})` : ''}
+                        </span>
+                        <span className="text-[10px] text-amber-700 dark:text-amber-400 block mt-0.5">
+                          Team "{pod.teamName}" & {pod.totalRms} members intact under Senior Manager {pod.seniorManager}
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
@@ -948,7 +1016,7 @@ export default function UserManagement() {
                         }}
                         className="text-[10px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 flex items-center space-x-1"
                       >
-                        <span>Promote Successor →</span>
+                        <span>Promote Successor to {pod.teamName} →</span>
                       </button>
                     )}
                   </div>
@@ -1025,11 +1093,19 @@ export default function UserManagement() {
                           </span>
                         ))}
                       </div>
-                      <div className="pt-2 border-t border-amber-200/70 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-medium text-[11px] flex items-start space-x-1.5">
-                        <ArrowRight className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                        <span>
-                          <strong>Failover Destination:</strong> All {subRms.length} agents will temporarily report directly to Senior Manager <strong>{mgrName}</strong>. Zero tickets or calls orphaned.
-                        </span>
+                      <div className="pt-2 border-t border-amber-200/70 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-medium text-[11px] space-y-1.5">
+                        <div className="flex items-start space-x-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>
+                            <strong>Team Name & Members Intact:</strong> The team name <strong>"{targetCapt?.team_name || 'Unity-II'}"</strong> and all <strong>{subRms.length} members</strong> remain 100% intact as a cohesive unit.
+                          </span>
+                        </div>
+                        <div className="flex items-start space-x-1.5">
+                          <ArrowRight className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span>
+                            <strong>Failover Destination:</strong> Team temporarily reports directly to Senior Manager <strong>{mgrName}</strong> until a replacement captain is selected. Zero tickets or calls orphaned.
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );

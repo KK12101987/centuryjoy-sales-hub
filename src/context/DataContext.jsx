@@ -673,6 +673,37 @@ export function DataProvider({ children }) {
             }
             return rm;
           });
+
+          // Ensure all Canonical Digital Pod Captains (including Mousumi Chakraborty & Silpa Palchina) are present
+          const requiredCaptains = [
+            {
+              id: 293,
+              rm_name: 'Mousumi Chakraborty',
+              team_name: 'Unity-I',
+              captain_name: 'Mousumi Chakraborty',
+              manager_name: 'Arijit Nath',
+              dialer_id: 'Mousumi_C',
+              designation: 'Pod Captain',
+              status: 'active',
+            },
+            {
+              id: 294,
+              rm_name: 'Silpa Palchina',
+              team_name: 'Zenith Pod',
+              captain_name: 'Silpa Palchina',
+              manager_name: 'Arijit Nath',
+              dialer_id: 'Silpa_P',
+              designation: 'Pod Captain',
+              status: 'active',
+            },
+          ];
+          requiredCaptains.forEach((cap) => {
+            if (!parsed.some((r) => r.rm_name.toLowerCase() === cap.rm_name.toLowerCase())) {
+              parsed.push(cap);
+              modified = true;
+            }
+          });
+
           if (modified) {
             localStorage.setItem('century_rm_directory_v2', JSON.stringify(parsed));
           }
@@ -791,6 +822,7 @@ export function DataProvider({ children }) {
         }
 
         // Auto-failover: Subordinate agents temporarily report directly to Senior Manager
+        // GOLDEN RULE: Team Name and all subordinate members remain strictly INTACT!
         if (
           isCaptain &&
           rm.status !== 'inactive' &&
@@ -799,6 +831,7 @@ export function DataProvider({ children }) {
         ) {
           return {
             ...rm,
+            team_name: rm.team_name, // Strictly preserved intact!
             captain_name: immediateManager, // Temporarily reports directly to immediate manager
             previousCaptain: rmName,
             tempSupervisedByManager: true,
@@ -819,18 +852,13 @@ export function DataProvider({ children }) {
       const tree = JSON.parse(JSON.stringify(prev.tree || {}));
 
       if (isCaptain && tree[immediateManager]) {
-        // Move pod's agents into manager's direct branch
+        // Keep the pod intact under Senior Manager: team name and members remain together
         const agentsInPod = tree[immediateManager][rmName] || affectedSubordinateNames;
+        const intactPodKey = targetRm?.team_name
+          ? `${targetRm.team_name} (Interim: ${immediateManager})`
+          : `${rmName} (Interim: ${immediateManager})`;
         delete tree[immediateManager][rmName];
-
-        if (!tree[immediateManager][immediateManager]) {
-          tree[immediateManager][immediateManager] = [];
-        }
-        agentsInPod.forEach((ag) => {
-          if (ag.toLowerCase() !== rmName.toLowerCase() && !tree[immediateManager][immediateManager].includes(ag)) {
-            tree[immediateManager][immediateManager].push(ag);
-          }
-        });
+        tree[immediateManager][intactPodKey] = agentsInPod.filter((ag) => ag.toLowerCase() !== rmName.toLowerCase());
       } else {
         // Regular RM removal from captain's pod
         for (const m in tree) {
@@ -921,7 +949,12 @@ export function DataProvider({ children }) {
           .filter((r) => (r.previousCaptain || '').toLowerCase() === rmName.toLowerCase())
           .map((r) => r.rm_name);
 
-        // Remove them from manager's direct pool
+        // Remove interim pod key and direct pool entries
+        const intactPodKey = target?.team_name
+          ? `${target.team_name} (Interim: ${m})`
+          : `${target.rm_name} (Interim: ${m})`;
+        delete tree[m][intactPodKey];
+
         if (tree[m][m]) {
           tree[m][m] = tree[m][m].filter((ag) => !subAgents.includes(ag));
         }
@@ -1018,12 +1051,16 @@ export function DataProvider({ children }) {
         if (!tree[m]) tree[m] = {};
         tree[m][candidateName] = assignedAgents.length > 0 ? assignedAgents : [candidateName];
 
-        // Clean up assigned agents from manager's direct branch or other pods
+        // Clean up assigned agents from manager's direct branch, interim keys, or other pods
         for (const cap in tree[m]) {
           if (cap !== candidateName) {
-            tree[m][cap] = (tree[m][cap] || []).filter(
-              (ag) => !assignedAgents.includes(ag) && ag !== candidateName
-            );
+            if (cap.includes('(Interim:') && cap.toLowerCase().includes((finalTeam || '').toLowerCase())) {
+              delete tree[m][cap];
+            } else {
+              tree[m][cap] = (tree[m][cap] || []).filter(
+                (ag) => !assignedAgents.includes(ag) && ag !== candidateName
+              );
+            }
           }
         }
       } else if (targetRole === 'manager') {
