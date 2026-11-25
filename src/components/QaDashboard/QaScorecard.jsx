@@ -206,8 +206,12 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         setCallDate(String(auditTarget.audit_date).slice(0, 10));
       }
 
-      if (auditTarget.audit_date) {
+      // If viewing a historical audit, preserve its original audit_date.
+      // If auditing an incoming dialer call, default to current date while allowing future/custom dates.
+      if (auditTarget.isHistorical && auditTarget.audit_date) {
         setAuditDate(String(auditTarget.audit_date).slice(0, 10));
+      } else if (!auditDate) {
+        setAuditDate(new Date().toISOString().split("T")[0]);
       }
 
       if (auditTarget.auditor_name) {
@@ -598,16 +602,6 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {auditTarget.recording_file && (
-              <a
-                href={auditTarget.recording_file}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
-              >
-                <span>Listen to Recording (.WAV)</span>
-              </a>
-            )}
             {onBackToHistory && (
               <button
                 type="button"
@@ -664,7 +658,7 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
           </div>
         )}
 
-        {/* Call & Agent Metadata Form */}
+        {/* Row 1: Organizational Hierarchy & Governance (4 Columns) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 text-xs">
           
           <div>
@@ -774,6 +768,11 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             />
           </div>
 
+        </div>
+
+        {/* Row 2: Telephony & Evaluation Timing (5 Columns) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-4 text-xs">
+
           <div>
             <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
               <span>Customer Mobile No.</span>
@@ -842,6 +841,22 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
                   ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-not-allowed"
                   : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
               }`}
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Audit Date</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
+                Editable
+              </span>
+            </label>
+            <input
+              type="date"
+              value={auditDate}
+              onChange={(e) => setAuditDate(e.target.value)}
+              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-semibold text-slate-900 dark:text-white"
+              title="Date of evaluation (defaults to today; can be set to next day or future dates)"
             />
           </div>
 

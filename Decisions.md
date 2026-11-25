@@ -250,3 +250,21 @@ eplace mode preserving tickets from other months.
      - **Customer Mobile No., Call Duration, Call Date:** Rendered as read-only locked inputs with `🔒 Locked` badges.
      - **Assigned Pod Captain & Senior Manager:** Remain read-only reflecting active leadership or failover mode.
   3. *New Blank Audit Unlocking:* Clicking "New Blank Audit" clears `auditTarget` via `onClearTarget()`, instantly reverting the form back to editable dropdowns and textboxes for manual evaluations.
+
+---
+
+### Decision 037: Audit Date Temporal Independence & Broken Media Link Removal in QA Scorecard
+* **Date:** 2026-11-25
+* **Context:** In real-world QA call auditing operations, telephonic interactions occur on a specific interaction date (`call_date`), but evaluations are frequently audited on subsequent days, the following day, or scheduled for future dates. Previously, the `Audit Date` was not displayed in the QA scorecard header metadata, and the `Call Date` field locked the evaluation date to the interaction date. Furthermore, the "Listen to Recording (.WAV)" button and table headphone icons linked to non-existent or mock dialer audio URLs that resulted in 404/broken links.
+* **Architecture & Mechanics:**
+  1. *Temporal Decoupling (`call_date` vs. `audit_date`):*
+     - `Call Date` represents the immutable telephony interaction date extracted from the dialer record (e.g., `16-11-2026`). It remains strictly locked to prevent historical misrepresentation.
+     - `Audit Date` is now an explicit, user-facing input in the second metadata row. It defaults to current date (`new Date().toISOString().split("T")[0]`) for incoming calls and new blank audits, but provides an active datepicker with an `Editable` badge so auditors can specify past, present, or future audit dates.
+     - When inspecting historical audits (`auditTarget.isHistorical === true`), the original recorded `audit_date` is faithfully retained.
+  2. *Scorecard Grid Restructuring:*
+     - Row 1 (Organizational Governance - 4 columns): `Franchise / Team` (Locked to Call), `Relationship Manager (RM)` (Locked to Call), `Assigned Pod Captain` (Active / Failover), `Senior Manager` (ReadOnly).
+     - Row 2 (Telephony & Evaluation Timing - 5 columns): `Customer Mobile No.` (Locked), `Call Duration (MM:SS)` (Locked), `Call Date` (Locked), `Audit Date` (Editable Datepicker), `Auditor Name` (Verified).
+  3. *Removal of Broken External Media Links:*
+     - Completely eliminated the `Listen to Recording (.WAV)` anchor button from the scorecard banner in `QaScorecard.jsx`.
+     - Removed the broken `🎧` link linking to `call.recording_file` from the pending calls table in `QaDashboard.jsx`.
+

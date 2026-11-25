@@ -199,3 +199,19 @@ The application will automatically detect Vite and the serverless functions unde
   - Confirmed `Customer Mobile No.`, `Call Duration`, and `Call Date` locked with `🔒 Locked` badges.
   - Confirmed clicking `New Blank Audit` immediately cleared the target and returned all fields to unlocked, editable state.
   - Verification artifacts: [standard_call_team_resolved_and_locked_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/standard_call_team_resolved_and_locked_verified.png) and [new_blank_audit_unlocked_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/new_blank_audit_unlocked_verified.png).
+
+---
+
+## 24. Audit Date Temporal Independence & Broken .WAV Link Elimination (Nov 25, 2026)
+- **Temporal Decoupling (Call Date vs. Audit Date):**
+  - Added an explicit `Audit Date` datepicker input to the QA Call Scorecard metadata form.
+  - While `Call Date` remains immutable and locked to the interaction date (e.g. `16-11-2026`), `Audit Date` defaults to the current day (`YYYY-MM-DD`) and is fully editable (`Editable` badge), supporting same-day, next-day, and future audit workflows.
+  - Historical evaluations preserve their original audit dates upon inspection.
+- **Form Layout Optimization:**
+  - Reorganized metadata form into two balanced rows:
+    - **Row 1 (4 columns):** Franchise/Team, Relationship Manager (RM), Assigned Pod Captain, Senior Manager.
+    - **Row 2 (5 columns):** Customer Mobile No., Call Duration, Call Date, Audit Date, Auditor Name.
+- **Broken Media Link Pruning:**
+  - Removed `Listen to Recording (.WAV)` button from `QaScorecard.jsx`.
+  - Removed `🎧` recording file link from `QaDashboard.jsx` pending calls table.
+

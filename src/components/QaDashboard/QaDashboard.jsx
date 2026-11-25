@@ -631,17 +631,6 @@ export default function QaDashboard() {
                           <span className="text-[11px] text-slate-500 italic">Disposed</span>
                         ) : (
                           <div className="flex items-center justify-end gap-2">
-                            {call.recording_file && (
-                              <a
-                                href={call.recording_file}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800/50"
-                                title="Listen to call recording (.WAV)"
-                              >
-                                🎧
-                              </a>
-                            )}
                             {canAudit ? (
                               <button
                                 onClick={() => handleAuditCall(call)}

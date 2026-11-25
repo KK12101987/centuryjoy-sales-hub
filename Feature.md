@@ -114,3 +114,13 @@
   2. **Immutable Call Metadata Locking:** When evaluating a selected dialer call, Franchise/Team, RM, Customer Mobile, Duration, and Call Date are rendered with `Lock` badges and locked (read-only/disabled) to prevent modification.
   3. **New Blank Audit Reset:** Form provides a "New Blank Audit" button to clear target locks and allow full manual input.
 * **Verification:** Production build passed cleanly in 31.31s. Verified live on production browser subagent `dd12511f-0cf7-47e5-bb28-15dcf71ce0d3`: selected call for `Ananya Dhara`, verified `Franchise / Team` resolved to `SoarZone-I`, verified all 5 call metadata fields locked with `Lock` badges, and confirmed `New Blank Audit` resets and unlocks all fields. Artifacts: `standard_call_team_resolved_and_locked_verified.png` and `new_blank_audit_unlocked_verified.png`.
+
+## FEATURE-011: Audit Date Flexibility & Broken Media Link Removal
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "what about audit date as the call may not get audited the same date it may be audited the next day or in future dates. And remove the button in the screenshot as the .wav link in tne dialer upload is not working ."
+* **Key Enhancements:**
+  1. **Audit Date Independence:** Added explicit `Audit Date` field to `QaScorecard.jsx`. Defaults to current date for new dialer evaluations while remaining completely editable so auditors can record audits performed on next day or future dates. Historical audit dates are preserved when viewing past audits.
+  2. **Call Date Locking Maintained:** The `Call Date` remains locked to the telephony interaction date (`16-11-2026`) with a `Locked` badge.
+  3. **Broken .WAV Link Removal:** Completely removed the `Listen to Recording (.WAV)` button from the scorecard banner and the `🎧` audio link from the pending calls table.
+* **Verification:** Production build passed cleanly in 20.82s. Verified with live browser testing and regression checks.
+
