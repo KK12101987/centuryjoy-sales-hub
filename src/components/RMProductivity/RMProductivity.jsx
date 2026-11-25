@@ -29,7 +29,9 @@ export default function RMProductivity() {
     scopeFilter, 
     rmDirectory,
     openUploadModal,
-    currentUser
+    currentUser,
+    selectedMonth,
+    selectMonth
   } = useData();
 
   const allowedUploadTabs = getAllowedUploadTabs(currentUser);
@@ -37,7 +39,21 @@ export default function RMProductivity() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedView, setSelectedView] = useState('manager'); // 'manager' | 'captain' | 'rm'
-  const [datePreset, setDatePreset] = useState('full'); // 'full' | 'oct' | 'nov' | 'last7' | 'today'
+  const [datePreset, setDatePreset] = useState(() => {
+    if (selectedMonth === '2026-10') return 'oct';
+    if (selectedMonth === '2026-11') return 'nov';
+    return 'full';
+  });
+
+  useEffect(() => {
+    if (selectedMonth === '2026-10') {
+      setDatePreset('oct');
+    } else if (selectedMonth === '2026-11') {
+      setDatePreset('nov');
+    } else if (selectedMonth === 'all') {
+      setDatePreset('full');
+    }
+  }, [selectedMonth]);
   const [openNodes, setOpenNodes] = useState(() => {
     if (currentUser?.role === 'manager' && currentUser.managerKey) {
       return new Set([currentUser.managerKey]);
@@ -93,7 +109,7 @@ export default function RMProductivity() {
 
       return true;
     });
-  }, [scopedTelephony, telephony, scopeFilter, datePreset, searchQuery]);
+  }, [scopedTelephony, telephony, scopeFilter, datePreset, searchQuery, selectedMonth]);
 
   // Aggregate Metrics
   const totalDials = useMemo(() => filteredRecords.reduce((sum, r) => sum + (r.t || 0), 0), [filteredRecords]);
@@ -286,25 +302,34 @@ export default function RMProductivity() {
           {/* Date Presets */}
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl text-xs">
             <button
-              onClick={() => setDatePreset('full')}
+              onClick={() => {
+                selectMonth('all');
+                setDatePreset('full');
+              }}
               className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                datePreset === 'full' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500'
+                datePreset === 'full' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               Full Range
             </button>
             <button
-              onClick={() => setDatePreset('oct')}
+              onClick={() => {
+                selectMonth('2026-10');
+                setDatePreset('oct');
+              }}
               className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                datePreset === 'oct' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500'
+                datePreset === 'oct' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               October Live
             </button>
             <button
-              onClick={() => setDatePreset('nov')}
+              onClick={() => {
+                selectMonth('2026-11');
+                setDatePreset('nov');
+              }}
               className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                datePreset === 'nov' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500'
+                datePreset === 'nov' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               November Live
@@ -312,7 +337,7 @@ export default function RMProductivity() {
             <button
               onClick={() => setDatePreset('today')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                datePreset === 'today' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500'
+                datePreset === 'today' ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               Latest Day

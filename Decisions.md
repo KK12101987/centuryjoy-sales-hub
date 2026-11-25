@@ -450,3 +450,37 @@ eplace mode preserving tickets from other months.
      - Pinned platform baseline and verified Rule 22 Watermark Anti-Tamper protocol.
 * **Consequences:**
   - Managers and Captains now have an isolated, deep-dive dashboard dedicated to their supervisory scope, while physical operations are fairly and accurately represented.
+
+## Decision 045: Cross-Functional Operational Month Filter Synchronization
+* **Date:** November 25, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - When selecting "November 2026 Live" from the global navbar month selector (`selectedMonth`), L2 Approvals ticket volume and financial disbursement properly dropped to 83 tickets (₹1.37 Cr), but:
+    1. Telephony metrics (dials, connects, talk time) remained stuck at all-time cumulative counts (e.g. 23,427 dials for Arshi Afreen Jamal / Unity-II Pod).
+    2. QA compliance metrics remained stuck at all-time cumulative counts (e.g. 42 audits instead of 11 audits for November).
+    3. Navbar tab badges for RM Telephony and QA & QC Tools showed all-time totals.
+    4. In-page date presets in RM Productivity operated in isolation from the global navbar month selector.
+* **Root Cause:**
+  - In `src/context/DataContext.jsx`, `selectedMonth` was previously only applied to `scopedTickets`. `scopedTelephony`, `scopedQaAudits`, and `scopedDialerCalls` were scoped by user role and hierarchy but omitted the month filter on date fields (`r.d`, `a.audit_date`/`call_date`, and `c.call_date`).
+  - `ManagerHub.jsx` and `ConsolidatedDashboard.jsx` relied on `scopedTelephony` and `scopedQaAudits`, leading to cumulative numbers persisting across month switches.
+* **Actions Taken:**
+  1. *DataContext Month Scoping:*
+     - Updated `scopedTelephony` to apply `r.d?.startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+     - Updated `scopedQaAudits` to apply `(a.audit_date || a.call_date || a.created_at || '').startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+     - Updated `scopedDialerCalls` to apply `(c.call_date || c.upload_time || '').startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+  2. *ManagerHub & ConsolidatedDashboard Reactivity:*
+     - Consumed `selectedMonth` in `ManagerHub.jsx` and memoized `baseTickets`, `baseTelephony`, and `baseQa` with dynamic `selectedMonth` filtering.
+     - Consumed `selectedMonth` in `ConsolidatedDashboard.jsx` and integrated it into `filteredTickets`, `filteredTelephony`, `filteredQa`, and `managerComparison`.
+  3. *RM Productivity Date Preset Bi-Directional Synchronization:*
+     - Consumed `selectedMonth` and `selectMonth` in `RMProductivity.jsx`.
+     - Synced `datePreset` state with `selectedMonth` (`'2026-10'` -> `'oct'`, `'2026-11'` -> `'nov'`, `'all'` -> `'full'`).
+     - Wired in-page buttons (`October Live`, `November Live`, `Full Range`) to trigger `selectMonth` so that navbar and in-page filters update in unified lockstep.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - Verified 0 unreferenced files (34/34 source files verified).
+     - Verified 0 unused named imports.
+     - Verified 0 console.log statements.
+     - Production build passed in 16.54s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+* **Consequences:**
+  - The entire application (L2 Financials, Calling Telephony, QA Audits, Divisions & Pods, and Navbar badges) now behaves as a unified, reactive multi-month platform.
+

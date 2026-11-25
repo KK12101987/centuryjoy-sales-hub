@@ -42,7 +42,8 @@ export default function ManagerHub() {
     scopedQaAudits, 
     qaAudits,
     rmDirectory,
-    hierarchy
+    hierarchy,
+    selectedMonth
   } = useData();
 
   // Role resolution
@@ -67,10 +68,30 @@ export default function ManagerHub() {
   const activeCaptainName = isCaptain ? effectiveCaptainName : (isSuperAdmin ? (selectedPodCaptain && selectedPodCaptain !== 'all' ? selectedPodCaptain : 'Arshi Afreen Jamal') : 'Arshi Afreen Jamal');
   const isPhysicalManager = activeManagerName === 'Amit Singal' || activeManagerName.toLowerCase().includes('singal');
 
-  // Master Base Datasets
-  const baseTickets = scopedTickets || tickets;
-  const baseTelephony = scopedTelephony || telephony;
-  const baseQa = scopedQaAudits || qaAudits;
+  // Master Base Datasets strictly adhering to active operational month
+  const baseTickets = useMemo(() => {
+    const list = scopedTickets || tickets;
+    if (selectedMonth && selectedMonth !== 'all') {
+      return list.filter((t) => (t.l2ApprovedDate || t.createdDate || '').startsWith(selectedMonth));
+    }
+    return list;
+  }, [scopedTickets, tickets, selectedMonth]);
+
+  const baseTelephony = useMemo(() => {
+    const list = scopedTelephony || telephony;
+    if (selectedMonth && selectedMonth !== 'all') {
+      return list.filter((r) => (r.d || '').startsWith(selectedMonth));
+    }
+    return list;
+  }, [scopedTelephony, telephony, selectedMonth]);
+
+  const baseQa = useMemo(() => {
+    const list = scopedQaAudits || qaAudits;
+    if (selectedMonth && selectedMonth !== 'all') {
+      return list.filter((a) => (a.audit_date || a.call_date || a.created_at || '').startsWith(selectedMonth));
+    }
+    return list;
+  }, [scopedQaAudits, qaAudits, selectedMonth]);
 
   // -------------------------------------------------------------
   // A. SENIOR MANAGER DIVISION COMPUTATIONS

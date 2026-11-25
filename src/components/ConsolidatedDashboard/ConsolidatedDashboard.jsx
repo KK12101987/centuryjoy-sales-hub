@@ -25,37 +25,47 @@ export default function ConsolidatedDashboard() {
     dateRange,
     setDateRange,
     hierarchy,
-    currentUser
+    currentUser,
+    selectedMonth
   } = useData();
 
-  // Filtered Datasets strictly scoped to user role & division
+  // Filtered Datasets strictly scoped to user role, division & selected month
   const filteredTickets = useMemo(() => {
-    const base = scopedTickets || tickets;
+    let base = scopedTickets || tickets;
+    if (selectedMonth && selectedMonth !== 'all') {
+      base = base.filter((t) => (t.l2ApprovedDate || t.createdDate || '').startsWith(selectedMonth));
+    }
     return base.filter((t) => {
       if (scopeFilter?.manager && scopeFilter.manager !== 'all' && t.manager !== scopeFilter.manager) return false;
       if (scopeFilter?.stream === 'digital' && t.stream !== 'Digital Pod') return false;
       if (scopeFilter?.stream === 'physical' && t.stream !== 'Physical Team') return false;
       return true;
     });
-  }, [scopedTickets, tickets, scopeFilter]);
+  }, [scopedTickets, tickets, scopeFilter, selectedMonth]);
 
   const filteredTelephony = useMemo(() => {
-    const base = scopedTelephony || telephony;
+    let base = scopedTelephony || telephony;
+    if (selectedMonth && selectedMonth !== 'all') {
+      base = base.filter((r) => (r.d || '').startsWith(selectedMonth));
+    }
     return base.filter((rec) => {
       if (scopeFilter?.manager && scopeFilter.manager !== 'all' && rec.m !== scopeFilter.manager) return false;
       if (scopeFilter?.captain && scopeFilter.captain !== 'all' && rec.c !== scopeFilter.captain) return false;
       return true;
     });
-  }, [scopedTelephony, telephony, scopeFilter]);
+  }, [scopedTelephony, telephony, scopeFilter, selectedMonth]);
 
   const filteredQa = useMemo(() => {
-    const base = scopedQaAudits || qaAudits;
+    let base = scopedQaAudits || qaAudits;
+    if (selectedMonth && selectedMonth !== 'all') {
+      base = base.filter((a) => (a.audit_date || a.call_date || a.created_at || '').startsWith(selectedMonth));
+    }
     return base.filter((a) => {
       if (scopeFilter?.manager && scopeFilter.manager !== 'all' && a.manager_name !== scopeFilter.manager) return false;
       if (scopeFilter?.captain && scopeFilter.captain !== 'all' && a.captain_name !== scopeFilter.captain) return false;
       return true;
     });
-  }, [scopedQaAudits, qaAudits, scopeFilter]);
+  }, [scopedQaAudits, qaAudits, scopeFilter, selectedMonth]);
 
   // Aggregate Metrics
   // 1. Financial (L2)
@@ -111,9 +121,15 @@ export default function ConsolidatedDashboard() {
   }, [currentUser, effectiveManagerKey]);
 
   const managerComparison = useMemo(() => {
-    const baseTickets = scopedTickets || tickets;
-    const baseTele = scopedTelephony || telephony;
-    const baseQa = scopedQaAudits || qaAudits;
+    let baseTickets = scopedTickets || tickets;
+    let baseTele = scopedTelephony || telephony;
+    let baseQa = scopedQaAudits || qaAudits;
+
+    if (selectedMonth && selectedMonth !== 'all') {
+      baseTickets = baseTickets.filter((t) => (t.l2ApprovedDate || t.createdDate || '').startsWith(selectedMonth));
+      baseTele = baseTele.filter((r) => (r.d || '').startsWith(selectedMonth));
+      baseQa = baseQa.filter((a) => (a.audit_date || a.call_date || a.created_at || '').startsWith(selectedMonth));
+    }
 
     return managers.map((mgr) => {
       const isPhysical = mgr === 'Amit Singal' || (typeof mgr === 'string' && mgr.toLowerCase().includes('singal'));
@@ -155,7 +171,7 @@ export default function ConsolidatedDashboard() {
         statusColor,
       };
     });
-  }, [managers, scopedTickets, tickets, scopedTelephony, telephony, scopedQaAudits, qaAudits]);
+  }, [managers, scopedTickets, tickets, scopedTelephony, telephony, scopedQaAudits, qaAudits, selectedMonth]);
 
   return (
     <div className="space-y-6">

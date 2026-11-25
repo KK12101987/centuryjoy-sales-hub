@@ -350,3 +350,25 @@ The application will automatically detect Vite and the serverless functions unde
   - 0 unused named imports, 0 console.log statements.
   - Production build compiled in 25.28s with 0 errors.
   - Rule 22 Watermark Anti-Tamper protocol active and intact.
+
+
+---
+
+## 32. Operational Month Filter Synchronization Across Telephony, QA & Divisions (Nov 25, 2026)
+- **Problem Resolved:**
+  - When switching between October 2026, November 2026, and All Months in the top navbar, L2 ticket counts updated, but telephony dials (23,427 for Arshi), talk time (466:23:56), and QA audits (42) remained stuck at cumulative totals.
+- **Cross-Functional Scoping in `DataContext.jsx`:**
+  - `scopedTelephony` now filters on `r.d.startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+  - `scopedQaAudits` now filters on `(a.audit_date || a.call_date || a.created_at).startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+  - `scopedDialerCalls` now filters on `(c.call_date || c.upload_time).startsWith(selectedMonth)` when `selectedMonth !== 'all'`.
+- **Component Synchronization:**
+  - `ManagerHub.jsx`: `baseTickets`, `baseTelephony`, and `baseQa` dynamically filter by `selectedMonth`, updating pod dials (November: 7,096; October: 16,331), talk time (November: 142:10:36; October: 324:13:20), and QA audits (November: 11; October: 31) instantly.
+  - `ConsolidatedDashboard.jsx`: `filteredTickets`, `filteredTelephony`, `filteredQa`, and `managerComparison` react to `selectedMonth`.
+  - `RMProductivity.jsx`: Synchronized in-page presets with `selectedMonth` and wired buttons to `selectMonth`.
+  - `Navbar.jsx`: Tab badges for RM Telephony and QA & QC Tools react dynamically to selected month.
+- **Rule 21b Anti-Slop Audit Verified:**
+  - 34/34 source files mapped and referenced.
+  - 0 unused imports, 0 console.log statements, 0 orphaned components.
+  - Vite build passed in 16.54s.
+  - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+

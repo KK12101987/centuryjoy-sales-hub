@@ -843,101 +843,108 @@ export function DataProvider({ children }) {
     return rawRMs;
   });
 
-  // Telephony records scoped strictly to the logged-in user's supervisory scope
+  // Telephony records scoped strictly to the logged-in user's supervisory scope AND selected month
   const scopedTelephony = useMemo(() => {
-    if (!currentUser) return telephony;
-    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
-      return telephony;
+    if (!telephony) return [];
+    let base = telephony;
+    if (currentUser) {
+      if (currentUser.role !== ROLES.ADMIN && currentUser.role !== 'admin' && currentUser.managerKey !== 'all') {
+        const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+        if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+          base = base.filter((r) => r.m === effectiveMgr);
+        } else if (currentUser.role === ROLES.CAPTAIN) {
+          const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
+          base = base.filter((r) => {
+            const cMatch = effectiveCap && r.c?.toLowerCase() === effectiveCap.toLowerCase();
+            const nMatch = currentUser.name && r.c?.toLowerCase() === currentUser.name.toLowerCase();
+            const tMatch = currentUser.teamName && r.c?.toLowerCase().includes(currentUser.teamName.toLowerCase());
+            return cMatch || nMatch || tMatch;
+          });
+        }
+      }
     }
-    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
-    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
-      return telephony.filter((r) => r.m === effectiveMgr);
+    if (selectedMonth && selectedMonth !== 'all') {
+      return base.filter((r) => (r.d || '').startsWith(selectedMonth));
     }
-    if (currentUser.role === ROLES.CAPTAIN) {
-      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
-      return telephony.filter((r) => {
-        const cMatch = effectiveCap && r.c?.toLowerCase() === effectiveCap.toLowerCase();
-        const nMatch = currentUser.name && r.c?.toLowerCase() === currentUser.name.toLowerCase();
-        const tMatch = currentUser.teamName && r.c?.toLowerCase().includes(currentUser.teamName.toLowerCase());
-        return cMatch || nMatch || tMatch;
-      });
-    }
-    return telephony;
-  }, [telephony, currentUser]);
+    return base;
+  }, [telephony, currentUser, selectedMonth]);
 
-  // QA audits scoped strictly to the logged-in user profile
+  // QA audits scoped strictly to the logged-in user profile AND selected month
   const scopedQaAudits = useMemo(() => {
-    if (!currentUser) return qaAudits;
-    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
-      return qaAudits;
+    if (!qaAudits) return [];
+    let base = qaAudits;
+    if (currentUser) {
+      if (currentUser.role !== ROLES.ADMIN && currentUser.role !== 'admin' && currentUser.managerKey !== 'all') {
+        const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+        if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+          base = base.filter((a) => a.manager_name === effectiveMgr);
+        } else if (currentUser.role === ROLES.CAPTAIN) {
+          const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
+          base = base.filter((a) => {
+            const cMatch = effectiveCap && a.captain_name?.toLowerCase() === effectiveCap.toLowerCase();
+            const nMatch = currentUser.name && a.captain_name?.toLowerCase() === currentUser.name.toLowerCase();
+            const tMatch = currentUser.teamName && a.team_name?.toLowerCase() === currentUser.teamName.toLowerCase();
+            return cMatch || nMatch || tMatch;
+          });
+        } else if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope === 'self') {
+          const uName = (currentUser.name || '').toLowerCase().trim();
+          const uEmail = (currentUser.email || '').toLowerCase().trim();
+          base = base.filter((a) => {
+            const aud = (a.auditor_name || '').toLowerCase().trim();
+            return aud === uName || aud === uEmail;
+          });
+        }
+      }
     }
-    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
-    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
-      return (qaAudits || []).filter((a) => a.manager_name === effectiveMgr);
+    if (selectedMonth && selectedMonth !== 'all') {
+      return base.filter((a) => (a.audit_date || a.call_date || a.created_at || '').startsWith(selectedMonth));
     }
-    if (currentUser.role === ROLES.CAPTAIN) {
-      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
-      return (qaAudits || []).filter((a) => {
-        const cMatch = effectiveCap && a.captain_name?.toLowerCase() === effectiveCap.toLowerCase();
-        const nMatch = currentUser.name && a.captain_name?.toLowerCase() === currentUser.name.toLowerCase();
-        const tMatch = currentUser.teamName && a.team_name?.toLowerCase() === currentUser.teamName.toLowerCase();
-        return cMatch || nMatch || tMatch;
-      });
-    }
-    if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope === 'self') {
-      const uName = (currentUser.name || '').toLowerCase().trim();
-      const uEmail = (currentUser.email || '').toLowerCase().trim();
-      return (qaAudits || []).filter((a) => {
-        const aud = (a.auditor_name || '').toLowerCase().trim();
-        return aud === uName || aud === uEmail;
-      });
-    }
-    return qaAudits;
-  }, [qaAudits, currentUser]);
+    return base;
+  }, [qaAudits, currentUser, selectedMonth]);
 
-  // Incoming dialer call logs scoped to the user's supervised RMs
+  // Incoming dialer call logs scoped to the user's supervised RMs AND selected month
   const scopedDialerCalls = useMemo(() => {
-    if (!currentUser) return dialerCalls;
-    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
-      return dialerCalls;
+    let base = dialerCalls || [];
+    if (currentUser) {
+      if (currentUser.role !== ROLES.ADMIN && currentUser.role !== 'admin' && currentUser.managerKey !== 'all') {
+        const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+        if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+          const supervisedRms = new Set(
+            (rmDirectory || [])
+              .filter((rm) => rm.manager_name === effectiveMgr)
+              .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
+              .filter(Boolean)
+          );
+          base = base.filter((c) => {
+            const agId = (c.agent_id || '').toLowerCase();
+            const rmN = (c.rm_name || '').toLowerCase();
+            return supervisedRms.has(agId) || supervisedRms.has(rmN);
+          });
+        } else if (currentUser.role === ROLES.CAPTAIN) {
+          const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
+          const supervisedRms = new Set(
+            (rmDirectory || [])
+              .filter((rm) =>
+                (effectiveCap && rm.captain_name?.toLowerCase() === effectiveCap.toLowerCase()) ||
+                (currentUser.name && rm.captain_name?.toLowerCase() === currentUser.name.toLowerCase()) ||
+                (currentUser.teamName && rm.team_name?.toLowerCase() === currentUser.teamName.toLowerCase())
+              )
+              .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
+              .filter(Boolean)
+          );
+          base = base.filter((c) => {
+            const agId = (c.agent_id || '').toLowerCase();
+            const rmN = (c.rm_name || '').toLowerCase();
+            return supervisedRms.has(agId) || supervisedRms.has(rmN);
+          });
+        }
+      }
     }
-    if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope !== 'self') {
-      return dialerCalls;
+    if (selectedMonth && selectedMonth !== 'all') {
+      return base.filter((c) => (c.call_date || c.upload_time || '').startsWith(selectedMonth));
     }
-    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
-    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
-      const supervisedRms = new Set(
-        (rmDirectory || [])
-          .filter((rm) => rm.manager_name === effectiveMgr)
-          .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
-          .filter(Boolean)
-      );
-      return (dialerCalls || []).filter((c) => {
-        const agId = (c.agent_id || '').toLowerCase();
-        const rmN = (c.rm_name || '').toLowerCase();
-        return supervisedRms.has(agId) || supervisedRms.has(rmN);
-      });
-    }
-    if (currentUser.role === ROLES.CAPTAIN) {
-      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
-      const supervisedRms = new Set(
-        (rmDirectory || [])
-          .filter((rm) =>
-            (effectiveCap && rm.captain_name?.toLowerCase() === effectiveCap.toLowerCase()) ||
-            (currentUser.name && rm.captain_name?.toLowerCase() === currentUser.name.toLowerCase()) ||
-            (currentUser.teamName && rm.team_name?.toLowerCase() === currentUser.teamName.toLowerCase())
-          )
-          .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
-          .filter(Boolean)
-      );
-      return (dialerCalls || []).filter((c) => {
-        const agId = (c.agent_id || '').toLowerCase();
-        const rmN = (c.rm_name || '').toLowerCase();
-        return supervisedRms.has(agId) || supervisedRms.has(rmN);
-      });
-    }
-    return dialerCalls;
-  }, [dialerCalls, currentUser, rmDirectory]);
+    return base;
+  }, [dialerCalls, currentUser, rmDirectory, selectedMonth]);
 
   const updateRmMapping = (rmName, newCaptain, newManager, newProcess) => {
     verifyWatermarkIntegrity();
