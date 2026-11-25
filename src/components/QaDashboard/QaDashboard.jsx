@@ -1,6 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
-import { isAuthorizedAuditor, getAuditorScope, ROLES, isDeveloperUser } from '../../utils/auth';
+import { 
+  isAuthorizedAuditor, 
+  getAuditorScope, 
+  ROLES, 
+  isDeveloperUser,
+  canConductCallAudits,
+  getAllowedUploadTabs
+} from '../../utils/auth';
 import QaScorecard from './QaScorecard';
 import { 
   CheckCircle2, 
@@ -47,7 +54,9 @@ export default function QaDashboard() {
     currentUser
   } = useData();
 
-  const canAudit = isAuthorizedAuditor(currentUser);
+  const canAudit = canConductCallAudits(currentUser);
+  const allowedUploadTabs = getAllowedUploadTabs(currentUser);
+  const canUploadQA = allowedUploadTabs.includes('qa') || allowedUploadTabs.includes('dialer');
   const qaScope = getAuditorScope(currentUser);
   const isDev = Boolean(
     currentUser && (
@@ -61,12 +70,21 @@ export default function QaDashboard() {
     )
   );
 
-  // Scoped Audits: Self-scoped auditors see only their audits; Leads & Admins see all
+  // Scoped Audits: Scoped strictly based on supervisory hierarchy & auditor assignments
   const scopedQaAudits = useMemo(() => {
     if (!currentUser) return qaAudits;
     if (currentUser.role === ROLES.ADMIN || qaScope === 'all') {
       return qaAudits;
     }
+    // Senior Manager scope: strictly their supervised division
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey && currentUser.managerKey !== 'all') {
+      return (qaAudits || []).filter((a) => a.manager_name === currentUser.managerKey);
+    }
+    // Pod Captain scope: strictly their assigned pod team
+    if (currentUser.role === ROLES.CAPTAIN && currentUser.captainKey) {
+      return (qaAudits || []).filter((a) => a.captain_name === currentUser.captainKey);
+    }
+    // Quality Auditor scope: self-scoped or matching
     if (qaScope === 'self' || currentUser.role === ROLES.AUDITOR) {
       const uName = (currentUser.name || '').toLowerCase().trim();
       const uEmail = (currentUser.email || '').toLowerCase().trim();
@@ -83,7 +101,8 @@ export default function QaDashboard() {
     return qaAudits;
   }, [qaAudits, currentUser, qaScope]);
 
-  const [activeTab, setActiveTab] = useState('scorecard'); // 'scorecard' | 'dialer' | 'qctools' | 'history'
+  // Senior Managers and Pod Captains start on 7 QC Tools / History in read-only review mode
+  const [activeTab, setActiveTab] = useState(() => (canAudit ? 'scorecard' : 'qctools')); // 'scorecard' | 'dialer' | 'qctools' | 'history'
   const [searchHistory, setSearchHistory] = useState('');
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [purgeNotification, setPurgeNotification] = useState('');
@@ -404,14 +423,16 @@ export default function QaDashboard() {
         {/* Tab Controls & Upload Button */}
         <div className="flex items-center gap-2.5 shrink-0 flex-nowrap overflow-x-auto">
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
-            <button
-              onClick={() => setActiveTab('scorecard')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeTab === 'scorecard' ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-300 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              Audit Scorecard
-            </button>
+            {canAudit && (
+              <button
+                onClick={() => setActiveTab('scorecard')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'scorecard' ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-300 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                Audit Scorecard
+              </button>
+            )}
 
             <button
               onClick={() => setActiveTab('dialer')}
@@ -445,15 +466,17 @@ export default function QaDashboard() {
             </button>
           </div>
 
-          {/* Direct Upload QA / Dialer Trigger */}
-          <button
-            onClick={() => openUploadModal('qa')}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:brightness-110 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-            title="Upload QA historical spreadsheets or dialer recording dumps"
-          >
-            <UploadCloud className="w-3.5 h-3.5 shrink-0" />
-            <span>Upload QA / Dialer</span>
-          </button>
+          {/* Direct Upload QA / Dialer Trigger (Restricted to Authorized QA Uploaders) */}
+          {canUploadQA && (
+            <button
+              onClick={() => openUploadModal('qa')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:brightness-110 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
+              title="Upload QA historical spreadsheets or dialer recording dumps"
+            >
+              <UploadCloud className="w-3.5 h-3.5 shrink-0" />
+              <span>Upload QA / Dialer</span>
+            </button>
+          )}
 
           {/* Developer Purge Action in QA Header */}
           {isDev && activeTab === 'history' && scopedQaAudits.length > 0 && (

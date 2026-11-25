@@ -302,5 +302,45 @@ eplace mode preserving tickets from other months.
      - Removed 16 unused icon and formatter imports across 11 source files (`LoginPage.jsx`, `ConsolidatedDashboard.jsx`, `AnalyticsCharts.jsx`, `AuditPodsSection.jsx`, `DigitalPodsSection.jsx`, `ManagerBreakdown.jsx`, `PhysicalTeamsSection.jsx`, `QaDashboard.jsx`, `QaScorecard.jsx`, `RMProductivity.jsx`, `DataContext.jsx`).
      - Verified zero active `console.log` statements in production source files.
 
+---
+
+### Decision 040: Granular Supervisory Scope Architecture & Role-Based Upload Portal Segregation
+* **Date:** 2026-11-25
+* **Context:** The operational leadership required fine-grained segregation of application modules and upload capabilities based on institutional supervisory scope:
+  1. *Senior Managers:* Access to their division's L2 approvals, RM telephony, and QA audit history in read-only review mode, but strictly barred from conducting QA evaluations (no scorecard) and barred from all data upload functions.
+  2. *Pod Captains:* Same as Senior Managers, but scoped strictly to their pod/team level in read-only review mode without QA scoring or upload privileges.
+  3. *Quality Auditors:* Restricted strictly to QA & 7 QC Analytics tools (Consolidated, L2, and Telephony modules hidden). Within this role, only designated auditors (Arindam Mitra and Nabonita Roy, or users explicitly granted `canUploadQA`) are authorized to upload dialer call recording logs, RM telephony performance, and historical QA audits (L2 upload hidden). Non-designated auditors operate in evaluation-only mode with zero upload rights.
+  4. *Tanmoy Kar:* Granted dedicated access to L2 Financial Reconciliation and Consolidated dashboards, with exclusive rights to upload L2 Approval financial spreadsheets (dialer, telephony, and QA upload tabs hidden).
+  5. *Super Admin / Developer (Kushal Kar):* Retains unrestricted enterprise access across all 5 operational suites and all 4 upload ingestion pipelines.
+  6. *User Governance Console:* Administrators must be able to dynamically configure these supervisory scopes, division bindings, and upload permissions when provisioning new managers, captains, and backend personnel.
+* **Architecture & Mechanics:**
+  1. *Permission Evaluation Core (`src/utils/auth.js`):*
+     - `getPermittedModules(user)`: Dynamically computes accessible modules (`'consolidated'`, `'l2'`, `'productivity'`, `'qa'`, `'users'`) per authenticated profile.
+     - `getAllowedUploadTabs(user)`: Returns granular subset of allowed ingestion tabs (`'l2'`, `'telephony'`, `'qa'`, `'dialer'`).
+     - `canConductCallAudits(user)`: Returns boolean confirming whether the profile is authorized to perform call quality assessments.
+  2. *Navigation Ribbon & Auto-Redirect (`Navbar.jsx`):*
+     - Desktop and mobile navigation bars filter modules strictly against `getPermittedModules(currentUser)`.
+     - An active session listener auto-redirects users if their active module is restricted under their supervisory scope.
+     - The top "Upload Data" button is conditionally rendered only if `getAllowedUploadTabs(currentUser).length > 0`.
+  3. *Universal Ingestion Center Gating (`UploadCenterModal.jsx`):*
+     - The modal evaluates `getAllowedUploadTabs(currentUser)`. Inaccessible tabs (e.g., L2 for QA auditors, or QA/Dialer for Tanmoy Kar) are completely hidden from the tab bar.
+     - Default tab selection automatically synchronizes to the first permitted tab.
+     - Unauthorized users attempting to trigger upload receive an explicit "Upload Ingestion Restricted" security notice.
+  4. *Read-Only QA Review Mode (`QaDashboard.jsx`):*
+     - For Senior Managers and Pod Captains (`!canConductCallAudits`), the "Audit Scorecard" tab is hidden, pending calls display locked `🔒 Auditor Only` badges, and the dashboard defaults to 7 QC Tools or History in read-only review mode.
+     - Scoped audits filter strictly to division (`managerKey`) for Senior Managers and pod (`captainKey`) for Pod Captains.
+     - The "Upload QA / Dialer" button is hidden for users without QA upload authorization.
+  5. *User Governance Console Enhancements (`UserManagement.jsx`):*
+     - Create and Edit Account modal dynamically adapts to the selected role:
+       * *Manager:* Senior Manager division binding selector and supervisory guidance.
+       * *Captain:* Assigned pod/team selector, reporting manager dropdown, and captain key binding.
+       * *Auditor:* QA Visibility Scope dropdown (`all` vs `self`) and checkbox to grant Ingestion/Upload rights (`canUploadQA`).
+       * *General / Backend:* Checkbox to grant L2 Financial Approvals upload rights (`canUploadL2`).
+     - User accounts table displays distinct badges for Supervisory Scope (`Division: [Key]`, `Pod: [Team]`, `QA Scope: [All/Self]`) and Ingestion Rights (`Full Ingestion`, `Dialer, Telephony & QA`, `L2 Financials Only`, `View-Only`).
+  6. *Rule 22 Anti-Tamper & Zero Database Distortion:*
+     - All DRM watermark checks (`#antigravity-watermark-kushalkar`) remain actively coupled to critical execution paths.
+     - Historical records, disbursements, and audits remain 100% permanently intact.
+
+
 
 

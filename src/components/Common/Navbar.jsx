@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
-import { ROLE_DEFINITIONS, ROLES } from '../../utils/auth';
+import { ROLE_DEFINITIONS, ROLES, getPermittedModules, getAllowedUploadTabs } from '../../utils/auth';
 import { 
   LayoutDashboard, 
   CreditCard, 
@@ -55,8 +55,17 @@ export default function Navbar() {
 
   const isDeveloperOrAdmin = currentUser.role === ROLES.ADMIN;
   const isManager = currentUser.role === ROLES.MANAGER;
-  const canUpload = isDeveloperOrAdmin || isManager || (currentUser.name && currentUser.name.toLowerCase().includes('kushal'));
+  const permittedModules = getPermittedModules(currentUser);
+  const allowedUploadTabs = getAllowedUploadTabs(currentUser);
+  const canUpload = allowedUploadTabs.length > 0;
   const roleConfig = ROLE_DEFINITIONS[currentUser.role] || ROLE_DEFINITIONS[ROLES.VIEWER];
+
+  // Auto-redirect if current active module is restricted under the user's supervisory scope
+  useEffect(() => {
+    if (permittedModules.length > 0 && !permittedModules.includes(activeModule)) {
+      switchModule(permittedModules[0]);
+    }
+  }, [permittedModules, activeModule, switchModule]);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
@@ -171,68 +180,76 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center space-x-1 bg-slate-100 dark:bg-slate-900/90 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shrink-0">
             
             {/* 1. Consolidated Executive Dashboard */}
-            <button
-              onClick={() => switchModule('consolidated')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                activeModule === 'consolidated'
-                  ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
-              <span>Consolidated</span>
-            </button>
+            {permittedModules.includes('consolidated') && (
+              <button
+                onClick={() => switchModule('consolidated')}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  activeModule === 'consolidated'
+                    ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
+                <span>Consolidated</span>
+              </button>
+            )}
 
             {/* 2. L2 Financial Reconciliation */}
-            <button
-              onClick={() => switchModule('l2')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                activeModule === 'l2'
-                  ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              <CreditCard className="w-3.5 h-3.5 shrink-0" />
-              <span>L2 Approvals</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                {tickets.length}
-              </span>
-            </button>
+            {permittedModules.includes('l2') && (
+              <button
+                onClick={() => switchModule('l2')}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  activeModule === 'l2'
+                    ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                <span>L2 Approvals</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
+                  {tickets.length}
+                </span>
+              </button>
+            )}
 
             {/* 3. RM Calling Productivity */}
-            <button
-              onClick={() => switchModule('productivity')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                activeModule === 'productivity'
-                  ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              <PhoneCall className="w-3.5 h-3.5 shrink-0" />
-              <span>RM Telephony</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                {telephony.length}
-              </span>
-            </button>
+            {permittedModules.includes('productivity') && (
+              <button
+                onClick={() => switchModule('productivity')}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  activeModule === 'productivity'
+                    ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <PhoneCall className="w-3.5 h-3.5 shrink-0" />
+                <span>RM Telephony</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
+                  {telephony.length}
+                </span>
+              </button>
+            )}
 
             {/* 4. QA Auditing & QC Tools */}
-            <button
-              onClick={() => switchModule('qa')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                activeModule === 'qa'
-                  ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>QA & QC Tools</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                {qaAudits.length}
-              </span>
-            </button>
+            {permittedModules.includes('qa') && (
+              <button
+                onClick={() => switchModule('qa')}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  activeModule === 'qa'
+                    ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span>QA & QC Tools</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
+                  {qaAudits.length}
+                </span>
+              </button>
+            )}
 
-            {/* 5. User & Scope Management (Admin & Managers only) */}
-            {(isDeveloperOrAdmin || isManager) && (
+            {/* 5. User & Scope Management (Admin only) */}
+            {permittedModules.includes('users') && (
               <button
                 onClick={() => switchModule('users')}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
@@ -253,7 +270,17 @@ export default function Navbar() {
             {/* Upload Data Button */}
             {canUpload && (
               <button
-                onClick={() => openUploadModal(activeModule === 'productivity' ? 'telephony' : activeModule === 'qa' ? 'qa' : 'l2')}
+                onClick={() => {
+                  let defaultTab = 'l2';
+                  if (activeModule === 'productivity' && allowedUploadTabs.includes('telephony')) {
+                    defaultTab = 'telephony';
+                  } else if (activeModule === 'qa' && (allowedUploadTabs.includes('qa') || allowedUploadTabs.includes('dialer'))) {
+                    defaultTab = allowedUploadTabs.includes('dialer') ? 'dialer' : 'qa';
+                  } else if (!allowedUploadTabs.includes(defaultTab)) {
+                    defaultTab = allowedUploadTabs[0];
+                  }
+                  openUploadModal(defaultTab);
+                }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xs transition-all cursor-pointer whitespace-nowrap shrink-0"
                 title="Open Universal Data Ingestion Center"
               >
@@ -315,39 +342,47 @@ export default function Navbar() {
 
         {/* Mobile Navigation Bar */}
         <div className="md:hidden flex items-center justify-around py-2 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto space-x-1">
-          <button
-            onClick={() => switchModule('consolidated')}
-            className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-              activeModule === 'consolidated' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            Consolidated
-          </button>
-          <button
-            onClick={() => switchModule('l2')}
-            className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-              activeModule === 'l2' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            L2
-          </button>
-          <button
-            onClick={() => switchModule('productivity')}
-            className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-              activeModule === 'productivity' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            Telephony
-          </button>
-          <button
-            onClick={() => switchModule('qa')}
-            className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-              activeModule === 'qa' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            QA
-          </button>
-          {(isDeveloperOrAdmin || isManager) && (
+          {permittedModules.includes('consolidated') && (
+            <button
+              onClick={() => switchModule('consolidated')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
+                activeModule === 'consolidated' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              Consolidated
+            </button>
+          )}
+          {permittedModules.includes('l2') && (
+            <button
+              onClick={() => switchModule('l2')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
+                activeModule === 'l2' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              L2
+            </button>
+          )}
+          {permittedModules.includes('productivity') && (
+            <button
+              onClick={() => switchModule('productivity')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
+                activeModule === 'productivity' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              Telephony
+            </button>
+          )}
+          {permittedModules.includes('qa') && (
+            <button
+              onClick={() => switchModule('qa')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
+                activeModule === 'qa' ? 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300' : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              QA
+            </button>
+          )}
+          {permittedModules.includes('users') && (
             <button
               onClick={() => switchModule('users')}
               className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${

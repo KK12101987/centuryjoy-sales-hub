@@ -7,7 +7,10 @@ import {
   deleteUser, 
   toggleUserStatus, 
   ROLE_DEFINITIONS, 
-  ROLES 
+  ROLES,
+  getAllowedUploadTabs,
+  canConductCallAudits,
+  getPermittedModules
 } from '../../utils/auth';
 import { 
   Users, 
@@ -138,6 +141,10 @@ export default function UserManagement() {
     role: ROLES.VIEWER,
     managerKey: 'all',
     captainKey: '',
+    teamName: '',
+    qaScope: 'self',
+    canUploadQA: false,
+    canUploadL2: false,
     designation: '',
     initialPassword: 'Century@2026',
     isPhysicalOnly: false,
@@ -623,6 +630,10 @@ export default function UserManagement() {
       role: ROLES.VIEWER,
       managerKey: 'all',
       captainKey: '',
+      teamName: '',
+      qaScope: 'self',
+      canUploadQA: false,
+      canUploadL2: false,
       designation: '',
       initialPassword: 'Century@2026',
       isPhysicalOnly: false,
@@ -633,12 +644,20 @@ export default function UserManagement() {
 
   const handleOpenEdit = (user) => {
     setSelectedUser(user);
+    const uEmail = (user.email || '').toLowerCase();
+    const isDesignatedQa = uEmail === 'arindam.centuryply@gmail.com' || uEmail === 'nabonita.roy@centuryply.com' || Boolean(user.canUploadQA);
+    const isDesignatedL2 = uEmail.includes('tanmoy') || Boolean(user.canUploadL2);
+
     setFormData({
       name: user.name || '',
       email: user.email || '',
       role: user.role || ROLES.VIEWER,
       managerKey: user.managerKey || 'all',
       captainKey: user.captainKey || '',
+      teamName: user.teamName || '',
+      qaScope: user.qaScope || (user.role === ROLES.AUDITOR ? 'self' : 'all'),
+      canUploadQA: isDesignatedQa,
+      canUploadL2: isDesignatedL2,
       designation: user.designation || '',
       initialPassword: user.initialPassword || '',
       isPhysicalOnly: Boolean(user.isPhysicalOnly),
@@ -847,9 +866,10 @@ export default function UserManagement() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
                   <th className="py-3 px-4">User</th>
-                  <th className="py-3 px-4">Role & Designation</th>
+                  <th className="py-3 px-4">Role &amp; Designation</th>
                   <th className="py-3 px-4">Supervisory Scope</th>
-                  <th className="py-3 px-4">Credentials & PIN</th>
+                  <th className="py-3 px-4">Upload &amp; Ingestion Rights</th>
+                  <th className="py-3 px-4">Credentials &amp; PIN</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -857,6 +877,9 @@ export default function UserManagement() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredUsers.map((user) => {
                   const roleDef = ROLE_DEFINITIONS[user.role] || ROLE_DEFINITIONS[ROLES.VIEWER];
+                  const userUploadTabs = getAllowedUploadTabs(user);
+                  const isDevUser = user.email === 'kushal.centuryply@gmail.com' || (user.role === ROLES.ADMIN && !user.email?.includes('tanmoy'));
+
                   return (
                     <tr key={user.email} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3.5 px-4">
@@ -873,10 +896,48 @@ export default function UserManagement() {
                         <div className="text-[11px] text-slate-500 mt-0.5">{user.designation}</div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
-                        {user.managerKey === 'all' ? (
+                        {user.role === ROLES.ADMIN ? (
                           <span className="font-semibold text-purple-600 dark:text-purple-400">All Enterprise Divisions</span>
+                        ) : user.role === ROLES.MANAGER ? (
+                          <div>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
+                              Division: {user.managerKey}
+                            </span>
+                          </div>
+                        ) : user.role === ROLES.CAPTAIN ? (
+                          <div>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+                              Pod: {user.teamName || user.captainKey}
+                            </span>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Mgr: {user.managerKey}</div>
+                          </div>
+                        ) : user.role === ROLES.AUDITOR ? (
+                          <div>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
+                              QA Scope: {user.qaScope === 'all' ? 'Lead / Global' : 'Self-Scoped'}
+                            </span>
+                          </div>
                         ) : (
-                          <span>{user.managerKey} {user.captainKey ? `› ${user.captainKey}` : ''}</span>
+                          <span>{user.managerKey === 'all' ? 'Enterprise' : user.managerKey}</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {isDevUser ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 inline-flex items-center gap-1">
+                            <span>✓ Full Ingestion (4 Sources)</span>
+                          </span>
+                        ) : userUploadTabs.includes('dialer') ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 inline-flex items-center gap-1">
+                            <span>✓ Dialer, Telephony &amp; QA</span>
+                          </span>
+                        ) : userUploadTabs.includes('l2') ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 inline-flex items-center gap-1">
+                            <span>✓ L2 Financials Only</span>
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            View-Only (No Uploads)
+                          </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
@@ -2157,7 +2218,16 @@ export default function UserManagement() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Role Assignment</label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value }))}
+                  onChange={(e) => {
+                    const newRole = e.target.value;
+                    setFormData((prev) => ({ 
+                      ...prev, 
+                      role: newRole,
+                      managerKey: newRole === ROLES.MANAGER ? (prev.name || managersList[0]) : prev.managerKey,
+                      captainKey: newRole === ROLES.CAPTAIN ? (prev.name || '') : prev.captainKey,
+                      teamName: newRole === ROLES.CAPTAIN ? (prev.teamName || teamsList[0] || 'Unity-II') : prev.teamName,
+                    }));
+                  }}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value={ROLES.VIEWER}>Executive Viewer</option>
@@ -2168,18 +2238,122 @@ export default function UserManagement() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Supervisory Manager Scope</label>
-                <select
-                  value={formData.managerKey}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, managerKey: e.target.value }))}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none"
-                >
-                  <option value="all">All Managers / Enterprise Unrestricted</option>
-                  {managersList.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
+              {/* DYNAMIC SCOPE CONFIGURATION ACCORDING TO ROLE */}
+              {formData.role === ROLES.MANAGER && (
+                <div className="p-3 bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/50 rounded-xl space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-300">
+                    <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <span>Senior Manager Division Binding</span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Supervised Division / Manager Key</label>
+                    <select
+                      value={formData.managerKey}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, managerKey: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none"
+                    >
+                      {managersList.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                      {formData.name && !managersList.includes(formData.name) && (
+                        <option value={formData.name}>{formData.name} (New Manager Division)</option>
+                      )}
+                    </select>
+                  </div>
+                  <p className="text-[10px] text-blue-700 dark:text-blue-300 leading-tight">
+                    • <strong>Supervisory Scope:</strong> Oversees division's L2 Approvals, RM Telephony, and QA Audits in read-only review mode. QA scoring and upload access are disabled.
+                  </p>
+                </div>
+              )}
+
+              {formData.role === ROLES.CAPTAIN && (
+                <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/50 rounded-xl space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                    <Users className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Pod Captain Governance</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Assigned Pod / Team</label>
+                      <select
+                        value={formData.teamName || 'Unity-II'}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, teamName: e.target.value }))}
+                        className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none"
+                      >
+                        {teamsList.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Reporting Senior Manager</label>
+                      <select
+                        value={formData.managerKey}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, managerKey: e.target.value }))}
+                        className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none"
+                      >
+                        {managersList.map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-emerald-700 dark:text-emerald-300 leading-tight">
+                    • <strong>Supervisory Scope:</strong> Directly oversees assigned pod's telephony and call records in read-only review mode. QA scoring and uploads are disabled.
+                  </p>
+                </div>
+              )}
+
+              {formData.role === ROLES.AUDITOR && (
+                <div className="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/50 rounded-xl space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>Quality Auditor Scope &amp; Ingestion Rights</span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">QA Evaluation &amp; Visibility Scope</label>
+                    <select
+                      value={formData.qaScope || 'self'}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, qaScope: e.target.value }))}
+                      className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none"
+                    >
+                      <option value="all">Lead Quality / Global Scope (Can evaluate all calls, views all audits)</option>
+                      <option value="self">Self-Scoped Auditor (Evaluates assigned calls, views own audits only)</option>
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(formData.canUploadQA)}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, canUploadQA: e.target.checked }))}
+                      className="w-3.5 h-3.5 text-amber-600 rounded border-slate-300 dark:border-slate-700"
+                    />
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      Grant Data Ingestion Rights (Dialer Call Logs, Telephony &amp; QA Audits)
+                    </span>
+                  </label>
+                  <p className="text-[10px] text-amber-700 dark:text-amber-300 leading-tight">
+                    • <strong>Module Scope:</strong> Dedicated to QA Scorecard and 7 QC Tools only. Consolidated, L2 Approvals, and Telephony modules are hidden.
+                  </p>
+                </div>
+              )}
+
+              {/* L2 FINANCIAL UPLOAD RIGHT CHECKBOX (AVAILABLE FOR BACKEND / LEADERSHIP / FINANCE) */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(formData.canUploadL2)}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, canUploadL2: e.target.checked }))}
+                    className="w-3.5 h-3.5 text-purple-600 rounded border-slate-300 dark:border-slate-700"
+                  />
+                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Grant L2 Financial Approvals Upload Rights
+                  </span>
+                </label>
+                <p className="text-[10px] text-slate-500 pl-5.5">
+                  Allows ingesting L2 Approval spreadsheets into the executive financial reconciliation engine (e.g., Tanmoy Kar &amp; finance backend).
+                </p>
               </div>
 
               <div>
@@ -2188,7 +2362,7 @@ export default function UserManagement() {
                   type="text"
                   value={formData.designation}
                   onChange={(e) => setFormData((prev) => ({ ...prev, designation: e.target.value }))}
-                  placeholder="e.g. Lead Quality Auditor"
+                  placeholder="e.g. Senior Quality Auditor"
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>

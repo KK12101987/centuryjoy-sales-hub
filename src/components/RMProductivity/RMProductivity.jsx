@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { nf, fmtDuration } from '../../utils/formatters';
+import { getAllowedUploadTabs } from '../../utils/auth';
 import * as XLSX from 'xlsx';
 import { 
   PhoneCall, 
@@ -28,8 +29,12 @@ export default function RMProductivity() {
     updateRmMapping, 
     scopeFilter, 
     rmDirectory,
-    openUploadModal
+    openUploadModal,
+    currentUser
   } = useData();
+
+  const allowedUploadTabs = getAllowedUploadTabs(currentUser);
+  const canUploadTelephony = allowedUploadTabs.includes('telephony');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedView, setSelectedView] = useState('manager'); // 'manager' | 'captain' | 'rm'
@@ -303,13 +308,15 @@ export default function RMProductivity() {
             <span>Transfer RM</span>
           </button>
 
-          <button
-            onClick={() => openUploadModal('telephony')}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all cursor-pointer"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Upload Dialer Dump</span>
-          </button>
+          {canUploadTelephony && (
+            <button
+              onClick={() => openUploadModal('telephony')}
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Dialer Dump</span>
+            </button>
+          )}
         </div>
 
       </div>

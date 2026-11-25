@@ -239,5 +239,35 @@ The application will automatically detect Vite and the serverless functions unde
   - Pruned 16 dead imports across 11 components, achieving 0 unused imports across the entire codebase.
   - Production bundle builds in ~8s with 100% clean module transformation.
 
+---
+
+## 27. Granular Supervisory Scope Architecture & Role-Based Ingestion Segregation (Nov 25, 2026)
+- **Fine-Grained Role & Module Visibility:**
+  - **Quality Auditors (`role === ROLES.AUDITOR`):**
+    - Access restricted strictly to **QA & 7 QC Analytics Suite** (`['qa']`).
+    - Consolidated, L2 Approvals, RM Telephony, and User Management modules are completely hidden.
+    - Ingestion rights: Designated auditors (**Arindam Mitra** and **Nabonita Roy**, or users with `canUploadQA`) can access the Universal Upload Center for Dialer Call Recordings, RM Telephony dumps, and Historical QA audits (L2 upload tab hidden). General auditors (Sayan Banik, Arnab Chakladaar) operate in view/audit-only mode with zero upload access.
+  - **Tanmoy Kar (`tanmoykar.centuryply@gmail.com`):**
+    - Dedicated access to **L2 Financial Reconciliation** and Consolidated overview (`['l2', 'consolidated']`).
+    - Ingestion rights: Exclusive access to upload L2 Approval financial spreadsheets (`l2` tab only; dialer, telephony, and QA tabs hidden).
+  - **Senior Managers (`role === ROLES.MANAGER`, e.g. Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal):**
+    - Scoped access to Consolidated, L2 Approvals, RM Telephony, and QA History/7 QC Tools (`['consolidated', 'l2', 'productivity', 'qa']`).
+    - Strict boundary: **NO access to QA Scorecard evaluation** (Scorecard tab hidden, pending calls render locked `🔒 Auditor Only` badge) and **NO upload access** (Upload Data button removed across all dashboards).
+  - **Pod Captains (`role === ROLES.CAPTAIN`, e.g. Arshi Afreen Jamal, Nasima Banu, etc.):**
+    - Scoped strictly to their pod/team metrics in read-only review mode.
+    - Strict boundary: **NO access to QA Scorecard evaluation** and **NO upload access**.
+  - **Developer & Super Admin (`kushal.centuryply@gmail.com`):**
+    - Enterprise unrestricted access across all 5 operational suites and all 4 upload ingestion pipelines.
+- **User & Supervisory Scope Governance Console Enhancements (`UserManagement.jsx`):**
+  - Create and Edit Account modals dynamically adapt form fields based on selected role:
+    - *Manager:* Senior Manager division binding selector with operational scope guidance.
+    - *Captain:* Assigned pod/team selector (`teamsList`), reporting senior manager dropdown (`managersList`), and captain key binding.
+    - *Auditor:* QA Visibility Scope dropdown (`all` vs `self`) and checkbox to grant Ingestion/Upload rights (`canUploadQA`).
+    - *General / Backend:* Checkbox to grant L2 Financial Approvals upload rights (`canUploadL2`).
+  - User Accounts table displays clear badges for **Supervisory Scope** (`Division: [Key]`, `Pod: [Team]`, `QA Scope: [All/Self]`) and **Upload & Ingestion Rights** (`Full Ingestion`, `Dialer, Telephony & QA`, `L2 Financials Only`, `View-Only`).
+- **Rule 22 Watermark Anti-Tamper Protocol:**
+  - Watermark (`#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`) coupled to application bootstrap and all state transitions.
+
+
 
 

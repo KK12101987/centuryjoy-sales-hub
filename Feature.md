@@ -143,5 +143,34 @@
   3. **Dead Code & Dependency Pruning:** Removed `nodemailer` from `package.json` and pruned 16 unused imports across 11 source files.
 * **Verification:** Production build passed in 8.26s. Verified live on production browser subagent across all 5 operational suites.
 
+## FEATURE-014: Granular Supervisory Scope Architecture & Role-Based Ingestion Segregation
+* **Status:** DELIVERED & VERIFIED
+* **User Request:**
+  "I want to split the scope of the app based on the 'Supervisory Scope'. Like:
+  Senior Manager - Will only be able to see call audits, L2 approvals and other things that are related to them but will not have access to QA tools and any kind of upload functions.
+  Pod Captain - Same as above but scope reduced to captain level only.
+  Quality Auditor - only has access to QA tools and statistics only and USERS ARINDAM MITRA AND Nabonita roy will be able to upload dialer call recording logs, RM Telephony performance, historical QA Audits.
+  User Tanmoy Kar will be able to upload L2 Approval financial and will be able to see L2 Financial Reconciliation.
+  Can we make the user scope versatile like this? Yes, do make changes in the User & Supervisory Scope Governance Console while adding new manager/captain/backend team member."
+* **Key Enhancements:**
+  1. **Module Visibility Segregation:**
+     - Quality Auditors: Exclusively access QA & 7 QC Analytics tools (`['qa']`). Consolidated, L2 Approvals, and RM Telephony tabs are hidden.
+     - Tanmoy Kar: Dedicated access to L2 Financial Reconciliation and Consolidated view (`['l2', 'consolidated']`).
+     - Senior Managers: Scoped division access to Consolidated, L2 Approvals, RM Telephony, and QA History/7 QC Tools (`['consolidated', 'l2', 'productivity', 'qa']`).
+     - Pod Captains: Scoped pod access to Consolidated, L2 Approvals, RM Telephony, and QA History/7 QC Tools (`['consolidated', 'l2', 'productivity', 'qa']`).
+     - Super Admin / Developer: Unrestricted enterprise access across all 5 operational suites.
+  2. **Universal Ingestion Portal Segregation (`UploadCenterModal.jsx`):**
+     - Arindam Mitra & Nabonita Roy (or users granted `canUploadQA`): Access to Dialer Call Logs, RM Telephony, and QA Audits (L2 tab hidden).
+     - Tanmoy Kar (or users granted `canUploadL2`): Access to L2 Financial Approvals upload (all other tabs hidden).
+     - Senior Managers & Pod Captains: All upload portals hidden (upload buttons removed from Navbar, RM Telephony, and QA).
+  3. **Read-Only QA Review Mode (`QaDashboard.jsx`):**
+     - "Audit Scorecard" tab hidden for Senior Managers and Pod Captains; pending calls render locked `🔒 Auditor Only` badges.
+     - Scoped audits display strictly the supervised division or pod.
+  4. **User & Supervisory Scope Governance Console (`UserManagement.jsx`):**
+     - Dynamic form controls in Create & Edit Account modals adapting to role (Division selection for managers, Pod & reporting manager for captains, QA scope & ingestion checkbox for auditors, L2 financial upload checkbox for finance personnel).
+     - Informative badges in User Accounts table for Supervisory Scope and Upload & Ingestion Rights (`Full Ingestion`, `Dialer, Telephony & QA`, `L2 Financials Only`, `View-Only`).
+* **Verification:** Production build passed cleanly in 33.80s.
+
+
 
 

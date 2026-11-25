@@ -24,17 +24,17 @@ export const ROLE_DEFINITIONS = {
   },
   [ROLES.MANAGER]: {
     label: 'Senior Manager',
-    description: 'Oversees assigned Digital Pods (via Captains) and Direct Physical Teams',
+    description: 'Oversees assigned division (Consolidated, L2 Approvals, RM Telephony, QA History & 7 QC Tools in read-only review; no call scoring or uploads)',
     badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
     canManageUsers: false,
     canAssignScope: false,
-    canUploadData: true,
+    canUploadData: false,
     canViewAllFinancials: false, // Scoped to their division
     canConductAudits: false,
   },
   [ROLES.CAPTAIN]: {
     label: 'Pod Captain',
-    description: 'Directly manages assigned pod agents; monitors daily dialing metrics & QA scores',
+    description: 'Directly oversees assigned pod metrics and call history in read-only review; no direct call scoring or uploads',
     badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
     canManageUsers: false,
     canAssignScope: false,
@@ -44,11 +44,11 @@ export const ROLE_DEFINITIONS = {
   },
   [ROLES.AUDITOR]: {
     label: 'Quality Auditor',
-    description: 'Conducts call quality assessments, evaluates 41 sub-parameters, and reviews 7 QC tools',
+    description: 'Dedicated access to QA Scorecard and 7 QC Tools; designated auditors have upload access for dialer, telephony, and QA records',
     badgeColor: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800',
     canManageUsers: false,
     canAssignScope: false,
-    canUploadData: true,
+    canUploadData: false, // Granted individually to designated auditors (Arindam & Nabonita)
     canViewAllFinancials: false,
     canConductAudits: true,
   },
@@ -72,6 +72,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Developer & Super Admin (Full Access)',
     isPhysicalOnly: false,
+    canUploadQA: true,
+    canUploadL2: true,
     initialPassword: 'Kushal@2026',
     recoveryPin: 'CP-7777',
     status: 'active',
@@ -83,8 +85,10 @@ export const SEED_USERS = [
     email: 'tanmoykar.centuryply@gmail.com',
     role: ROLES.ADMIN,
     managerKey: 'all',
-    designation: 'Senior Manager (Leadership & Full Access)',
+    designation: 'Senior Manager (Financial Operations & L2 Approvals)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: true,
     initialPassword: 'Tanmoy@2026',
     recoveryPin: 'CP-2026',
     status: 'active',
@@ -99,6 +103,8 @@ export const SEED_USERS = [
     managerKey: 'Niladri Bhadra',
     designation: 'Senior Manager',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Niladri@2026',
     recoveryPin: 'CP-1001',
     status: 'active',
@@ -112,6 +118,8 @@ export const SEED_USERS = [
     managerKey: 'Surajit Laha',
     designation: 'Senior Manager',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Surajit@2026',
     recoveryPin: 'CP-1002',
     status: 'active',
@@ -125,6 +133,8 @@ export const SEED_USERS = [
     managerKey: 'Arijit Nath',
     designation: 'Senior Manager',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Arijit@2026',
     recoveryPin: 'CP-1003',
     status: 'active',
@@ -138,6 +148,8 @@ export const SEED_USERS = [
     managerKey: 'Amit Singal',
     designation: 'Senior Manager (Field Operations)',
     isPhysicalOnly: true,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Amit@2026',
     recoveryPin: 'CP-1004',
     status: 'active',
@@ -151,8 +163,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Arijit Nath',
     captainKey: 'Arshi Afreen Jamal',
+    teamName: 'Unity-II',
     designation: 'Pod Captain (Unity-II / Vibrant)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2001',
     status: 'active',
@@ -165,8 +180,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Arijit Nath',
     captainKey: 'Mousumi Chakraborty',
+    teamName: 'Unity-I',
     designation: 'Pod Captain (Unity-I)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2002',
     status: 'active',
@@ -179,8 +197,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Surajit Laha',
     captainKey: 'Nasima Banu',
+    teamName: 'Catlyst-II',
     designation: 'Pod Captain (Catlyst-II)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2003',
     status: 'active',
@@ -193,8 +214,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Surajit Laha',
     captainKey: 'Pallabi Chura',
+    teamName: 'Catlyst-I',
     designation: 'Pod Captain (Catlyst-I)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2004',
     status: 'active',
@@ -207,8 +231,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Niladri Bhadra',
     captainKey: 'Ranjana Mohajan',
+    teamName: 'SoarZone-II',
     designation: 'Pod Captain (Dynamic Pod)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2005',
     status: 'active',
@@ -221,8 +248,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Niladri Bhadra',
     captainKey: 'Shiuli Bhattacharjee',
+    teamName: 'SoarZone-I',
     designation: 'Pod Captain (Apex Pod)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2006',
     status: 'active',
@@ -235,8 +265,11 @@ export const SEED_USERS = [
     role: ROLES.CAPTAIN,
     managerKey: 'Arijit Nath',
     captainKey: 'Silpa Palchina',
+    teamName: 'Zenith Pod',
     designation: 'Pod Captain (Zenith Pod)',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Captain@2026',
     recoveryPin: 'CP-2007',
     status: 'active',
@@ -252,6 +285,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Lead Quality and Backend',
     isPhysicalOnly: false,
+    canUploadQA: true,
+    canUploadL2: false,
     initialPassword: 'Nabonita@2026',
     recoveryPin: 'CP-4001',
     status: 'active',
@@ -266,6 +301,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Senior Quality Auditor',
     isPhysicalOnly: false,
+    canUploadQA: true,
+    canUploadL2: false,
     initialPassword: 'Arindam@2026',
     recoveryPin: 'CP-4002',
     status: 'active',
@@ -280,6 +317,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Quality Auditor',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Sayan@2026',
     recoveryPin: 'CP-4003',
     status: 'active',
@@ -294,6 +333,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Quality Auditor',
     isPhysicalOnly: false,
+    canUploadQA: false,
+    canUploadL2: false,
     initialPassword: 'Arnab@2026',
     recoveryPin: 'CP-4004',
     status: 'active',
@@ -307,6 +348,8 @@ export const SEED_USERS = [
     managerKey: 'all',
     designation: 'Executive Director (All Teams)',
     isPhysicalOnly: false,
+    canUploadQA: true,
+    canUploadL2: true,
     initialPassword: 'Century@2026',
     recoveryPin: 'CP-9999',
     status: 'active',
@@ -377,6 +420,116 @@ export function getAuditorScope(user) {
   return user.role === ROLES.AUDITOR ? 'self' : 'none';
 }
 
+/**
+ * Resolves the array of module keys permitted for the authenticated user.
+ * Available modules: 'consolidated', 'l2', 'productivity', 'qa', 'users'
+ *
+ * Scoping rules:
+ * - Developer & Super Admin (Kushal Kar): All modules ['consolidated', 'l2', 'productivity', 'qa', 'users']
+ * - Tanmoy Kar: ['l2', 'consolidated'] (L2 Financial Reconciliation & Executive View)
+ * - Quality Auditors (Arindam, Nabonita, Sayan, Arnab, and future auditors): ['qa'] (QA Tools & statistics only)
+ * - Senior Managers (Niladri, Surajit, Arijit, Amit): ['consolidated', 'l2', 'productivity', 'qa'] (Scoped division data)
+ * - Pod Captains (Arshi, Mousumi, Nasima, Pallabi, Ranjana, Shiuli, Silpa): ['consolidated', 'l2', 'productivity', 'qa'] (Scoped pod data)
+ * - Executive Viewers: ['consolidated']
+ */
+export function getPermittedModules(user) {
+  if (!user) return ['consolidated'];
+  
+  // Custom override if explicitly assigned on user profile
+  if (Array.isArray(user.permittedModules) && user.permittedModules.length > 0) {
+    return user.permittedModules;
+  }
+
+  const email = (user.email || '').toLowerCase().trim();
+
+  // Developer & Super Admin
+  if (email === 'kushal.centuryply@gmail.com' || isDeveloperUser(user)) {
+    return ['consolidated', 'l2', 'productivity', 'qa', 'users'];
+  }
+
+  // Tanmoy Kar: L2 Approvals & Executive Consolidated Reconciliation
+  if (email.includes('tanmoy')) {
+    return ['l2', 'consolidated'];
+  }
+
+  // Quality Auditors: Strictly QA & 7 QC Tools only
+  if (user.role === ROLES.AUDITOR) {
+    return ['qa'];
+  }
+
+  // Senior Managers & Pod Captains: Consolidated, L2, RM Telephony, QA History & 7 QC Tools (Scoped)
+  if (user.role === ROLES.MANAGER || user.role === ROLES.CAPTAIN) {
+    return ['consolidated', 'l2', 'productivity', 'qa'];
+  }
+
+  // General Admin (if not Tanmoy)
+  if (user.role === ROLES.ADMIN) {
+    return ['consolidated', 'l2', 'productivity', 'qa', 'users'];
+  }
+
+  return ['consolidated'];
+}
+
+/**
+ * Resolves the array of upload tabs permitted in the Universal Ingestion Center.
+ * Available tabs: 'l2', 'telephony', 'qa', 'dialer'
+ *
+ * Rules:
+ * - Super Admin / Developer (Kushal Kar): ['l2', 'telephony', 'qa', 'dialer']
+ * - Tanmoy Kar (or canUploadL2): ['l2']
+ * - Arindam Mitra & Nabonita Roy (or canUploadQA): ['dialer', 'telephony', 'qa']
+ * - Senior Managers & Pod Captains: [] (Denied all upload functions)
+ * - General Auditors (Sayan Banik, Arnab Chakladaar without canUploadQA): [] (No upload access)
+ */
+export function getAllowedUploadTabs(user) {
+  if (!user) return [];
+
+  const email = (user.email || '').toLowerCase().trim();
+
+  // Super Admin / Developer
+  if (email === 'kushal.centuryply@gmail.com' || (isDeveloperUser(user) && !email.includes('tanmoy'))) {
+    return ['l2', 'telephony', 'qa', 'dialer'];
+  }
+
+  // Tanmoy Kar: L2 Financial Approvals Upload only
+  if (email.includes('tanmoy')) {
+    return ['l2'];
+  }
+
+  const tabs = [];
+
+  // Check explicit or role-based L2 upload permission
+  if (user.canUploadL2) {
+    tabs.push('l2');
+  }
+
+  // Check explicit or designated QA/Dialer/Telephony upload permission
+  // Arindam Mitra and Nabonita Roy are designated QA uploaders by default
+  const isDesignatedQaUploader = 
+    email === 'arindam.centuryply@gmail.com' ||
+    email === 'nabonita.roy@centuryply.com' ||
+    user.canUploadQA === true;
+
+  if (isDesignatedQaUploader) {
+    tabs.push('dialer', 'telephony', 'qa');
+  }
+
+  return tabs;
+}
+
+/**
+ * Validates whether the user is authorized to perform call evaluations on the QA scorecard.
+ * - Authorized QA Auditors & Super Admin: true
+ * - Senior Managers, Pod Captains, Viewers: false (Read-only review of audits and 7 QC tools)
+ */
+export function canConductCallAudits(user) {
+  if (!user) return false;
+  if (user.role === ROLES.MANAGER || user.role === ROLES.CAPTAIN || user.role === ROLES.VIEWER) {
+    return false;
+  }
+  return isAuthorizedAuditor(user);
+}
+
 const USERS_STORAGE_KEY = 'century_joy_users_registry_v2';
 const SCOPE_STORAGE_KEY = 'century_joy_supervisory_scope_v2';
 
@@ -408,6 +561,18 @@ export function getAllUsers() {
         }
         if (parsed[idx].isProtected === undefined && seed.isProtected !== undefined) {
           parsed[idx].isProtected = seed.isProtected;
+          modified = true;
+        }
+        if (parsed[idx].canUploadQA === undefined && seed.canUploadQA !== undefined) {
+          parsed[idx].canUploadQA = seed.canUploadQA;
+          modified = true;
+        }
+        if (parsed[idx].canUploadL2 === undefined && seed.canUploadL2 !== undefined) {
+          parsed[idx].canUploadL2 = seed.canUploadL2;
+          modified = true;
+        }
+        if (parsed[idx].teamName === undefined && seed.teamName !== undefined) {
+          parsed[idx].teamName = seed.teamName;
           modified = true;
         }
         // One-time canonical name migration for Arindam CenturyPly -> Arindam Mitra
@@ -451,6 +616,11 @@ export function createUser(userData) {
     role: userData.role || ROLES.VIEWER,
     managerKey: userData.managerKey || 'all',
     captainKey: userData.captainKey || null,
+    teamName: userData.teamName || null,
+    qaScope: userData.qaScope || (userData.role === ROLES.AUDITOR ? 'self' : 'all'),
+    canUploadQA: Boolean(userData.canUploadQA),
+    canUploadL2: Boolean(userData.canUploadL2),
+    permittedModules: userData.permittedModules || null,
     designation: userData.designation?.trim() || ROLE_DEFINITIONS[userData.role]?.label || 'Staff Member',
     isPhysicalOnly: Boolean(userData.isPhysicalOnly),
     initialPassword: userData.initialPassword || 'Century@2026',

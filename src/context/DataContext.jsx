@@ -6,7 +6,7 @@ import rawTelephony from '../data/seedTelephony.json';
 import rawQaAudits from '../data/seedQaAudits.json';
 import rawRMs from '../data/rmDirectory.json';
 import rawDialerCalls from '../data/seedDialerData.json';
-import { getAllUsers, SEED_USERS, ROLES } from '../utils/auth';
+import { getAllUsers, SEED_USERS, ROLES, getPermittedModules } from '../utils/auth';
 import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
 
 // Default ticket corpus combining baseline October (2,688) & November (326)
@@ -1540,6 +1540,13 @@ export function DataProvider({ children }) {
       setSelectedManager(user.managerKey);
     } else {
       setSelectedManager('all');
+    }
+    const permitted = getPermittedModules(user);
+    if (!permitted.includes(activeModule)) {
+      setActiveModule(permitted[0]);
+      try {
+        localStorage.setItem('century_active_module_v2', permitted[0]);
+      } catch (e) {}
     }
     resetFilters();
   };

@@ -22,6 +22,7 @@ import {
   transformUploadedData 
 } from '../../utils/columnMatcher';
 import { useData } from '../../context/DataContext';
+import { getAllowedUploadTabs } from '../../utils/auth';
 
 export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }) {
   const { 
@@ -31,10 +32,26 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
     addDialerCalls,
     rmDirectory,
     updateRmMapping,
-    hierarchy
+    hierarchy,
+    currentUser
   } = useData();
 
-  const [activeTab, setActiveTab] = useState(initialTab || 'l2'); // 'l2' | 'telephony' | 'qa' | 'dialer'
+  const allowedTabs = getAllowedUploadTabs(currentUser);
+
+  // Initialize activeTab to requested tab only if allowed, else first allowed tab
+  const getInitialTab = () => {
+    if (initialTab && allowedTabs.includes(initialTab)) return initialTab;
+    return allowedTabs[0] || 'l2';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab); // 'l2' | 'telephony' | 'qa' | 'dialer'
+
+  // Sync activeTab when allowedTabs or initialTab changes
+  React.useEffect(() => {
+    if (allowedTabs.length > 0 && !allowedTabs.includes(activeTab)) {
+      setActiveTab(allowedTabs[0]);
+    }
+  }, [allowedTabs, activeTab]);
   
   // Shared state
   const fileInputRef = useRef(null);
@@ -452,55 +469,71 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
         </div>
 
         {/* Tab Navigation Ribbon */}
-        <div className="flex items-center gap-1 px-6 pt-3 pb-2 border-b border-slate-800/80 bg-slate-950/40 overflow-x-auto">
-          <button
-            onClick={() => handleTabSwitch('l2')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'l2'
-                ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span>L2 Approvals Financials</span>
-          </button>
+        {allowedTabs.length > 0 ? (
+          <div className="flex items-center gap-1 px-6 pt-3 pb-2 border-b border-slate-800/80 bg-slate-950/40 overflow-x-auto">
+            {allowedTabs.includes('l2') && (
+              <button
+                onClick={() => handleTabSwitch('l2')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'l2'
+                    ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>L2 Approvals Financials</span>
+              </button>
+            )}
 
-          <button
-            onClick={() => handleTabSwitch('telephony')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'telephony'
-                ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <PhoneCall className="w-4 h-4" />
-            <span>RM Telephony Performance</span>
-          </button>
+            {allowedTabs.includes('telephony') && (
+              <button
+                onClick={() => handleTabSwitch('telephony')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'telephony'
+                    ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <PhoneCall className="w-4 h-4" />
+                <span>RM Telephony Performance</span>
+              </button>
+            )}
 
-          <button
-            onClick={() => handleTabSwitch('qa')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'qa'
-                ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Historical QA Audits</span>
-          </button>
+            {allowedTabs.includes('qa') && (
+              <button
+                onClick={() => handleTabSwitch('qa')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'qa'
+                    ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Historical QA Audits</span>
+              </button>
+            )}
 
-          <button
-            onClick={() => handleTabSwitch('dialer')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'dialer'
-                ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Headphones className="w-4 h-4" />
-            <span>Dialer Call Recordings Log</span>
-          </button>
-        </div>
+            {allowedTabs.includes('dialer') && (
+              <button
+                onClick={() => handleTabSwitch('dialer')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'dialer'
+                    ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Headphones className="w-4 h-4" />
+                <span>Dialer Call Recordings Log</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="p-8 text-center bg-slate-950/40 border-b border-slate-800 text-slate-400 text-xs">
+            <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <p className="font-bold text-white text-sm">Upload Ingestion Restricted</p>
+            <p className="mt-1 max-w-md mx-auto">Your current user role ({currentUser?.designation || currentUser?.role}) operates in read-only review mode without data upload privileges.</p>
+          </div>
+        )}
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
