@@ -654,7 +654,8 @@ export default function UserManagement() {
         createUser(formData);
         setAlertMsg({ type: 'success', text: `User ${formData.name} successfully created.` });
       } else if (modalMode === 'edit') {
-        updateUser(selectedUser.email, formData);
+        const updated = updateUser(selectedUser.email, formData);
+        setSelectedUser(updated);
         setAlertMsg({ type: 'success', text: `User ${formData.name} updated successfully.` });
       }
       refreshUsers();

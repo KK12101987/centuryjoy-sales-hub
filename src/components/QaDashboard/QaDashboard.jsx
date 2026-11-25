@@ -641,7 +641,7 @@ export default function QaDashboard() {
                             ) : (
                               <span 
                                 className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-semibold text-[11px] border border-slate-200 dark:border-slate-700/60 cursor-not-allowed inline-flex items-center gap-1"
-                                title="Auditing restricted to authorized Quality Auditors (Nabonita Roy, Arindam CenturyPly, Sayan Banik, Arnab Chakladaar)"
+                                title="Auditing restricted to authorized Quality Auditors (Nabonita Roy, Arindam Mitra, Sayan Banik, Arnab Chakladaar)"
                               >
                                 🔒 Auditor Only
                               </span>

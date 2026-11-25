@@ -268,3 +268,25 @@ eplace mode preserving tickets from other months.
      - Completely eliminated the `Listen to Recording (.WAV)` anchor button from the scorecard banner in `QaScorecard.jsx`.
      - Removed the broken `🎧` link linking to `call.recording_file` from the pending calls table in `QaDashboard.jsx`.
 
+---
+
+### Decision 038: User Account Profile Mutation Persistence & Arindam Mitra Canonical Name Alignment
+* **Date:** 2026-11-25
+* **Context:** An administrator attempted to change a user's name via the "Edit Account" modal (from `Arindam CenturyPly` to `Arindam Mitra`), but upon clicking "Save Account" or refreshing, the name immediately reverted back. This affected all seed accounts across the system.
+* **Root Cause:**
+  - In `src/utils/auth.js`, the `getAllUsers()` retrieval method contained a synchronization loop over `SEED_USERS`.
+  - In each invocation (triggered on app load, login, and `refreshUsers()`), the loop checked `if (seed.name && parsed[idx].name !== seed.name)`. Because `parsed[idx].name` differed from `seed.name` after a user edit, the loop forcibly overwrote the modified user's `name` (as well as `designation` and `initialPassword`) back to the hardcoded seed value, discarding administrative edits across all 18 seed users.
+* **Architecture & Mechanics:**
+  1. *Preservation of User-Customized Attributes:*
+     - Removed destructive overrides from `getAllUsers()`. The synchronization loop now solely backfills missing structural schema properties (`qaScope`, `isProtected`) if absent in legacy storage schemas.
+     - User-edited properties (`name`, `email`, `role`, `designation`, `initialPassword`, `managerKey`, `captainKey`, `status`) remain permanently authoritative in `localStorage` (`century_joy_users_registry_v2`).
+  2. *Canonical Alignment to Arindam Mitra:*
+     - Updated default registry definitions in `SEED_USERS` and `AUTHORIZED_AUDITORS` to `Arindam Mitra`.
+     - In `getAllUsers()`, added a graceful one-time migration for existing client localStorage where `email === 'arindam.centuryply@gmail.com' && name === 'Arindam CenturyPly'`, automatically transitioning the account to `Arindam Mitra`.
+     - In `DataContext.jsx`, historical QA audit evaluation records attributed to `Arindam CenturyPly` are migrated to `Arindam Mitra`.
+     - Replaced 65 occurrences of `Arindam CenturyPly` in `seedQaAudits.json` with `Arindam Mitra`.
+  3. *Real-Time State Synchronization:*
+     - Added a `century_users_updated` custom event listener in `DataContext.jsx` to immediately synchronize both the `users` collection and `currentUser` profile in React state without requiring full page reloads.
+     - Updated `updateUser(email, updates)` to sync `century_joy_auth_user_v2` in localStorage if the currently authenticated user's profile is modified.
+
+

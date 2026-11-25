@@ -259,7 +259,7 @@ export const SEED_USERS = [
     createdAt: '2026-11-23T00:00:00.000Z',
   },
   {
-    name: 'Arindam CenturyPly',
+    name: 'Arindam Mitra',
     email: 'arindam.centuryply@gmail.com',
     role: ROLES.AUDITOR,
     qaScope: 'all',
@@ -319,7 +319,7 @@ export const SEED_USERS = [
  * Official QA Auditor Roster & Scoped Visibility Registry
  * Only these designated accounts are permitted to perform call quality evaluations.
  * - Lead Quality and Backend: Nabonita Roy (Can audit all, sees all audits)
- * - Senior Quality Auditor: Arindam CenturyPly (Can audit all, sees all audits)
+ * - Senior Quality Auditor: Arindam Mitra (Can audit all, sees all audits)
  * - Quality Auditor: Sayan Banik (Can audit calls, sees ONLY own audits)
  * - Quality Auditor: Arnab Chakladaar (Can audit calls, sees ONLY own audits)
  */
@@ -333,7 +333,7 @@ export const AUTHORIZED_AUDITORS = [
     initialPassword: 'Nabonita@2026',
   },
   {
-    name: 'Arindam CenturyPly',
+    name: 'Arindam Mitra',
     email: 'arindam.centuryply@gmail.com',
     designation: 'Senior Quality Auditor',
     qaScope: 'all',
@@ -393,7 +393,7 @@ export function getAllUsers() {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(SEED_USERS));
       return SEED_USERS;
     }
-    // Ensure all SEED_USERS (Developer Kushal Kar, Tanmoy Kar, Nabonita Roy, etc.) are present and synchronized
+    // Ensure all SEED_USERS are present in the registry without overwriting admin modifications
     let modified = false;
     for (const seed of SEED_USERS) {
       const idx = parsed.findIndex((u) => (u.email || '').toLowerCase() === seed.email.toLowerCase());
@@ -401,21 +401,21 @@ export function getAllUsers() {
         parsed.push(seed);
         modified = true;
       } else {
-        // Synchronize updated scopes, designations, and passwords
-        if (seed.qaScope && parsed[idx].qaScope !== seed.qaScope) {
+        // Backfill any missing legacy attributes without overwriting user-customized profile attributes
+        if (parsed[idx].qaScope === undefined && seed.qaScope !== undefined) {
           parsed[idx].qaScope = seed.qaScope;
           modified = true;
         }
-        if (seed.designation && parsed[idx].designation !== seed.designation) {
-          parsed[idx].designation = seed.designation;
+        if (parsed[idx].isProtected === undefined && seed.isProtected !== undefined) {
+          parsed[idx].isProtected = seed.isProtected;
           modified = true;
         }
-        if (seed.initialPassword && parsed[idx].initialPassword !== seed.initialPassword) {
-          parsed[idx].initialPassword = seed.initialPassword;
-          modified = true;
-        }
-        if (seed.name && parsed[idx].name !== seed.name) {
-          parsed[idx].name = seed.name;
+        // One-time canonical name migration for Arindam CenturyPly -> Arindam Mitra
+        if (
+          (parsed[idx].email || '').toLowerCase() === 'arindam.centuryply@gmail.com' &&
+          parsed[idx].name === 'Arindam CenturyPly'
+        ) {
+          parsed[idx].name = 'Arindam Mitra';
           modified = true;
         }
       }
@@ -477,6 +477,18 @@ export function updateUser(email, updates) {
   }
   users[index] = { ...users[index], ...updates, updatedAt: new Date().toISOString() };
   saveUsersList(users);
+
+  // If currently authenticated session matches this email, update active session object as well
+  try {
+    const rawAuth = localStorage.getItem('century_joy_auth_user_v2');
+    if (rawAuth) {
+      const authUser = JSON.parse(rawAuth);
+      if ((authUser.email || '').toLowerCase() === normalizedEmail) {
+        localStorage.setItem('century_joy_auth_user_v2', JSON.stringify({ ...authUser, ...users[index] }));
+      }
+    }
+  } catch (e) {}
+
   return users[index];
 }
 

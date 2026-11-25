@@ -124,3 +124,14 @@
   3. **Broken .WAV Link Removal:** Completely removed the `Listen to Recording (.WAV)` button from the scorecard banner and the `🎧` audio link from the pending calls table.
 * **Verification:** Production build passed cleanly in 20.82s. Verified with live browser testing and regression checks.
 
+## FEATURE-012: User Account Profile Mutation Persistence & Arindam Mitra Alignment
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "Trying to change the name but it is not happening (from Arindam CenturyPly to Arindam Mitra). Check this for all users"
+* **Key Enhancements:**
+  1. **User Edit Persistence:** Eliminated destructive overrides in `getAllUsers()` that previously reverted `name`, `designation`, and `initialPassword` back to hardcoded `SEED_USERS` constants on every refresh. Editing any user's profile now saves and persists permanently.
+  2. **Canonical Name Update:** Updated default registry for `arindam.centuryply@gmail.com` to `Arindam Mitra` across `SEED_USERS`, `AUTHORIZED_AUDITORS`, and `seedQaAudits.json`.
+  3. **Auto-Migration:** Incorporated self-healing migration in `getAllUsers()` and `DataContext.jsx` to migrate existing client records with `Arindam CenturyPly` to `Arindam Mitra`.
+  4. **Active Session Sync:** Updated `DataContext` and `updateUser` to automatically refresh active auth sessions and user rosters in real-time.
+* **Verification:** Production build passed cleanly in 21s. Verified live on production browser subagent with name editing across multiple user accounts.
+
+

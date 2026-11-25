@@ -98,6 +98,26 @@ export function DataProvider({ children }) {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // 4b. Real-time User Registry Event Synchronization
+  useEffect(() => {
+    const handleUsersUpdated = () => {
+      const reg = getAllUsers();
+      setUsers(reg);
+      setCurrentUser((prev) => {
+        if (!prev) return prev;
+        const matching = reg.find(
+          (u) => (u.email || '').toLowerCase() === (prev.email || '').toLowerCase()
+        );
+        if (matching && matching.name !== prev.name) {
+          return { ...prev, ...matching };
+        }
+        return prev;
+      });
+    };
+    window.addEventListener('century_users_updated', handleUsersUpdated);
+    return () => window.removeEventListener('century_users_updated', handleUsersUpdated);
+  }, []);
+
   // 5. Hierarchy Tree State
   const [hierarchy, setHierarchy] = useState(() => {
     try {
@@ -478,9 +498,9 @@ export function DataProvider({ children }) {
               migrated = true;
               item.auditor_name = 'Nabonita Roy';
             }
-            if (item.auditor_name === 'Manika Chakraborty') {
+            if (item.auditor_name === 'Manika Chakraborty' || item.auditor_name === 'Arindam CenturyPly') {
               migrated = true;
-              item.auditor_name = 'Arindam CenturyPly';
+              item.auditor_name = 'Arindam Mitra';
             }
             if (item.auditor_name === 'Dhriti Mondal') {
               migrated = true;

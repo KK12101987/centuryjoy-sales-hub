@@ -215,3 +215,16 @@ The application will automatically detect Vite and the serverless functions unde
   - Removed `Listen to Recording (.WAV)` button from `QaScorecard.jsx`.
   - Removed `🎧` recording file link from `QaDashboard.jsx` pending calls table.
 
+---
+
+## 25. User Account Profile Mutation Persistence & Canonical Name Alignment (Nov 25, 2026)
+- **User Account Edit Persistence Bug Fix:**
+  - Resolved regression in `src/utils/auth.js` (`getAllUsers()`) where a seed synchronization loop continually reverted user edits (`name`, `designation`, `initialPassword`) back to static seed values.
+  - User profile modifications in the "Edit Account" modal now authoritatively persist across all accounts in the system.
+- **Arindam Mitra Canonical Name Alignment:**
+  - Seed registries (`SEED_USERS`, `AUTHORIZED_AUDITORS`) and seed QA audit records updated to `Arindam Mitra`.
+  - Added self-healing migration in `getAllUsers()` and `DataContext.jsx` to smoothly migrate existing client localStorage state from `Arindam CenturyPly` to `Arindam Mitra`.
+- **Reactive State Propagation:**
+  - Added real-time event listener (`century_users_updated`) in `DataContext.jsx` to ensure active sessions and user rosters update instantaneously upon saving account edits.
+
+

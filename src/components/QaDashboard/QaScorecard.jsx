@@ -653,7 +653,7 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             <ShieldAlert className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <div>
               <span className="font-bold">Auditing Restricted: </span>
-              <span>Only designated QA auditors (Nabonita Roy, Arindam CenturyPly, Sayan Banik, Arnab Chakladaar) are authorized to submit call evaluations. Current view is in preview/read-only mode.</span>
+              <span>Only designated QA auditors (Nabonita Roy, Arindam Mitra, Sayan Banik, Arnab Chakladaar) are authorized to submit call evaluations. Current view is in preview/read-only mode.</span>
             </div>
           </div>
         )}
