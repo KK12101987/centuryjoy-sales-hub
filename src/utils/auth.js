@@ -444,12 +444,12 @@ export function getPermittedModules(user) {
 
   // Developer & Super Admin
   if (email === 'kushal.centuryply@gmail.com' || isDeveloperUser(user)) {
-    return ['consolidated', 'l2', 'productivity', 'qa', 'users'];
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
   }
 
-  // Tanmoy Kar: L2 Approvals & Executive Consolidated Reconciliation
+  // Tanmoy Kar: L2 Approvals, Consolidated & Divisions View
   if (email.includes('tanmoy')) {
-    return ['l2', 'consolidated'];
+    return ['l2', 'consolidated', 'divisions'];
   }
 
   // Quality Auditors: Strictly QA & 7 QC Tools only
@@ -457,14 +457,14 @@ export function getPermittedModules(user) {
     return ['qa'];
   }
 
-  // Senior Managers & Pod Captains: Consolidated, L2, RM Telephony, QA History & 7 QC Tools (Scoped)
+  // Senior Managers & Pod Captains: Consolidated, Divisions & Pods, L2, RM Telephony, QA History & 7 QC Tools (Scoped)
   if (user.role === ROLES.MANAGER || user.role === ROLES.CAPTAIN) {
-    return ['consolidated', 'l2', 'productivity', 'qa'];
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
   }
 
   // General Admin (if not Tanmoy)
   if (user.role === ROLES.ADMIN) {
-    return ['consolidated', 'l2', 'productivity', 'qa', 'users'];
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
   }
 
   return ['consolidated'];
@@ -573,6 +573,18 @@ export function getAllUsers() {
         }
         if (parsed[idx].teamName === undefined && seed.teamName !== undefined) {
           parsed[idx].teamName = seed.teamName;
+          modified = true;
+        }
+        if (!parsed[idx].managerKey && seed.managerKey) {
+          parsed[idx].managerKey = seed.managerKey;
+          modified = true;
+        }
+        if (!parsed[idx].captainKey && seed.captainKey) {
+          parsed[idx].captainKey = seed.captainKey;
+          modified = true;
+        }
+        if (parsed[idx].isPhysicalOnly === undefined && seed.isPhysicalOnly !== undefined) {
+          parsed[idx].isPhysicalOnly = seed.isPhysicalOnly;
           modified = true;
         }
         // One-time canonical name migration for Arindam CenturyPly -> Arindam Mitra

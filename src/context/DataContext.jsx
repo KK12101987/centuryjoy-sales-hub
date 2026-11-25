@@ -237,12 +237,14 @@ export function DataProvider({ children }) {
   // Base tickets scoped strictly to the logged-in user profile
   const userScopedTickets = useMemo(() => {
     if (!currentUser) return tickets;
-    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey && currentUser.managerKey !== 'all') {
-      return tickets.filter((t) => t.manager === currentUser.managerKey);
+    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+      return tickets.filter((t) => t.manager === effectiveMgr);
     }
     if (currentUser.role === ROLES.CAPTAIN) {
+      const effectiveCap = currentUser.captainKey || currentUser.name;
       return tickets.filter((t) => {
-        const cMatch = currentUser.captainKey && t.captain?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const cMatch = effectiveCap && t.captain?.toLowerCase() === effectiveCap.toLowerCase();
         const nMatch = currentUser.name && t.captain?.toLowerCase() === currentUser.name.toLowerCase();
         const tMatch = currentUser.teamName && (
           t.teamDisplay?.toLowerCase() === currentUser.teamName.toLowerCase() ||
@@ -847,12 +849,14 @@ export function DataProvider({ children }) {
     if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
       return telephony;
     }
-    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
-      return telephony.filter((r) => r.m === currentUser.managerKey);
+    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+      return telephony.filter((r) => r.m === effectiveMgr);
     }
     if (currentUser.role === ROLES.CAPTAIN) {
+      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
       return telephony.filter((r) => {
-        const cMatch = currentUser.captainKey && r.c?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const cMatch = effectiveCap && r.c?.toLowerCase() === effectiveCap.toLowerCase();
         const nMatch = currentUser.name && r.c?.toLowerCase() === currentUser.name.toLowerCase();
         const tMatch = currentUser.teamName && r.c?.toLowerCase().includes(currentUser.teamName.toLowerCase());
         return cMatch || nMatch || tMatch;
@@ -867,12 +871,14 @@ export function DataProvider({ children }) {
     if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
       return qaAudits;
     }
-    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
-      return (qaAudits || []).filter((a) => a.manager_name === currentUser.managerKey);
+    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+      return (qaAudits || []).filter((a) => a.manager_name === effectiveMgr);
     }
     if (currentUser.role === ROLES.CAPTAIN) {
+      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
       return (qaAudits || []).filter((a) => {
-        const cMatch = currentUser.captainKey && a.captain_name?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const cMatch = effectiveCap && a.captain_name?.toLowerCase() === effectiveCap.toLowerCase();
         const nMatch = currentUser.name && a.captain_name?.toLowerCase() === currentUser.name.toLowerCase();
         const tMatch = currentUser.teamName && a.team_name?.toLowerCase() === currentUser.teamName.toLowerCase();
         return cMatch || nMatch || tMatch;
@@ -898,10 +904,11 @@ export function DataProvider({ children }) {
     if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope !== 'self') {
       return dialerCalls;
     }
-    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
+    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
       const supervisedRms = new Set(
         (rmDirectory || [])
-          .filter((rm) => rm.manager_name === currentUser.managerKey)
+          .filter((rm) => rm.manager_name === effectiveMgr)
           .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
           .filter(Boolean)
       );
@@ -912,10 +919,11 @@ export function DataProvider({ children }) {
       });
     }
     if (currentUser.role === ROLES.CAPTAIN) {
+      const effectiveCap = currentUser.captainKey || (currentUser.teamName || currentUser.name);
       const supervisedRms = new Set(
         (rmDirectory || [])
           .filter((rm) =>
-            (currentUser.captainKey && rm.captain_name?.toLowerCase() === currentUser.captainKey.toLowerCase()) ||
+            (effectiveCap && rm.captain_name?.toLowerCase() === effectiveCap.toLowerCase()) ||
             (currentUser.name && rm.captain_name?.toLowerCase() === currentUser.name.toLowerCase()) ||
             (currentUser.teamName && rm.team_name?.toLowerCase() === currentUser.teamName.toLowerCase())
           )
@@ -929,7 +937,7 @@ export function DataProvider({ children }) {
       });
     }
     return dialerCalls;
-  }, [dialerCalls, rmDirectory, currentUser]);
+  }, [dialerCalls, currentUser, rmDirectory]);
 
   const updateRmMapping = (rmName, newCaptain, newManager, newProcess) => {
     verifyWatermarkIntegrity();
@@ -1630,16 +1638,18 @@ export function DataProvider({ children }) {
   // Synchronize supervisory scope bindings whenever currentUser changes or mounts
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey && currentUser.managerKey !== 'all') {
-      setSelectedManager(currentUser.managerKey);
-      setScopeFilter((prev) => ({ ...prev, manager: currentUser.managerKey, captain: 'all' }));
+    const effectiveMgr = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null);
+    const effectiveCap = currentUser.captainKey || (currentUser.role === ROLES.CAPTAIN ? (currentUser.teamName || currentUser.name) : null);
+    if (currentUser.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+      setSelectedManager(effectiveMgr);
+      setScopeFilter((prev) => ({ ...prev, manager: effectiveMgr, captain: 'all' }));
     } else if (currentUser.role === ROLES.CAPTAIN) {
-      setSelectedManager(currentUser.managerKey || 'all');
-      setSelectedCaptain(currentUser.captainKey || currentUser.name);
+      setSelectedManager(effectiveMgr || 'all');
+      setSelectedCaptain(effectiveCap);
       setScopeFilter((prev) => ({
         ...prev,
-        manager: currentUser.managerKey || 'all',
-        captain: currentUser.captainKey || currentUser.name,
+        manager: effectiveMgr || 'all',
+        captain: effectiveCap,
       }));
     }
   }, [currentUser]);
@@ -1651,16 +1661,18 @@ export function DataProvider({ children }) {
     try {
       localStorage.setItem('century_joy_auth_user_v2', JSON.stringify(user));
     } catch (e) {}
-    if (user.role === ROLES.MANAGER && user.managerKey && user.managerKey !== 'all') {
-      setSelectedManager(user.managerKey);
-      setScopeFilter((prev) => ({ ...prev, manager: user.managerKey, captain: 'all' }));
+    const effectiveMgr = user.managerKey || (user.role === ROLES.MANAGER ? user.name : null);
+    const effectiveCap = user.captainKey || (user.role === ROLES.CAPTAIN ? (user.teamName || user.name) : null);
+    if (user.role === ROLES.MANAGER && effectiveMgr && effectiveMgr !== 'all') {
+      setSelectedManager(effectiveMgr);
+      setScopeFilter((prev) => ({ ...prev, manager: effectiveMgr, captain: 'all' }));
     } else if (user.role === ROLES.CAPTAIN) {
-      setSelectedManager(user.managerKey || 'all');
-      setSelectedCaptain(user.captainKey || user.name);
+      setSelectedManager(effectiveMgr || 'all');
+      setSelectedCaptain(effectiveCap);
       setScopeFilter((prev) => ({
         ...prev,
-        manager: user.managerKey || 'all',
-        captain: user.captainKey || user.name,
+        manager: effectiveMgr || 'all',
+        captain: effectiveCap,
       }));
     } else {
       setSelectedManager('all');

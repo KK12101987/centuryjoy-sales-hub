@@ -416,3 +416,37 @@ eplace mode preserving tickets from other months.
      - Verifying that the Rule 22 Watermark Anti-Tamper protocol remains active, coupled, and intact.
 * **Consequences:**
   - All future coding and refactoring tasks across any conversation or workspace powered by these rules will automatically enforce the anti-slop audit cycle prior to task completion.
+
+
+---
+
+## Decision 044: Dedicated Divisions & Pods Module and Physical Stream Exemption
+* **Date:** November 25, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - The developer requested a separate, dedicated page to view data for managers separately, as well as for Pod Captains, with professional titling strictly using "Dashboard".
+  - In addition, the developer pointed out an algorithmic bug where Senior Manager Amit Singal (who manages on-ground physical field teams without digital dialer RMs) was falsely flagged as "Needs Review" due to having 0 dials and 0 call audits.
+* **Actions Taken:**
+  1. *Physical Stream Exemption Logic:*
+     - Added `isPhysical` check in `ConsolidatedDashboard.jsx`.
+     - When `isPhysical` is true, dialer telephony metrics and QA scores render as `— (Field)` and `— (Exempt)`.
+     - Performance Index dynamically sets to `Physical Operations • Active` (purple badge) instead of being penalized by digital call thresholds.
+  2. *Resilient Scope Resolution:*
+     - Implemented `effectiveManagerKey = currentUser.managerKey || (currentUser.role === ROLES.MANAGER ? currentUser.name : null)` and `effectiveCaptainKey = currentUser.captainKey || (currentUser.role === ROLES.CAPTAIN ? (currentUser.teamName || currentUser.name) : null)` across all scoped pipelines (`userScopedTickets`, `scopedTelephony`, `scopedQaAudits`, `scopedDialerCalls`, and `scopeFilter` synchronization).
+     - Backfilled `managerKey`, `captainKey`, and `isPhysicalOnly` in `getAllUsers()`.
+  3. *Built Dedicated Divisions & Pods Module (`src/components/ManagerHub/ManagerHub.jsx`):*
+     - Role-adaptive: Locks to Division Dashboard for Senior Managers, Pod Dashboard for Pod Captains, and provides an interactive dual switcher for Super Admins / Executives.
+     - Tri-Factor Pillar KPI cards (Financials, Telephony, QA).
+     - Subordinate pod comparison cards and full RM roster table.
+     - Professional titling using "Dashboard" without prohibited military terminology.
+  4. *Navigation & Integration:*
+     - Added `divisions` to permitted modules in `src/utils/auth.js`.
+     - Integrated dynamic tab into `Navbar.jsx` (`My Division` for managers, `My Pod` for captains, `Divisions & Pods` for admins).
+     - Mounted `ManagerHub` in `src/App.jsx`.
+  5. *Rule 21b Anti-Slop Audit Cycle:*
+     - Verified 0 unreferenced files (34/34 mapped).
+     - Verified 0 unused named imports.
+     - Verified 0 console.log statements.
+     - Pinned platform baseline and verified Rule 22 Watermark Anti-Tamper protocol.
+* **Consequences:**
+  - Managers and Captains now have an isolated, deep-dive dashboard dedicated to their supervisory scope, while physical operations are fairly and accurately represented.

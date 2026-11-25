@@ -15,7 +15,8 @@ import {
   Calendar, 
   Check, 
   UploadCloud, 
-  RefreshCw 
+  RefreshCw,
+  Layers 
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -196,6 +197,27 @@ export default function Navbar() {
               </button>
             )}
 
+            {/* 1b. Divisions & Pods Dashboard */}
+            {permittedModules.includes('divisions') && (
+              <button
+                onClick={() => switchModule('divisions')}
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  activeModule === 'divisions'
+                    ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span>
+                  {currentUser.role === ROLES.MANAGER
+                    ? 'My Division'
+                    : currentUser.role === ROLES.CAPTAIN
+                    ? 'My Pod'
+                    : 'Divisions & Pods'}
+                </span>
+              </button>
+            )}
+
             {/* 2. L2 Financial Reconciliation */}
             {permittedModules.includes('l2') && (
               <button
@@ -352,6 +374,16 @@ export default function Navbar() {
               }`}
             >
               Consolidated
+            </button>
+          )}
+          {permittedModules.includes('divisions') && (
+            <button
+              onClick={() => switchModule('divisions')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
+                activeModule === 'divisions' ? 'bg-indigo-50 text-indigo-700 dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              {currentUser.role === ROLES.MANAGER ? 'Division' : currentUser.role === ROLES.CAPTAIN ? 'Pod' : 'Divisions'}
             </button>
           )}
           {permittedModules.includes('l2') && (

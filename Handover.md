@@ -326,3 +326,27 @@ The application will automatically detect Vite and the serverless functions unde
   - Following every code edit or feature implementation, systematically run the Anti-Slop Audit Cycle (unused import pruning, dead code elimination, 0 console.log, platform baseline alignment, and Rule 22 watermark integrity verification).
 - **Project State:**
   - Repository remains 100% clean, verified, and aligned with all 22 rules.
+
+
+---
+
+## 31. Dedicated Division & Pod Dashboards & Physical Stream Alignment (Nov 25, 2026)
+- **Dedicated Divisions & Pods Module (`ManagerHub.jsx`):**
+  - Built standalone component mounted under `activeModule === 'divisions'`.
+  - Senior Managers automatically locked to their Division Dashboard (Niladri Bhadra, Surajit Laha, Arijit Nath, Amit Singal).
+  - Pod Captains automatically locked to their Pod Dashboard (Unity-II, Unity-I, Catlyst-II, Catlyst-I, SoarZone-II, SoarZone-I, Zenith Pod).
+  - Super Admins / Executives have an interactive dual selector to toggle between all 4 Senior Managers and all 7 Pod Captains.
+  - Strict professional titling using "Dashboard" across all views.
+- **Amit Singal Physical Stream Exemption:**
+  - Implemented physical stream classification for field operations.
+  - Dialer telephony and call audits display `— (Field)` / `— (Exempt)` with a `Physical Operations • Active` status, preventing false "Needs Review" penalties.
+- **Defensive Scope Synchronization:**
+  - Guaranteed fallback `currentUser.managerKey || currentUser.name` across all pipelines in `DataContext.jsx`.
+  - Added backfill for `managerKey`, `captainKey`, and `isPhysicalOnly` in `getAllUsers()`.
+- **Navigation Integration:**
+  - Integrated `My Division` / `My Pod` / `Divisions & Pods` tab into desktop and mobile navigation in `Navbar.jsx`.
+- **Trailing-Edge Hygiene & Rule 21b Audit:**
+  - 34/34 source files actively imported (0 orphaned components).
+  - 0 unused named imports, 0 console.log statements.
+  - Production build compiled in 25.28s with 0 errors.
+  - Rule 22 Watermark Anti-Tamper protocol active and intact.

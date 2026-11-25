@@ -99,15 +99,16 @@ export default function ConsolidatedDashboard() {
   const fatalRate = filteredQa.length > 0 ? ((fatalCount / filteredQa.length) * 100).toFixed(1) : '0.0';
 
   // Senior Managers Cross-Comparison Breakdown scoped to user hierarchy
+  const effectiveManagerKey = currentUser?.managerKey || (currentUser?.role === 'manager' ? currentUser?.name : null);
   const managers = useMemo(() => {
-    if (currentUser?.role === 'manager' && currentUser.managerKey && currentUser.managerKey !== 'all') {
-      return [currentUser.managerKey];
+    if (currentUser?.role === 'manager' && effectiveManagerKey && effectiveManagerKey !== 'all') {
+      return [effectiveManagerKey];
     }
     if (currentUser?.role === 'captain') {
       return currentUser.managerKey ? [currentUser.managerKey] : [];
     }
     return ['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal'];
-  }, [currentUser]);
+  }, [currentUser, effectiveManagerKey]);
 
   const managerComparison = useMemo(() => {
     const baseTickets = scopedTickets || tickets;
@@ -115,6 +116,7 @@ export default function ConsolidatedDashboard() {
     const baseQa = scopedQaAudits || qaAudits;
 
     return managers.map((mgr) => {
+      const isPhysical = mgr === 'Amit Singal' || (typeof mgr === 'string' && mgr.toLowerCase().includes('singal'));
       const mgrTickets = baseTickets.filter((t) => t.manager === mgr);
       const mgrFin = mgrTickets.reduce((sum, t) => sum + (Number(t.finalTotalAmount) || 0), 0);
       const mgrTele = baseTele.filter((r) => r.m === mgr);
@@ -128,7 +130,10 @@ export default function ConsolidatedDashboard() {
 
       let status = 'Balanced';
       let statusColor = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      if (Number(qaScore) >= 88 && Number(connRate) >= 48) {
+      if (isPhysical) {
+        status = 'Physical Operations • Active';
+        statusColor = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+      } else if (Number(qaScore) >= 88 && Number(connRate) >= 48) {
         status = 'High Performer';
         statusColor = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
       } else if (Number(qaScore) < 82 || Number(connRate) < 42) {
@@ -138,6 +143,7 @@ export default function ConsolidatedDashboard() {
 
       return {
         manager: mgr,
+        isPhysical,
         ticketsCount: mgrTickets.length,
         financialVolume: mgrFin,
         dials,
@@ -393,16 +399,32 @@ export default function ConsolidatedDashboard() {
                     {nf.format(row.ticketsCount)}
                   </td>
                   <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300">
-                    {nf.format(row.dials)}
+                    {row.isPhysical && row.dials === 0 ? (
+                      <span className="text-slate-400 italic font-normal">— (Field)</span>
+                    ) : (
+                      nf.format(row.dials)
+                    )}
                   </td>
                   <td className="py-3.5 px-4 font-semibold text-emerald-600 dark:text-emerald-400">
-                    {row.connRate}%
+                    {row.isPhysical && row.dials === 0 ? (
+                      <span className="text-slate-400 italic font-normal">— (Field)</span>
+                    ) : (
+                      `${row.connRate}%`
+                    )}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
-                    {row.qaScore}%
+                    {row.isPhysical && row.auditsCount === 0 ? (
+                      <span className="text-slate-400 italic font-normal">— (Exempt)</span>
+                    ) : (
+                      `${row.qaScore}%`
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-slate-500">
-                    {row.auditsCount} audits
+                    {row.isPhysical && row.auditsCount === 0 ? (
+                      <span className="text-slate-400 italic font-normal">— (No Dialer)</span>
+                    ) : (
+                      `${row.auditsCount} audits`
+                    )}
                   </td>
                   <td className="py-3.5 px-4">
                     <span className={`px-2.5 py-1 rounded-full font-semibold text-[11px] ${row.statusColor}`}>

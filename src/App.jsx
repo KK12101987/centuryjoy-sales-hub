@@ -5,6 +5,7 @@ import LoginPage from './components/Common/LoginPage';
 import Watermark from './components/Common/Watermark';
 import UploadCenterModal from './components/Common/UploadCenterModal';
 import ConsolidatedDashboard from './components/ConsolidatedDashboard/ConsolidatedDashboard';
+import ManagerHub from './components/ManagerHub/ManagerHub';
 import L2DashboardMain from './components/L2Dashboard/L2DashboardMain';
 import RMProductivity from './components/RMProductivity/RMProductivity';
 import QaDashboard from './components/QaDashboard/QaDashboard';
@@ -38,6 +39,7 @@ function AppContent() {
       {/* Main Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeModule === 'consolidated' && <ConsolidatedDashboard />}
+        {activeModule === 'divisions' && <ManagerHub />}
         {activeModule === 'l2' && <L2DashboardMain />}
         {activeModule === 'productivity' && <RMProductivity />}
         {activeModule === 'qa' && <QaDashboard />}
