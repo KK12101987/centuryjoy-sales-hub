@@ -191,3 +191,11 @@ The application will automatically detect Vite and the serverless functions unde
     - **Call Date:** Locked with a `🔒 Locked` badge.
 - **Manual "New Blank Audit" Mode:**
   - Clicking "New Blank Audit" resets the form and unlocks all dropdowns and textboxes for flexible manual entry.
+- **Live Production Verification:**
+  - Verified on live production ([centuryjoy-sales-hub.vercel.app](https://centuryjoy-sales-hub.vercel.app/)) by browser subagent `dd12511f-0cf7-47e5-bb28-15dcf71ce0d3`.
+  - Selected call `9175796052` (`anadhara`, 00:04:39).
+  - Confirmed `Franchise / Team` auto-resolved to `SoarZone-I` (no longer `-- All Teams --`), and locked with `🔒 Locked to Call` badge.
+  - Confirmed `Relationship Manager (RM)` locked to `Ananya Dhara` with `🔒 Locked to Call` badge.
+  - Confirmed `Customer Mobile No.`, `Call Duration`, and `Call Date` locked with `🔒 Locked` badges.
+  - Confirmed clicking `New Blank Audit` immediately cleared the target and returned all fields to unlocked, editable state.
+  - Verification artifacts: [standard_call_team_resolved_and_locked_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/standard_call_team_resolved_and_locked_verified.png) and [new_blank_audit_unlocked_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/new_blank_audit_unlocked_verified.png).

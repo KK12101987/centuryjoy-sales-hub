@@ -113,4 +113,4 @@
   1. **Franchise / Team Resolution:** Selecting a call from the Pending Calls dialer queue automatically cross-references `rmDirectory` and sets `franchise` to the agent's assigned pod (e.g. `SoarZone-I` for `Ananya Dhara`).
   2. **Immutable Call Metadata Locking:** When evaluating a selected dialer call, Franchise/Team, RM, Customer Mobile, Duration, and Call Date are rendered with `Lock` badges and locked (read-only/disabled) to prevent modification.
   3. **New Blank Audit Reset:** Form provides a "New Blank Audit" button to clear target locks and allow full manual input.
-* **Verification:** Production build passed cleanly in 31.31s. Verified live on production browser subagent.
+* **Verification:** Production build passed cleanly in 31.31s. Verified live on production browser subagent `dd12511f-0cf7-47e5-bb28-15dcf71ce0d3`: selected call for `Ananya Dhara`, verified `Franchise / Team` resolved to `SoarZone-I`, verified all 5 call metadata fields locked with `Lock` badges, and confirmed `New Blank Audit` resets and unlocks all fields. Artifacts: `standard_call_team_resolved_and_locked_verified.png` and `new_blank_audit_unlocked_verified.png`.
