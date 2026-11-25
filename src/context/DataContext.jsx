@@ -1366,6 +1366,116 @@ export function DataProvider({ children }) {
     return { rmName: cleanName, teamName: cleanTeam, captainName: finalCaptain };
   };
 
+  // Remove / Dissolve a Team / Pod (Zero Database Impact: members reassigned or soft-deactivated)
+  const removeTeam = ({
+    teamName,
+    reassignToTeam = 'Unity-II',
+    action = 'reassign', // 'reassign' | 'deactivate'
+    targetCaptain = '',
+    targetManager = '',
+  }) => {
+    verifyWatermarkIntegrity();
+    const cleanTeam = (teamName || '').trim();
+    if (!cleanTeam) {
+      throw new Error('Team name to remove is required.');
+    }
+
+    // 1. Remove from customTeams
+    setCustomTeams((prev) => {
+      const updated = prev.filter((t) => t.toLowerCase() !== cleanTeam.toLowerCase());
+      try {
+        localStorage.setItem('century_custom_teams_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Also track removed teams so canonical or custom pods are filtered out
+    try {
+      const savedArchived = localStorage.getItem('century_removed_teams_v2');
+      const parsedArchived = savedArchived ? JSON.parse(savedArchived) : [];
+      if (!parsedArchived.some((t) => t.toLowerCase() === cleanTeam.toLowerCase())) {
+        parsedArchived.push(cleanTeam);
+        localStorage.setItem('century_removed_teams_v2', JSON.stringify(parsedArchived));
+      }
+    } catch (e) {}
+
+    // Find affected members in this team
+    const affectedMembers = rmDirectory.filter(
+      (r) => (r.team_name || '').toLowerCase() === cleanTeam.toLowerCase()
+    );
+
+    // 2. Handle affected members in rmDirectory
+    setRmDirectory((prev) => {
+      const updated = prev.map((rm) => {
+        if ((rm.team_name || '').toLowerCase() === cleanTeam.toLowerCase()) {
+          if (action === 'deactivate') {
+            return {
+              ...rm,
+              status: 'inactive',
+              deactivatedAt: new Date().toISOString(),
+              deactivationReason: `Pod Dissolution - Team "${cleanTeam}" removed`,
+            };
+          } else {
+            // Reassign to target team
+            return {
+              ...rm,
+              team_name: reassignToTeam,
+              captain_name: targetCaptain || 'Direct Supervision',
+              manager_name: targetManager || 'Arijit Nath',
+              status: 'active',
+              tempSupervisedByManager: false,
+            };
+          }
+        }
+        return rm;
+      });
+
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 3. Update Hierarchy Tree
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      const affectedNames = affectedMembers.map((m) => m.rm_name.toLowerCase());
+
+      for (const m in tree) {
+        for (const c in tree[m]) {
+          // If captain key contains team name or is captain of removed team
+          if (c.toLowerCase().includes(cleanTeam.toLowerCase())) {
+            delete tree[m][c];
+          } else {
+            if (action === 'deactivate') {
+              tree[m][c] = (tree[m][c] || []).filter(
+                (ag) => !affectedNames.includes(ag.toLowerCase())
+              );
+            }
+          }
+        }
+      }
+
+      // If reassigning, append members to target pod
+      if (action === 'reassign' && reassignToTeam) {
+        const mgr = targetManager || 'Arijit Nath';
+        const cap = targetCaptain || 'Direct Supervision';
+        if (!tree[mgr]) tree[mgr] = {};
+        if (!tree[mgr][cap]) tree[mgr][cap] = [];
+        const newMemberNames = affectedMembers.map((m) => m.rm_name);
+        tree[mgr][cap] = [...new Set([...tree[mgr][cap], ...newMemberNames])];
+      }
+
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return { teamName: cleanTeam, memberCount: affectedMembers.length, action, reassignToTeam };
+  };
+
   // Global Scope Filter for Consolidated View
   const [scopeFilter, setScopeFilter] = useState({
     manager: 'all',
@@ -1459,6 +1569,7 @@ export function DataProvider({ children }) {
     customTeams,
     addNewTeam,
     addNewMemberToTeam,
+    removeTeam,
     scopeFilter,
     setScopeFilter,
     isUploadModalOpen,

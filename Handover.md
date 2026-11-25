@@ -144,3 +144,16 @@ The application will automatically detect Vite and the serverless functions unde
   - The QA Call Scorecard Franchise/Team selector and RM dropdown.
   - The live organizational tree (`hierarchy.tree`).
 - **Zero Database Distortion:** Historical records remain 100% intact with strict anti-tamper watermark verification.
+
+---
+
+## 21. Team Removal and Pod Dissolution Engine (Nov 25, 2026)
+- **Pod Card Decommission Action:** Added a delete (`Trash2`) button on every pod card in the Live Pod Leadership Status & Failover Health grid.
+- **`RemoveTeamModal` Dialog:**
+  - Displays pod name, Senior Manager, Pod Captain, and count of active members.
+  - Offers two disposition options:
+    - **Reassign Members (Recommended):** Reassigns all active team members to another active pod (e.g. `Unity-II`) so operations continue uninterrupted.
+    - **Soft-Deactivate Members:** Deactivates members with dissolution reason.
+- **Zero Database Impact Guarantee:**
+  - Decommissioned teams are tracked in `century_removed_teams_v2` and excluded from future scheduling, dropdowns, and evaluations.
+  - All past sales tickets, call records, and completed QA scorecards remain 100% permanently intact.

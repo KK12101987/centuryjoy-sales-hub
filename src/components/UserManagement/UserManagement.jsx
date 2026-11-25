@@ -62,6 +62,7 @@ export default function UserManagement() {
     customTeams,
     addNewTeam,
     addNewMemberToTeam,
+    removeTeam,
     qaAudits
   } = useData();
 
@@ -110,6 +111,16 @@ export default function UserManagement() {
     designation: 'Relationship Manager',
   });
 
+  // Remove / Dissolve Team State
+  const [removeTeamModalOpen, setRemoveTeamModalOpen] = useState(false);
+  const [removingPod, setRemovingPod] = useState(null);
+  const [removeTeamData, setRemoveTeamData] = useState({
+    action: 'reassign', // 'reassign' | 'deactivate'
+    targetTeam: 'Unity-II',
+    targetCaptain: '',
+    targetManager: 'Arijit Nath',
+  });
+
   // Dedicated Captain Resignation tab state
   const [resigningCaptainName, setResigningCaptainName] = useState('Arshi Afreen Jamal');
   const [captainSeparationReason, setCaptainSeparationReason] = useState('Resignation / Separation');
@@ -153,7 +164,7 @@ export default function UserManagement() {
     'Direct Supervision (Physical)'
   ];
 
-  // Distinct Teams List (All Canonical Digital Teams + Custom Pods)
+  // Distinct Teams List (All Canonical Digital Teams + Custom Pods, excluding dissolved teams)
   const teamsList = useMemo(() => {
     const canonical = [
       'Unity-I',
@@ -164,12 +175,20 @@ export default function UserManagement() {
       'SoarZone-II',
       'Zenith Pod'
     ];
+    let removedTeams = [];
+    try {
+      const saved = localStorage.getItem('century_removed_teams_v2');
+      if (saved) removedTeams = JSON.parse(saved);
+    } catch (e) {}
+
     const fromRms = (rmDirectory || [])
       .map((r) => (r.team_name || '').trim())
       .filter((t) => t && !t.toLowerCase().includes('physical'));
     const fromCustom = customTeams || [];
     const combined = [...new Set([...canonical, ...fromCustom, ...fromRms])];
-    return combined.sort();
+    return combined
+      .filter((t) => !removedTeams.some((rt) => rt.toLowerCase() === t.toLowerCase()))
+      .sort();
   }, [rmDirectory, customTeams]);
 
   // Filtered users for Tab 1 User Accounts
@@ -400,6 +419,36 @@ export default function UserManagement() {
         mobileNumber: '',
         designation: 'Relationship Manager',
       });
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
+    }
+  };
+
+  const handleRemoveTeamSubmit = (e) => {
+    e.preventDefault();
+    if (!removingPod) return;
+    try {
+      const res = removeTeam({
+        teamName: removingPod.teamName,
+        action: removeTeamData.action,
+        reassignToTeam: removeTeamData.targetTeam,
+      });
+
+      const actionMsg =
+        removeTeamData.action === 'reassign'
+          ? `Reassigned ${res.memberCount} members to "${removeTeamData.targetTeam}".`
+          : `Soft-deactivated ${res.memberCount} members with zero historical data loss.`;
+
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully dissolved and removed team "${removingPod.teamName}". ${actionMsg}`,
+        canRevert: false,
+        revertTarget: '',
+      });
+
+      setRemoveTeamModalOpen(false);
+      setRemovingPod(null);
       setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
     } catch (err) {
       setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
@@ -1156,12 +1205,32 @@ export default function UserManagement() {
                           Digital Pod
                         </span>
                       </div>
-                      <span
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          pod.isFailover ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
-                        }`}
-                        title={pod.isFailover ? 'Captain resigned - Under Senior Manager failover' : 'Active Pod'}
-                      />
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRemovingPod(pod);
+                            const otherTeams = teamsList.filter((t) => t !== pod.teamName);
+                            setRemoveTeamData({
+                              action: 'reassign',
+                              targetTeam: otherTeams[0] || 'Unity-II',
+                              targetCaptain: '',
+                              targetManager: 'Arijit Nath',
+                            });
+                            setRemoveTeamModalOpen(true);
+                          }}
+                          className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          title={`Remove / Dissolve pod "${pod.teamName}"`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full ${
+                            pod.isFailover ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                          }`}
+                          title={pod.isFailover ? 'Captain resigned - Under Senior Manager failover' : 'Active Pod'}
+                        />
+                      </div>
                     </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
                       Senior Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
@@ -2810,6 +2879,155 @@ export default function UserManagement() {
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Add Member to Team</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Remove / Dissolve Digital Pod */}
+      {removeTeamModalOpen && removingPod && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    Remove / Dissolve Digital Pod
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Decommission team "{removingPod.teamName}" with zero database data loss.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRemoveTeamModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Pod Name:</span>
+                <span className="font-bold text-slate-900 dark:text-white">{removingPod.teamName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Senior Manager:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{removingPod.seniorManager}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Pod Captain:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">{removingPod.captainName || 'None'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Active Team Members:</span>
+                <span className="font-bold text-purple-600 dark:text-purple-400">{removingPod.totalRms} RMs</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleRemoveTeamSubmit} className="space-y-3.5 text-xs">
+              {removingPod.totalRms > 0 && (
+                <div className="space-y-2">
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300">
+                    Disposition for {removingPod.totalRms} Active Team Members:
+                  </label>
+                  
+                  <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <label className="flex items-start space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="removeAction"
+                        checked={removeTeamData.action === 'reassign'}
+                        onChange={() => setRemoveTeamData((prev) => ({ ...prev, action: 'reassign' }))}
+                        className="mt-0.5 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-white block">
+                          Reassign all members to another team (Recommended)
+                        </span>
+                        <span className="text-[11px] text-slate-500 block mt-0.5">
+                          Transfers all {removingPod.totalRms} members into another active pod so their calls and operations continue uninterrupted.
+                        </span>
+                      </div>
+                    </label>
+
+                    {removeTeamData.action === 'reassign' && (
+                      <div className="pt-2 pl-5">
+                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Select Target Team / Pod:
+                        </label>
+                        <select
+                          value={removeTeamData.targetTeam}
+                          onChange={(e) => setRemoveTeamData((prev) => ({ ...prev, targetTeam: e.target.value }))}
+                          className="w-full p-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold"
+                        >
+                          {teamsList
+                            .filter((t) => t.toLowerCase() !== removingPod.teamName.toLowerCase())
+                            .map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <label className="flex items-start space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="removeAction"
+                          checked={removeTeamData.action === 'deactivate'}
+                          onChange={() => setRemoveTeamData((prev) => ({ ...prev, action: 'deactivate' }))}
+                          className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                        />
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white block">
+                            Soft-Deactivate all {removingPod.totalRms} members
+                          </span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">
+                            Separates the team members from active scheduling without deleting past sales tickets or completed QA scorecards.
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Zero DB Impact Guarantee */}
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs space-y-1">
+                <div className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Zero Database Impact Guarantee</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Removing this pod will prevent new assignments and evaluations under this name. 
+                  <strong> No historical data is deleted.</strong> All past financial disbursements, call recordings, and completed QA scorecards remain 100% permanently preserved.
+                </p>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setRemoveTeamModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Confirm & Dissolve Team</span>
                 </button>
               </div>
 

@@ -210,3 +210,18 @@ eplace mode preserving tickets from other months.
      - Historical tickets, calls, and QA scorecards are never altered or deleted.
      - New teams and their members immediately populate the Pod Leadership status cards, supervisory reassignment dropdowns, and QA Call Scorecard Franchise/Team filters.
   4. *Rule 22 Anti-Tamper Enforcement:* Embedded `verifyWatermarkIntegrity()` inside `addNewTeam` and `addNewMemberToTeam` to guarantee that structural organizational expansions cannot be executed if the anti-tamper watermark has been modified.
+
+---
+
+### Decision 034: Team Removal and Pod Dissolution Governance with Member Reassignment & Zero DB Impact
+* **Date:** 2026-11-25
+* **Context:** User requested the ability to remove/dissolve teams in the future as operational pods evolve.
+* **Architecture & Mechanics:**
+  1. *Decommissioning Flow:* Each pod card in the Live Pod Leadership grid provides a direct delete button (`Trash2`). Clicking it activates the `RemoveTeamModal`.
+  2. *Disposition for Active Members:*
+     - **Reassignment (Recommended):** Moves all active pod members seamlessly into another selected active pod (e.g. `Unity-II`) so operations, call queues, and evaluations continue without interruption.
+     - **Soft-Deactivation:** Marks members as inactive with dissolution reasons without touching database records.
+  3. *Zero Database Impact Guarantee:*
+     - All past sales tickets, disbursements, and completed QA call scorecards attributed to the dissolved team remain 100% permanently preserved in the database.
+     - The dissolved team is tracked in `century_removed_teams_v2` and cleanly filtered out from active selection dropdowns in QA Scorecards, Scope transfer forms, and leadership grids.
+  4. *Rule 22 Watermark Enforcement:* `verifyWatermarkIntegrity()` is invoked inside `removeTeam`.

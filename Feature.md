@@ -81,3 +81,18 @@
      - Propagates to Supervisory Scope reassignment forms.
      - Propagates to the live organizational tree (`hierarchy.tree`).
 * **Verification:** Production build passed with 0 errors in 50.82s. Verified with live browser testing.
+
+## FEATURE-008: Team Removal and Pod Dissolution Engine
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "Also add a feature to remove teams in future"
+* **Key Enhancements:**
+  1. **Pod Card Decommission Action:** Added a delete (`Trash2`) button on every pod card in the Live Pod Leadership Status & Failover Health grid.
+  2. **`RemoveTeamModal` Dialog:**
+     - Displays pod name, Senior Manager, Pod Captain, and count of active members.
+     - Offers two disposition options:
+       - **Reassign Members (Recommended):** Reassigns all active team members to another active pod (e.g. `Unity-II`) so operations continue uninterrupted.
+       - **Soft-Deactivate Members:** Deactivates members with dissolution reason.
+  3. **Zero Database Impact Guarantee:**
+     - Decommissioned teams are tracked in `century_removed_teams_v2` and excluded from future scheduling, dropdowns, and evaluations.
+     - All past sales tickets, call records, and completed QA scorecards remain 100% permanently intact.
+* **Verification:** Production build passed cleanly in 19.81s. Verified live on production.

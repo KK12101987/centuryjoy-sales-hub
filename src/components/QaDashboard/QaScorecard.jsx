@@ -272,11 +272,21 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
   const [lockMessage, setLockMessage] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Unique Franchises / Teams from RM Directory + Custom Dynamic Teams
+  // Unique Franchises / Teams from RM Directory + Custom Dynamic Teams (excluding dissolved pods)
   const franchises = useMemo(() => {
-    const fromRms = rmDirectory.map((r) => (r.team_name || "").trim()).filter(Boolean);
+    let removedTeams = [];
+    try {
+      const saved = localStorage.getItem('century_removed_teams_v2');
+      if (saved) removedTeams = JSON.parse(saved);
+    } catch (e) {}
+    const fromRms = rmDirectory
+      .filter((r) => r.status !== 'inactive')
+      .map((r) => (r.team_name || "").trim())
+      .filter(Boolean);
     const fromCustom = customTeams || [];
-    return [...new Set([...fromCustom, ...fromRms])].sort();
+    return [...new Set([...fromCustom, ...fromRms])]
+      .filter((t) => !removedTeams.some((rt) => rt.toLowerCase() === t.toLowerCase()))
+      .sort();
   }, [rmDirectory, customTeams]);
 
   // Filtered RMs (robust against Unity-II vs Unity 2 variations, excludes soft-offboarded employees for new evaluations)
