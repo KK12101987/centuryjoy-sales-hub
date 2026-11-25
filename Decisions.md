@@ -236,3 +236,17 @@ eplace mode preserving tickets from other months.
   2. *Active Captain Resolver (`activeCaptain`):* Standardized captain resolution in `QaScorecard.jsx`. If an RM's pod is in failover (`tempSupervisedByManager === true`), or their designated captain is inactive or equal to the Senior Manager, `activeCaptain` evaluates to `null`.
   3. *Failover Visual Indicator:* When a pod captain is resigned, the "Assigned Pod Captain" input renders an amber failover badge displaying `— (Vacant • In Failover to Senior Manager)`, while the adjacent "Senior Manager" field explicitly displays the interim manager (e.g. `Arijit Nath`), guaranteeing complete transparency with zero ambiguity.
   4. *Scorecard Title Standardization:* Consolidated title across all headers to exactly `"Official CenturyPly QA Call Scorecard"`.
+
+---
+
+### Decision 036: Standard Call Auto-Resolution of Franchise / Team & Call Metadata Locking in QA Scorecard
+* **Date:** 2026-11-25
+* **Context:** When an auditor selects a call from the Pending Calls dialer queue (Standard, Short, Zero, or Disposed) by clicking "Audit Now", the Franchise / Team field was showing `-- All Teams --` instead of the agent's team name, and the call metadata fields were editable instead of being locked to the recorded phone call.
+* **Architecture & Mechanics:**
+  1. *Automatic Franchise / Team Resolution:* Both `handleAuditCall` in `QaDashboard.jsx` and `useEffect` in `QaScorecard.jsx` now cross-reference the incoming dialer record against `rmDirectory` (by `agent_id`, `dialer_id`, or `rm_name`). This automatically populates the agent's canonical pod (e.g., `SoarZone-I` for `Ananya Dhara`).
+  2. *Call Metadata Immutable Locking (`isTargetLocked`):* When an incoming `auditTarget` is present, the call's metadata fields are strictly locked to reflect the recorded telephone interaction:
+     - **Franchise / Team:** Rendered as a read-only locked input with a `🔒 Locked to Call` badge.
+     - **Relationship Manager (RM):** Rendered as a read-only locked input with a `🔒 Locked to Call` badge.
+     - **Customer Mobile No., Call Duration, Call Date:** Rendered as read-only locked inputs with `🔒 Locked` badges.
+     - **Assigned Pod Captain & Senior Manager:** Remain read-only reflecting active leadership or failover mode.
+  3. *New Blank Audit Unlocking:* Clicking "New Blank Audit" clears `auditTarget` via `onClearTarget()`, instantly reverting the form back to editable dropdowns and textboxes for manual evaluations.

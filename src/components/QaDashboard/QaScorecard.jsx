@@ -9,7 +9,8 @@ import {
   ShieldAlert, 
   Sparkles, 
   CheckCircle2,
-  AlertTriangle 
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 
 export const PARAMETERS = [
@@ -184,12 +185,19 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         setCallDuration("04:30");
       }
 
-      if (auditTarget.agent_id || auditTarget.rm_name) {
-        setRmName(auditTarget.rm_name || auditTarget.agent_id);
+      const resolvedRmName = auditTarget.rm_name || auditTarget.agent_id || "";
+      if (resolvedRmName) {
+        setRmName(resolvedRmName);
       }
 
-      if (auditTarget.team_name || auditTarget.franchise) {
-        setFranchise(auditTarget.team_name || auditTarget.franchise);
+      // Auto-resolve team / franchise from auditTarget or matching RM in directory
+      const matchedRm = (rmDirectory || []).find(
+        (r) => (r.rm_name || "").toLowerCase() === resolvedRmName.toLowerCase() ||
+               (r.dialer_id && (r.dialer_id || "").toLowerCase() === (auditTarget.agent_id || "").toLowerCase())
+      );
+      const resolvedTeam = auditTarget.team_name || auditTarget.franchise || matchedRm?.team_name || "";
+      if (resolvedTeam) {
+        setFranchise(resolvedTeam);
       }
 
       if (auditTarget.call_date) {
@@ -335,6 +343,7 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
   const currentCaptain = activeCaptain || "";
   const currentManager = selectedRmObj ? selectedRmObj.manager_name || "" : "";
   const isCaptainResigned = selectedRmObj && !activeCaptain;
+  const isTargetLocked = Boolean(auditTarget);
 
   // Short Call Check
   useEffect(() => {
@@ -659,39 +668,73 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 text-xs">
           
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Franchise / Team</label>
-            <select
-              value={franchise}
-              onChange={(e) => {
-                setFranchise(e.target.value);
-                setRmName("");
-              }}
-              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
-            >
-              <option value="">-- All Teams --</option>
-              {franchises.map((f) => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Franchise / Team</span>
+              {isTargetLocked && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3 inline" /> Locked to Call
+                </span>
+              )}
+            </label>
+            {isTargetLocked ? (
+              <input
+                type="text"
+                value={franchise || selectedRmObj?.team_name || "—"}
+                readOnly
+                disabled
+                className="w-full p-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 font-bold cursor-not-allowed"
+              />
+            ) : (
+              <select
+                value={franchise}
+                onChange={(e) => {
+                  setFranchise(e.target.value);
+                  setRmName("");
+                }}
+                className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
+              >
+                <option value="">-- All Teams --</option>
+                {franchises.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Relationship Manager (RM)</label>
-            <select
-              value={rmName}
-              onChange={(e) => {
-                setRmName(e.target.value);
-                const matched = rmDirectory.find((r) => r.rm_name === e.target.value);
-                if (matched && !franchise) setFranchise(matched.team_name);
-              }}
-              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold"
-              required
-            >
-              <option value="">-- Select RM --</option>
-              {availableRms.map((rm) => (
-                <option key={rm.rm_name} value={rm.rm_name}>{rm.rm_name}</option>
-              ))}
-            </select>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Relationship Manager (RM)</span>
+              {isTargetLocked && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3 inline" /> Locked to Call
+                </span>
+              )}
+            </label>
+            {isTargetLocked ? (
+              <input
+                type="text"
+                value={rmName || "—"}
+                readOnly
+                disabled
+                className="w-full p-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 font-bold cursor-not-allowed"
+              />
+            ) : (
+              <select
+                value={rmName}
+                onChange={(e) => {
+                  setRmName(e.target.value);
+                  const matched = rmDirectory.find((r) => r.rm_name === e.target.value);
+                  if (matched && !franchise) setFranchise(matched.team_name);
+                }}
+                className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold"
+                required
+              >
+                <option value="">-- Select RM --</option>
+                {availableRms.map((rm) => (
+                  <option key={rm.rm_name} value={rm.rm_name}>{rm.rm_name}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>
@@ -732,34 +775,73 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
           </div>
 
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Customer Mobile No.</label>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Customer Mobile No.</span>
+              {isTargetLocked && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3 inline" /> Locked
+                </span>
+              )}
+            </label>
             <input
               type="text"
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
               placeholder="e.g. 9830012345"
-              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
+              readOnly={isTargetLocked}
+              disabled={isTargetLocked}
+              className={`w-full p-2 rounded-xl border ${
+                isTargetLocked
+                  ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-mono font-semibold cursor-not-allowed"
+                  : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+              }`}
             />
           </div>
 
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Call Duration (MM:SS)</label>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Call Duration (MM:SS)</span>
+              {isTargetLocked && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3 inline" /> Locked
+                </span>
+              )}
+            </label>
             <input
               type="text"
               value={callDuration}
               onChange={(e) => setCallDuration(e.target.value)}
               placeholder="02:45"
-              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
+              readOnly={isTargetLocked}
+              disabled={isTargetLocked}
+              className={`w-full p-2 rounded-xl border ${
+                isTargetLocked
+                  ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-mono font-semibold cursor-not-allowed"
+                  : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+              }`}
             />
           </div>
 
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Call Date</label>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Call Date</span>
+              {isTargetLocked && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3 inline" /> Locked
+                </span>
+              )}
+            </label>
             <input
               type="date"
               value={callDate}
               onChange={(e) => setCallDate(e.target.value)}
-              className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl"
+              readOnly={isTargetLocked}
+              disabled={isTargetLocked}
+              className={`w-full p-2 rounded-xl border ${
+                isTargetLocked
+                  ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-not-allowed"
+                  : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+              }`}
             />
           </div>
 

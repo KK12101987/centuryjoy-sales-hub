@@ -176,3 +176,18 @@ The application will automatically detect Vite and the serverless functions unde
   - Resolved regression where initial load migration unintentionally reactivated resigned captains and forced subordinates' `captain_name` back to them.
   - Inactive/resigned captain states (`status === 'inactive'`, `wasCaptain === true`) and subordinate failover flags (`tempSupervisedByManager === true`) are now permanently preserved across browser reloads.
   - Accidental resignation revert capability remains accessible in the "Accidental Resignation & Offboarding Revert Center" in `UserManagement.jsx`.
+
+---
+
+## 23. Standard Call Franchise/Team Resolution & Call Metadata Locking (Nov 25, 2026)
+- **Automatic Franchise / Team Pre-Population:**
+  - When an auditor clicks "Audit Now" on any call from the Pending Calls dialer queue (Standard, Short, Zero, or Disposed calls), the system automatically looks up the Relationship Manager in `rmDirectory` and populates their exact Franchise / Team (e.g. `SoarZone-I` for `Ananya Dhara`).
+- **Immutable Call Metadata Locking (`isTargetLocked`):**
+  - When an incoming call from the dialer is loaded into the scorecard, all 5 call identity inputs are securely locked to prevent tampering or misattribution:
+    - **Franchise / Team:** Locked with a `🔒 Locked to Call` badge.
+    - **Relationship Manager (RM):** Locked with a `🔒 Locked to Call` badge.
+    - **Customer Mobile No.:** Locked with a `🔒 Locked` badge.
+    - **Call Duration (MM:SS):** Locked with a `🔒 Locked` badge.
+    - **Call Date:** Locked with a `🔒 Locked` badge.
+- **Manual "New Blank Audit" Mode:**
+  - Clicking "New Blank Audit" resets the form and unlocks all dropdowns and textboxes for flexible manual entry.

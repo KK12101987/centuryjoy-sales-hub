@@ -105,3 +105,12 @@
   2. **Active Captain Resolver & Failover Indicator:** If an RM's assigned pod captain has resigned or the team is in failover, the "Assigned Pod Captain" box displays `— (Vacant • In Failover to Senior Manager)` with an amber indicator badge, while the Senior Manager field reflects the interim reporting manager (`Arijit Nath`).
   3. **Self-Healing State Isolation:** Decoupled initialization migrations in `DataContext.jsx` to prevent overwriting inactive/resigned employee states or restoring resigned captains back to active upon reload.
 * **Verification:** Production build passed cleanly in 20.25s. Verified locally and deployed to production.
+
+## FEATURE-010: Standard Call Franchise Resolution & Call Metadata Locking
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "when selecting the call from standered call section the section in the screenshot is not showing 'Franchise / Team' name and also why is it not locked. Do the same and check on browser once"
+* **Key Enhancements:**
+  1. **Franchise / Team Resolution:** Selecting a call from the Pending Calls dialer queue automatically cross-references `rmDirectory` and sets `franchise` to the agent's assigned pod (e.g. `SoarZone-I` for `Ananya Dhara`).
+  2. **Immutable Call Metadata Locking:** When evaluating a selected dialer call, Franchise/Team, RM, Customer Mobile, Duration, and Call Date are rendered with `Lock` badges and locked (read-only/disabled) to prevent modification.
+  3. **New Blank Audit Reset:** Form provides a "New Blank Audit" button to clear target locks and allow full manual input.
+* **Verification:** Production build passed cleanly in 31.31s. Verified live on production browser subagent.

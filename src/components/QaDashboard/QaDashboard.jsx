@@ -143,14 +143,18 @@ export default function QaDashboard() {
 
   // Handle audit action
   const handleAuditCall = (call) => {
-    // Resolve RM name from directory if agent_id matches dialer_id
+    // Resolve RM name and team from directory if agent_id matches dialer_id or rm_name
     const matched = (rmDirectory || []).find(
       (r) => (r.dialer_id || '').toLowerCase() === (call.agent_id || '').toLowerCase() ||
              (r.rm_name || '').toLowerCase() === (call.agent_id || '').toLowerCase()
     );
     setSelectedAuditTarget({
       ...call,
-      rm_name: matched?.rm_name || call.agent_id
+      rm_name: matched?.rm_name || call.agent_id,
+      team_name: matched?.team_name || call.team_name || '',
+      franchise: matched?.team_name || call.team_name || '',
+      captain_name: matched?.captain_name || '',
+      manager_name: matched?.manager_name || '',
     });
     setActiveTab('scorecard');
   };
