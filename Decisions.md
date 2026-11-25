@@ -397,3 +397,22 @@ eplace mode preserving tickets from other months.
      - Pinned `node >= 20.0.0` and `build.target: 'es2022'` in `vite.config.js`.
   4. *Rule 22 Watermark Integrity:*
      - Confirmed `#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` coupled to bootstrap and active watchers.
+
+
+---
+
+## Decision 043: Global AI Rule Ingestion — Mandatory Post-Edit Anti-Slop Audit Cycle (Rule 21b)
+* **Date:** November 25, 2026
+* **Status:** Adopted & Enforced Globally
+* **Context:**
+  - The developer mandated that following every edit or code change, the agent must systematically execute the "Software Factory & Anti-Slop Guidelines (Trailing-Edge Hygiene)" to audit the project.
+* **Actions Taken:**
+  1. Updated global guidelines file at `C:\Users\User\.gemini\config\plugins\my-global-rules\rules\AGENTS.md`.
+  2. Formally added Rule 21b: **Mandatory Post-Edit Anti-Slop Audit Cycle**:
+     - Pruning all unused named imports, dead code, and uninvoked local/utility functions across affected files.
+     - Verifying zero unreferenced dead files or orphaned components in the project tree.
+     - Guaranteeing zero lingering `console.log` statements or debug slop in client application code.
+     - Confirming strict platform version alignment (Node.js LTS, ES2022, modern browser baselines) without unnecessary polyfills.
+     - Verifying that the Rule 22 Watermark Anti-Tamper protocol remains active, coupled, and intact.
+* **Consequences:**
+  - All future coding and refactoring tasks across any conversation or workspace powered by these rules will automatically enforce the anti-slop audit cycle prior to task completion.

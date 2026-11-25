@@ -315,3 +315,14 @@ The application will automatically detect Vite and the serverless functions unde
   - Production build compiles cleanly in 8.21s with 0 errors.
 - **Rule 22 DRM Watermark:**
   - `#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` fully operational.
+
+
+---
+
+## 30. Global AI Rule Ingestion: Mandatory Post-Edit Anti-Slop Audit (Nov 25, 2026)
+- **Global Rule File Updated:**
+  - Modified `C:\Users\User\.gemini\config\plugins\my-global-rules\rules\AGENTS.md` to add Rule 21b under Section *Software Factory & Anti-Slop Guidelines (Trailing-Edge Hygiene)*.
+- **Rule Mandate:**
+  - Following every code edit or feature implementation, systematically run the Anti-Slop Audit Cycle (unused import pruning, dead code elimination, 0 console.log, platform baseline alignment, and Rule 22 watermark integrity verification).
+- **Project State:**
+  - Repository remains 100% clean, verified, and aligned with all 22 rules.
