@@ -1,5 +1,6 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
+import { getAllowedUploadTabs } from '../../utils/auth';
 import KPICards from './KPICards';
 import ManagerBreakdown from './ManagerBreakdown';
 import AuditPodsSection from './AuditPodsSection';
@@ -33,7 +34,8 @@ export default function L2DashboardMain() {
     Boolean(searchQuery);
 
   const isLeadership = currentUser?.role === 'admin' || currentUser?.role === 'upload_view_all' || currentUser?.role === 'view_all' || currentUser?.role === 'manager';
-  const canUpload = !currentUser || currentUser.role === 'admin' || currentUser.role === 'manager' || (currentUser.name && currentUser.name.toLowerCase().includes('kushal'));
+  const allowedUploadTabs = getAllowedUploadTabs(currentUser);
+  const canUpload = allowedUploadTabs.includes('l2');
 
   return (
     <div className="space-y-6">

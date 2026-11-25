@@ -20,41 +20,48 @@ import {
 export default function ConsolidatedDashboard() {
   const { 
     tickets, 
+    scopedTickets,
     telephony, 
+    scopedTelephony,
     qaAudits, 
+    scopedQaAudits,
     switchModule, 
     scopeFilter, 
     setScopeFilter,
     dateRange,
     setDateRange,
-    hierarchy
+    hierarchy,
+    currentUser
   } = useData();
 
-  // Filtered Datasets based on Scope & Stream
+  // Filtered Datasets strictly scoped to user role & division
   const filteredTickets = useMemo(() => {
-    return tickets.filter((t) => {
-      if (scopeFilter.manager !== 'all' && t.manager !== scopeFilter.manager) return false;
-      if (scopeFilter.stream === 'digital' && t.stream !== 'Digital Pod') return false;
-      if (scopeFilter.stream === 'physical' && t.stream !== 'Physical Team') return false;
+    const base = scopedTickets || tickets;
+    return base.filter((t) => {
+      if (scopeFilter?.manager && scopeFilter.manager !== 'all' && t.manager !== scopeFilter.manager) return false;
+      if (scopeFilter?.stream === 'digital' && t.stream !== 'Digital Pod') return false;
+      if (scopeFilter?.stream === 'physical' && t.stream !== 'Physical Team') return false;
       return true;
     });
-  }, [tickets, scopeFilter]);
+  }, [scopedTickets, tickets, scopeFilter]);
 
   const filteredTelephony = useMemo(() => {
-    return telephony.filter((rec) => {
-      if (scopeFilter.manager !== 'all' && rec.m !== scopeFilter.manager) return false;
-      if (scopeFilter.captain !== 'all' && rec.c !== scopeFilter.captain) return false;
+    const base = scopedTelephony || telephony;
+    return base.filter((rec) => {
+      if (scopeFilter?.manager && scopeFilter.manager !== 'all' && rec.m !== scopeFilter.manager) return false;
+      if (scopeFilter?.captain && scopeFilter.captain !== 'all' && rec.c !== scopeFilter.captain) return false;
       return true;
     });
-  }, [telephony, scopeFilter]);
+  }, [scopedTelephony, telephony, scopeFilter]);
 
   const filteredQa = useMemo(() => {
-    return qaAudits.filter((a) => {
-      if (scopeFilter.manager !== 'all' && a.manager_name !== scopeFilter.manager) return false;
-      if (scopeFilter.captain !== 'all' && a.captain_name !== scopeFilter.captain) return false;
+    const base = scopedQaAudits || qaAudits;
+    return base.filter((a) => {
+      if (scopeFilter?.manager && scopeFilter.manager !== 'all' && a.manager_name !== scopeFilter.manager) return false;
+      if (scopeFilter?.captain && scopeFilter.captain !== 'all' && a.captain_name !== scopeFilter.captain) return false;
       return true;
     });
-  }, [qaAudits, scopeFilter]);
+  }, [scopedQaAudits, qaAudits, scopeFilter]);
 
   // Aggregate Metrics
   // 1. Financial (L2)
@@ -97,18 +104,31 @@ export default function ConsolidatedDashboard() {
 
   const fatalRate = filteredQa.length > 0 ? ((fatalCount / filteredQa.length) * 100).toFixed(1) : '0.0';
 
-  // Senior Managers Cross-Comparison Breakdown
-  const managers = ['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal'];
+  // Senior Managers Cross-Comparison Breakdown scoped to user hierarchy
+  const managers = useMemo(() => {
+    if (currentUser?.role === 'manager' && currentUser.managerKey && currentUser.managerKey !== 'all') {
+      return [currentUser.managerKey];
+    }
+    if (currentUser?.role === 'captain') {
+      return currentUser.managerKey ? [currentUser.managerKey] : [];
+    }
+    return ['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal'];
+  }, [currentUser]);
+
   const managerComparison = useMemo(() => {
+    const baseTickets = scopedTickets || tickets;
+    const baseTele = scopedTelephony || telephony;
+    const baseQa = scopedQaAudits || qaAudits;
+
     return managers.map((mgr) => {
-      const mgrTickets = tickets.filter((t) => t.manager === mgr);
+      const mgrTickets = baseTickets.filter((t) => t.manager === mgr);
       const mgrFin = mgrTickets.reduce((sum, t) => sum + (Number(t.finalTotalAmount) || 0), 0);
-      const mgrTele = telephony.filter((r) => r.m === mgr);
+      const mgrTele = baseTele.filter((r) => r.m === mgr);
       const dials = mgrTele.reduce((sum, r) => sum + (r.t || 0), 0);
       const conn = mgrTele.reduce((sum, r) => sum + (r.conn || 0), 0);
       const connRate = dials > 0 ? ((conn / dials) * 100).toFixed(1) : '0.0';
 
-      const mgrQa = qaAudits.filter((a) => a.manager_name === mgr);
+      const mgrQa = baseQa.filter((a) => a.manager_name === mgr);
       const qaValid = mgrQa.filter((a) => !a.is_fatal);
       const qaScore = qaValid.length > 0 ? (qaValid.reduce((sum, a) => sum + (Number(a.overall_score) || 0), 0) / qaValid.length).toFixed(1) : '0.0';
 
@@ -135,7 +155,7 @@ export default function ConsolidatedDashboard() {
         statusColor,
       };
     });
-  }, [tickets, telephony, qaAudits]);
+  }, [managers, scopedTickets, tickets, scopedTelephony, telephony, scopedQaAudits, qaAudits]);
 
   return (
     <div className="space-y-6">
@@ -148,13 +168,27 @@ export default function ConsolidatedDashboard() {
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-semibold">
               <Activity className="w-3.5 h-3.5" />
-              <span>Consolidated Enterprise Command Center</span>
+              <span>
+                {currentUser?.role === 'manager'
+                  ? `${currentUser.managerKey} Division Overview`
+                  : currentUser?.role === 'captain'
+                  ? `${currentUser.teamName || currentUser.captainKey} Pod Overview`
+                  : 'Consolidated Enterprise Command Center'}
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Integrated Operational Performance
+              {currentUser?.role === 'manager'
+                ? `${currentUser.managerKey} Operations Hub`
+                : currentUser?.role === 'captain'
+                ? `${currentUser.teamName || currentUser.captainKey} Operations Hub`
+                : 'Integrated Operational Performance'}
             </h1>
             <p className="text-slate-300 text-sm max-w-2xl">
-              Cross-functional synthesis reconciling ₹45.64 Cr in L2 financial disbursements with 100K+ agent dials and 41-checkpoint quality audits.
+              {currentUser?.role === 'manager'
+                ? `Executive synthesis for ${currentUser.managerKey} Division, reconciling L2 financial disbursements, agent dialer productivity, and QA compliance.`
+                : currentUser?.role === 'captain'
+                ? `Operational pod performance for ${currentUser.teamName || currentUser.captainKey} Pod, tracking disbursements, talk time, and QA audits.`
+                : 'Cross-functional synthesis reconciling ₹45.64 Cr in L2 financial disbursements with 100K+ agent dials and 41-checkpoint quality audits.'}
             </p>
           </div>
 
@@ -165,7 +199,7 @@ export default function ConsolidatedDashboard() {
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'all' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter.stream === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
                 All Streams
@@ -173,7 +207,7 @@ export default function ConsolidatedDashboard() {
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'digital' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter.stream === 'digital' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'digital' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
                 Digital Pods
@@ -181,24 +215,34 @@ export default function ConsolidatedDashboard() {
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'physical' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter.stream === 'physical' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'physical' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
                 Physical Field
               </button>
             </div>
 
-            {/* Manager Filter */}
-            <select
-              value={scopeFilter.manager}
-              onChange={(e) => setScopeFilter((prev) => ({ ...prev, manager: e.target.value }))}
-              className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              <option value="all">All Senior Managers</option>
-              {managers.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            {/* Manager Filter / Badge */}
+            {currentUser?.role === 'manager' ? (
+              <div className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-brand-300">
+                Division: {currentUser.managerKey}
+              </div>
+            ) : currentUser?.role === 'captain' ? (
+              <div className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-300">
+                Pod: {currentUser.teamName || currentUser.captainKey}
+              </div>
+            ) : (
+              <select
+                value={scopeFilter?.manager || 'all'}
+                onChange={(e) => setScopeFilter((prev) => ({ ...prev, manager: e.target.value }))}
+                className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="all">All Senior Managers</option>
+                {managers.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       </div>

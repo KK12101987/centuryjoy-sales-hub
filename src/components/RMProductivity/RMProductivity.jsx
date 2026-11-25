@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { nf, fmtDuration } from '../../utils/formatters';
 import { getAllowedUploadTabs } from '../../utils/auth';
@@ -24,6 +24,7 @@ import {
 export default function RMProductivity() {
   const { 
     telephony, 
+    scopedTelephony,
     addTelephonyRows, 
     hierarchy, 
     updateRmMapping, 
@@ -39,7 +40,23 @@ export default function RMProductivity() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedView, setSelectedView] = useState('manager'); // 'manager' | 'captain' | 'rm'
   const [datePreset, setDatePreset] = useState('full'); // 'full' | 'oct' | 'nov' | 'last7' | 'today'
-  const [openNodes, setOpenNodes] = useState(new Set(['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal']));
+  const [openNodes, setOpenNodes] = useState(() => {
+    if (currentUser?.role === 'manager' && currentUser.managerKey) {
+      return new Set([currentUser.managerKey]);
+    }
+    if (currentUser?.role === 'captain') {
+      return new Set([currentUser.managerKey || 'Arijit Nath', currentUser.captainKey || currentUser.name]);
+    }
+    return new Set(['Surajit Laha', 'Niladri Bhadra', 'Arijit Nath', 'Amit Singal']);
+  });
+
+  useEffect(() => {
+    if (currentUser?.role === 'manager' && currentUser.managerKey) {
+      setOpenNodes(new Set([currentUser.managerKey]));
+    } else if (currentUser?.role === 'captain') {
+      setOpenNodes(new Set([currentUser.managerKey || 'Arijit Nath', currentUser.captainKey || currentUser.name]));
+    }
+  }, [currentUser]);
 
   // Modals
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -53,12 +70,13 @@ export default function RMProductivity() {
     newManager: 'Surajit Laha',
   });
 
-  // Filtered Telephony Records
+  // Filtered Telephony Records strictly adhering to supervisory scope
   const filteredRecords = useMemo(() => {
-    return telephony.filter((r) => {
+    const base = scopedTelephony || telephony;
+    return base.filter((r) => {
       // Scope filter
-      if (scopeFilter.manager !== 'all' && r.m !== scopeFilter.manager) return false;
-      if (scopeFilter.captain !== 'all' && r.c !== scopeFilter.captain) return false;
+      if (scopeFilter?.manager && scopeFilter.manager !== 'all' && r.m !== scopeFilter.manager) return false;
+      if (scopeFilter?.captain && scopeFilter.captain !== 'all' && r.c !== scopeFilter.captain) return false;
 
       // Date preset
       if (datePreset === 'oct' && !r.d.startsWith('2026-10')) return false;
@@ -77,7 +95,7 @@ export default function RMProductivity() {
 
       return true;
     });
-  }, [telephony, scopeFilter, datePreset, searchQuery]);
+  }, [scopedTelephony, telephony, scopeFilter, datePreset, searchQuery]);
 
   // Aggregate Metrics
   const totalDials = useMemo(() => filteredRecords.reduce((sum, r) => sum + (r.t || 0), 0), [filteredRecords]);
@@ -240,7 +258,13 @@ export default function RMProductivity() {
           <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
             {uniqueAgents} <span className="text-xs font-normal text-slate-400">RMs Active</span>
           </div>
-          <div className="text-[11px] text-slate-500">Across 4 Senior Managers</div>
+          <div className="text-[11px] text-slate-500 font-medium">
+            {currentUser?.role === 'manager'
+              ? `${currentUser.managerKey || currentUser.name} Division`
+              : currentUser?.role === 'captain'
+              ? `${currentUser.teamName || currentUser.captainKey || currentUser.name} Pod`
+              : 'Across 4 Senior Managers'}
+          </div>
         </div>
 
       </div>
@@ -300,13 +324,15 @@ export default function RMProductivity() {
 
         {/* Actions */}
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setIsTransferOpen(true)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all"
-          >
-            <GitBranch className="w-3.5 h-3.5" />
-            <span>Transfer RM</span>
-          </button>
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+            <button
+              onClick={() => setIsTransferOpen(true)}
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all"
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              <span>Transfer RM</span>
+            </button>
+          )}
 
           {canUploadTelephony && (
             <button
@@ -326,7 +352,13 @@ export default function RMProductivity() {
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
             <Building2 className="w-4 h-4 text-brand-500" />
-            <span>Hierarchical Telephony Drilldown (Manager › Captain › RM)</span>
+            <span>
+              {currentUser?.role === 'manager'
+                ? `Hierarchical Telephony Drilldown (${currentUser.managerKey} Division)`
+                : currentUser?.role === 'captain'
+                ? `Hierarchical Telephony Drilldown (${currentUser.teamName || currentUser.captainKey} Pod)`
+                : 'Hierarchical Telephony Drilldown (Manager › Captain › RM)'}
+            </span>
           </h2>
           <span className="text-xs text-slate-400">Click to expand/collapse</span>
         </div>

@@ -344,3 +344,32 @@ eplace mode preserving tickets from other months.
 
 
 
+
+---
+
+### Decision 041: Strict Supervisory Scope Isolation for Senior Managers and Pod Captains Across All Modules (Nov 25, 2026)
+* **Context:**
+  - When logged in as Senior Manager (Niladri Bhadra), the Hierarchical Telephony Drilldown in `RMProductivity.jsx` was displaying all 3 Senior Managers (Arijit Nath, Surajit Laha, Niladri Bhadra) and the KPI summary cards aggregated 1,15,798 dials across 54 RMs.
+  - In `ConsolidatedDashboard.jsx`, cross-comparison tables and metrics displayed enterprise-wide numbers rather than the manager's division.
+  - The user requested strict scope narrowing for Senior Managers and Pod Captains across all UIs in the application.
+* **Architecture & Implementation:**
+  1. *Centralized Scoped Data Pipelines (`DataContext.jsx`):*
+     - `scopedTelephony`: Filters raw telephony records strictly to `r.m === currentUser.managerKey` for Senior Managers, and `r.c === currentUser.captainKey` / `teamName` for Pod Captains.
+     - `scopedQaAudits`: Filters QA audits strictly to division for Managers and pod for Captains.
+     - `scopedDialerCalls`: Filters pending incoming dialer calls strictly to the supervised RM roster of that Manager or Captain.
+     - Automatic synchronization of `scopeFilter`, `selectedManager`, and `selectedCaptain` upon mount and profile switch.
+  2. *RM Telephony Dashboard Isolation (`RMProductivity.jsx`):*
+     - Hierarchical drilldown tree builds nodes strictly for the logged-in Senior Manager (`currentUser.managerKey`) and their Pod Captains, or strictly for the Captain's pod. Peer managers and foreign captains are eliminated from the tree.
+     - KPI cards calculate Total Dials, Connected, Talk Time, and Active RMs exclusively for that division/pod.
+     - Active Calling Agents card dynamically updates label to `[Manager] Division` or `[Team] Pod`.
+     - `Transfer RM` action restricted to administrative/managerial scope.
+  3. *Consolidated Command Center Scoping (`ConsolidatedDashboard.jsx`):*
+     - Top KPI ribbon computes financial disbursements, dials, and QA scores strictly for the authenticated division/pod.
+     - Senior Manager comparison table displays only the logged-in Senior Manager's division row instead of all 4 managers.
+     - Manager selector in filter ribbon locked/adapted to `currentUser.managerKey` or `currentUser.teamName`.
+  4. *L2 Financial Dashboard Cleanup (`L2DashboardMain.jsx`):*
+     - Removed lingering `currentUser.role === 'manager'` check in `L2DashboardMain.jsx`, completely hiding the "Upload L2 Data" button from Senior Managers and Captains.
+  5. *QA & Dialer Queue Isolation (`QaDashboard.jsx`):*
+     - Pending dialer calls queue scoped to supervised RMs so leadership only views pending calls originating from their division/pod.
+  6. *Navbar Scope Synchronization (`Navbar.jsx`):*
+     - Navigation tab badges (`L2 Approvals`, `RM Telephony`, `QA & QC Tools`) display dynamically scoped record counts matching the user's supervisory scope.

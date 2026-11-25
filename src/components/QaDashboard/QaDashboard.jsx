@@ -44,7 +44,9 @@ import {
 export default function QaDashboard() {
   const { 
     qaAudits, 
+    scopedQaAudits: contextScopedQa,
     dialerCalls, 
+    scopedDialerCalls,
     updateDialerCall, 
     discardAllPendingDialerCalls, 
     purgeAllQaAudits,
@@ -72,6 +74,7 @@ export default function QaDashboard() {
 
   // Scoped Audits: Scoped strictly based on supervisory hierarchy & auditor assignments
   const scopedQaAudits = useMemo(() => {
+    if (contextScopedQa) return contextScopedQa;
     if (!currentUser) return qaAudits;
     if (currentUser.role === ROLES.ADMIN || qaScope === 'all') {
       return qaAudits;
@@ -81,8 +84,13 @@ export default function QaDashboard() {
       return (qaAudits || []).filter((a) => a.manager_name === currentUser.managerKey);
     }
     // Pod Captain scope: strictly their assigned pod team
-    if (currentUser.role === ROLES.CAPTAIN && currentUser.captainKey) {
-      return (qaAudits || []).filter((a) => a.captain_name === currentUser.captainKey);
+    if (currentUser.role === ROLES.CAPTAIN) {
+      return (qaAudits || []).filter((a) => {
+        const cMatch = currentUser.captainKey && a.captain_name?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const nMatch = currentUser.name && a.captain_name?.toLowerCase() === currentUser.name.toLowerCase();
+        const tMatch = currentUser.teamName && a.team_name?.toLowerCase() === currentUser.teamName.toLowerCase();
+        return cMatch || nMatch || tMatch;
+      });
     }
     // Quality Auditor scope: self-scoped or matching
     if (qaScope === 'self' || currentUser.role === ROLES.AUDITOR) {
@@ -99,7 +107,7 @@ export default function QaDashboard() {
       });
     }
     return qaAudits;
-  }, [qaAudits, currentUser, qaScope]);
+  }, [contextScopedQa, qaAudits, currentUser, qaScope]);
 
   // Senior Managers and Pod Captains start on 7 QC Tools / History in read-only review mode
   const [activeTab, setActiveTab] = useState(() => (canAudit ? 'scorecard' : 'qctools')); // 'scorecard' | 'dialer' | 'qctools' | 'history'
@@ -122,9 +130,10 @@ export default function QaDashboard() {
     return Number(dur) || 0;
   };
 
-  // Grouped Dialer Calls
+  // Grouped Dialer Calls strictly adhering to supervisory scope
   const activeDialerCalls = useMemo(() => {
-    return (dialerCalls || []).filter((c) => {
+    const base = scopedDialerCalls || dialerCalls || [];
+    return base.filter((c) => {
       if (!dialerSearch) return true;
       const q = dialerSearch.toLowerCase();
       return (
@@ -133,7 +142,7 @@ export default function QaDashboard() {
         (c.status || '').toLowerCase().includes(q)
       );
     });
-  }, [dialerCalls, dialerSearch]);
+  }, [scopedDialerCalls, dialerCalls, dialerSearch]);
 
   const standardCalls = useMemo(() => {
     return activeDialerCalls.filter(c => getDurationSeconds(c.duration) >= 120 && !String(c.status).includes('Disposed'));

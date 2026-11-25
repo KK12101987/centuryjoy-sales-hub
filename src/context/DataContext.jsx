@@ -237,11 +237,19 @@ export function DataProvider({ children }) {
   // Base tickets scoped strictly to the logged-in user profile
   const userScopedTickets = useMemo(() => {
     if (!currentUser) return tickets;
-    if (currentUser.role === ROLES.MANAGER) {
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey && currentUser.managerKey !== 'all') {
       return tickets.filter((t) => t.manager === currentUser.managerKey);
     }
     if (currentUser.role === ROLES.CAPTAIN) {
-      return tickets.filter((t) => t.captain === currentUser.captainKey);
+      return tickets.filter((t) => {
+        const cMatch = currentUser.captainKey && t.captain?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const nMatch = currentUser.name && t.captain?.toLowerCase() === currentUser.name.toLowerCase();
+        const tMatch = currentUser.teamName && (
+          t.teamDisplay?.toLowerCase() === currentUser.teamName.toLowerCase() ||
+          t.captain?.toLowerCase().includes(currentUser.teamName.toLowerCase())
+        );
+        return cMatch || nMatch || tMatch;
+      });
     }
     return tickets;
   }, [tickets, currentUser]);
@@ -832,6 +840,96 @@ export function DataProvider({ children }) {
     } catch (e) {}
     return rawRMs;
   });
+
+  // Telephony records scoped strictly to the logged-in user's supervisory scope
+  const scopedTelephony = useMemo(() => {
+    if (!currentUser) return telephony;
+    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
+      return telephony;
+    }
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
+      return telephony.filter((r) => r.m === currentUser.managerKey);
+    }
+    if (currentUser.role === ROLES.CAPTAIN) {
+      return telephony.filter((r) => {
+        const cMatch = currentUser.captainKey && r.c?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const nMatch = currentUser.name && r.c?.toLowerCase() === currentUser.name.toLowerCase();
+        const tMatch = currentUser.teamName && r.c?.toLowerCase().includes(currentUser.teamName.toLowerCase());
+        return cMatch || nMatch || tMatch;
+      });
+    }
+    return telephony;
+  }, [telephony, currentUser]);
+
+  // QA audits scoped strictly to the logged-in user profile
+  const scopedQaAudits = useMemo(() => {
+    if (!currentUser) return qaAudits;
+    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
+      return qaAudits;
+    }
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
+      return (qaAudits || []).filter((a) => a.manager_name === currentUser.managerKey);
+    }
+    if (currentUser.role === ROLES.CAPTAIN) {
+      return (qaAudits || []).filter((a) => {
+        const cMatch = currentUser.captainKey && a.captain_name?.toLowerCase() === currentUser.captainKey.toLowerCase();
+        const nMatch = currentUser.name && a.captain_name?.toLowerCase() === currentUser.name.toLowerCase();
+        const tMatch = currentUser.teamName && a.team_name?.toLowerCase() === currentUser.teamName.toLowerCase();
+        return cMatch || nMatch || tMatch;
+      });
+    }
+    if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope === 'self') {
+      const uName = (currentUser.name || '').toLowerCase().trim();
+      const uEmail = (currentUser.email || '').toLowerCase().trim();
+      return (qaAudits || []).filter((a) => {
+        const aud = (a.auditor_name || '').toLowerCase().trim();
+        return aud === uName || aud === uEmail;
+      });
+    }
+    return qaAudits;
+  }, [qaAudits, currentUser]);
+
+  // Incoming dialer call logs scoped to the user's supervised RMs
+  const scopedDialerCalls = useMemo(() => {
+    if (!currentUser) return dialerCalls;
+    if (currentUser.role === ROLES.ADMIN || currentUser.role === 'admin' || currentUser.managerKey === 'all') {
+      return dialerCalls;
+    }
+    if (currentUser.role === ROLES.AUDITOR && currentUser.qaScope !== 'self') {
+      return dialerCalls;
+    }
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey) {
+      const supervisedRms = new Set(
+        (rmDirectory || [])
+          .filter((rm) => rm.manager_name === currentUser.managerKey)
+          .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
+          .filter(Boolean)
+      );
+      return (dialerCalls || []).filter((c) => {
+        const agId = (c.agent_id || '').toLowerCase();
+        const rmN = (c.rm_name || '').toLowerCase();
+        return supervisedRms.has(agId) || supervisedRms.has(rmN);
+      });
+    }
+    if (currentUser.role === ROLES.CAPTAIN) {
+      const supervisedRms = new Set(
+        (rmDirectory || [])
+          .filter((rm) =>
+            (currentUser.captainKey && rm.captain_name?.toLowerCase() === currentUser.captainKey.toLowerCase()) ||
+            (currentUser.name && rm.captain_name?.toLowerCase() === currentUser.name.toLowerCase()) ||
+            (currentUser.teamName && rm.team_name?.toLowerCase() === currentUser.teamName.toLowerCase())
+          )
+          .flatMap((rm) => [(rm.rm_name || '').toLowerCase(), (rm.dialer_id || '').toLowerCase()])
+          .filter(Boolean)
+      );
+      return (dialerCalls || []).filter((c) => {
+        const agId = (c.agent_id || '').toLowerCase();
+        const rmN = (c.rm_name || '').toLowerCase();
+        return supervisedRms.has(agId) || supervisedRms.has(rmN);
+      });
+    }
+    return dialerCalls;
+  }, [dialerCalls, rmDirectory, currentUser]);
 
   const updateRmMapping = (rmName, newCaptain, newManager, newProcess) => {
     verifyWatermarkIntegrity();
@@ -1529,6 +1627,23 @@ export function DataProvider({ children }) {
     stream: 'all',
   });
 
+  // Synchronize supervisory scope bindings whenever currentUser changes or mounts
+  useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser.role === ROLES.MANAGER && currentUser.managerKey && currentUser.managerKey !== 'all') {
+      setSelectedManager(currentUser.managerKey);
+      setScopeFilter((prev) => ({ ...prev, manager: currentUser.managerKey, captain: 'all' }));
+    } else if (currentUser.role === ROLES.CAPTAIN) {
+      setSelectedManager(currentUser.managerKey || 'all');
+      setSelectedCaptain(currentUser.captainKey || currentUser.name);
+      setScopeFilter((prev) => ({
+        ...prev,
+        manager: currentUser.managerKey || 'all',
+        captain: currentUser.captainKey || currentUser.name,
+      }));
+    }
+  }, [currentUser]);
+
   // Auth operations
   const login = (user) => {
     verifyWatermarkIntegrity();
@@ -1536,10 +1651,21 @@ export function DataProvider({ children }) {
     try {
       localStorage.setItem('century_joy_auth_user_v2', JSON.stringify(user));
     } catch (e) {}
-    if (user.role === ROLES.MANAGER) {
+    if (user.role === ROLES.MANAGER && user.managerKey && user.managerKey !== 'all') {
       setSelectedManager(user.managerKey);
+      setScopeFilter((prev) => ({ ...prev, manager: user.managerKey, captain: 'all' }));
+    } else if (user.role === ROLES.CAPTAIN) {
+      setSelectedManager(user.managerKey || 'all');
+      setSelectedCaptain(user.captainKey || user.name);
+      setScopeFilter((prev) => ({
+        ...prev,
+        manager: user.managerKey || 'all',
+        captain: user.captainKey || user.name,
+      }));
     } else {
       setSelectedManager('all');
+      setSelectedCaptain('all');
+      setScopeFilter({ manager: 'all', captain: 'all', stream: 'all' });
     }
     const permitted = getPermittedModules(user);
     if (!permitted.includes(activeModule)) {
@@ -1557,6 +1683,8 @@ export function DataProvider({ children }) {
       localStorage.removeItem('century_joy_auth_user_v2');
     } catch (e) {}
     setSelectedManager('all');
+    setSelectedCaptain('all');
+    setScopeFilter({ manager: 'all', captain: 'all', stream: 'all' });
     setActiveModule('consolidated');
     resetFilters();
   };
@@ -1602,13 +1730,16 @@ export function DataProvider({ children }) {
     filteredTickets,
     metrics,
     telephony,
+    scopedTelephony,
     addTelephonyRows,
     qaAudits,
+    scopedQaAudits,
     addQaAudit,
     addQaAuditsBulk,
     purgeAllQaAudits,
     restoreDefaultQaAudits,
     dialerCalls,
+    scopedDialerCalls,
     addDialerCalls,
     updateDialerCall,
     discardAllPendingDialerCalls,

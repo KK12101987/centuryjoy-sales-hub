@@ -174,3 +174,26 @@
 
 
 
+
+---
+
+## FEATURE-015: Strict Supervisory Scope Isolation for Senior Managers & Pod Captains
+* **Status:** DELIVERED & VERIFIED
+* **User Request:**
+  "login is Niladri Bhadra but Hierarchical Telephony Drilldown (Manager › Captain › RM) is showing of all managers. Can we narrow down the scope for this or any other UI present. go ahead do this for captains as well ?"
+* **Key Enhancements:**
+  1. **RM Telephony Drilldown & Metrics Scoping (`RMProductivity.jsx`):**
+     - Hierarchical drilldown tree dynamically renders strictly the authenticated Senior Manager's division or Pod Captain's team. Foreign managers and foreign captains are eliminated from view.
+     - Top KPI cards (Total Dials, Connected Calls, Total Talk Time, Avg Duration, Calling Agents) aggregate metrics strictly for the user's division/pod.
+     - Calling Agents card subtext dynamically switches to `[Manager] Division` or `[Team] Pod`.
+     - `Transfer RM` action gated to administrative/managerial scope.
+  2. **Consolidated Command Center Scoping (`ConsolidatedDashboard.jsx`):**
+     - Executive KPI ribbon reflects division/pod financial volume, dials, and QA compliance.
+     - Senior Managers comparison table dynamically scopes to display only the user's division.
+     - Filter ribbon locks manager selection to the user's supervisory scope.
+  3. **L2 Financial Dashboard Scope Gate (`L2DashboardMain.jsx`):**
+     - Removed lingering manager upload access; "Upload L2 Data" is hidden for managers and captains.
+  4. **QA Dialer Queue Scoping (`QaDashboard.jsx`):**
+     - Dialer call logs queue filtered to supervised RMs via `rmDirectory`.
+  5. **Central Scoped Pipelines (`DataContext.jsx`):**
+     - Exposed `scopedTelephony`, `scopedQaAudits`, and `scopedDialerCalls` with auto-synchronization of `scopeFilter`.

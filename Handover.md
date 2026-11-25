@@ -279,3 +279,24 @@ The application will automatically detect Vite and the serverless functions unde
 
 
 
+
+---
+
+## 28. Strict Supervisory Scope Isolation for Senior Managers and Pod Captains (Nov 25, 2026)
+- **RM Telephony Drilldown Scoping:**
+  - For Senior Managers (e.g. Niladri Bhadra): Hierarchical drilldown tree renders strictly Niladri Bhadra, his 2 captains (Ranjana Mohajan & Shiuli Bhattacharjee), and his 19 RMs. Foreign managers (Arijit Nath, Surajit Laha) are completely eliminated from the DOM.
+  - For Pod Captains (e.g. Arshi Afreen Jamal): Drilldown tree renders strictly Unity-II / Arshi Afreen Jamal and her supervised RMs.
+  - KPI Summary Cards calculate dials, connections, duration, and agent counts exclusively for that division/pod.
+  - Calling Agents card subtext dynamically switches to `[Manager] Division` or `[Team] Pod`.
+- **Consolidated Command Center Scoping:**
+  - Executive KPIs calculate strictly for the authenticated division/pod.
+  - Senior Managers comparison table dynamically renders only the user's division row instead of all 4 managers.
+  - Filter ribbon locks manager selection to the user's supervisory scope.
+- **L2 Financial Dashboard Scope Gate:**
+  - "Upload L2 Data" button is hidden for Senior Managers and Pod Captains (only users with `canUploadL2` or admin see it).
+- **QA Dialer Queue Scoping:**
+  - Pending dialer calls queue filtered to supervised RMs via `rmDirectory`.
+- **Central Scoped Pipelines (`DataContext.jsx`):**
+  - Exposed `scopedTelephony`, `scopedQaAudits`, and `scopedDialerCalls` with auto-synchronization of `scopeFilter`.
+- **Rule 22 Watermark Anti-Tamper Protocol:**
+  - `#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` remains fully active and verified.

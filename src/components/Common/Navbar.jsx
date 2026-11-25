@@ -31,8 +31,11 @@ export default function Navbar() {
     theme, 
     toggleTheme,
     tickets,
+    scopedTickets,
     telephony,
+    scopedTelephony,
     qaAudits,
+    scopedQaAudits,
     selectedMonth,
     selectMonth,
     availableMonths,
@@ -207,7 +210,7 @@ export default function Navbar() {
                 <CreditCard className="w-3.5 h-3.5 shrink-0" />
                 <span>L2 Approvals</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                  {tickets.length}
+                  {(scopedTickets || tickets).length}
                 </span>
               </button>
             )}
@@ -225,7 +228,7 @@ export default function Navbar() {
                 <PhoneCall className="w-3.5 h-3.5 shrink-0" />
                 <span>RM Telephony</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                  {telephony.length}
+                  {(scopedTelephony || telephony).length}
                 </span>
               </button>
             )}
@@ -243,7 +246,7 @@ export default function Navbar() {
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 <span>QA & QC Tools</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono shrink-0">
-                  {qaAudits.length}
+                  {(scopedQaAudits || qaAudits).length}
                 </span>
               </button>
             )}
