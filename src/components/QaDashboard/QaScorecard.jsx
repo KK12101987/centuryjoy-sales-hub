@@ -303,8 +303,38 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
     return rmDirectory.find((r) => r.rm_name === rmName);
   }, [rmDirectory, rmName]);
 
-  const currentCaptain = selectedRmObj ? selectedRmObj.captain_name || "" : "";
+  // Active Assigned Pod Captain (Guarantees resigned captains or failover managers never show as assigned captain)
+  const activeCaptain = useMemo(() => {
+    if (!selectedRmObj) return null;
+
+    // Failover check
+    if (selectedRmObj.tempSupervisedByManager) return null;
+
+    const captName = (selectedRmObj.captain_name || "").trim();
+    if (!captName) return null;
+
+    // If captain matches senior manager, this pod is under interim manager failover
+    if (
+      selectedRmObj.manager_name &&
+      captName.toLowerCase() === selectedRmObj.manager_name.toLowerCase()
+    ) {
+      return null;
+    }
+
+    // Lookup captain in rmDirectory: must exist and be ACTIVE
+    const captObj = rmDirectory.find(
+      (r) => r.rm_name.toLowerCase() === captName.toLowerCase()
+    );
+    if (!captObj || captObj.status === "inactive") {
+      return null;
+    }
+
+    return captObj.rm_name;
+  }, [rmDirectory, selectedRmObj]);
+
+  const currentCaptain = activeCaptain || "";
   const currentManager = selectedRmObj ? selectedRmObj.manager_name || "" : "";
+  const isCaptainResigned = selectedRmObj && !activeCaptain;
 
   // Short Call Check
   useEffect(() => {
@@ -491,7 +521,7 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
       rm_name: rmName,
       franchise: franchise,
       team_name: franchise || selectedRmObj?.team_name || "CenturyJoy",
-      captain_name: currentCaptain,
+      captain_name: activeCaptain || (currentManager ? `Direct Supervision (${currentManager})` : "—"),
       manager_name: currentManager,
       auditor_name: auditorName,
       observation: callPresent === "No" ? `[NO CALL PRESENT] ${observation}` : observation,
@@ -596,7 +626,7 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-              <span>Official CenturyPly QA Call Scorecard (41 Sub-Parameters)</span>
+              <span>Official CenturyPly QA Call Scorecard</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Standardized evaluation across 8 core scoring parameters and 3 fatal compliance categories.
@@ -665,12 +695,29 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
           </div>
 
           <div>
-            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Assigned Pod Captain</label>
+            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Assigned Pod Captain</span>
+              {isCaptainResigned && (
+                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                  Failover Mode
+                </span>
+              )}
+            </label>
             <input
               type="text"
-              value={currentCaptain || "—"}
+              value={
+                !selectedRmObj
+                  ? "—"
+                  : activeCaptain
+                  ? activeCaptain
+                  : "— (Vacant • In Failover to Senior Manager)"
+              }
               readOnly
-              className="w-full p-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 font-semibold"
+              className={`w-full p-2 border rounded-xl font-semibold text-xs transition-all ${
+                !selectedRmObj || activeCaptain
+                  ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  : "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/60 text-amber-700 dark:text-amber-300"
+              }`}
             />
           </div>
 

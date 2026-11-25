@@ -96,3 +96,12 @@
      - Decommissioned teams are tracked in `century_removed_teams_v2` and excluded from future scheduling, dropdowns, and evaluations.
      - All past sales tickets, call records, and completed QA scorecards remain 100% permanently intact.
 * **Verification:** Production build passed cleanly in 19.81s. Verified live on production ([centuryjoy-sales-hub.vercel.app](https://centuryjoy-sales-hub.vercel.app/)) by browser subagent `88f37d2d-a6d3-4c01-a4e8-0f256bc0f79a`: dissolved pod `Velocity-I` with member reassignment to `Unity-II`, verified `Velocity-I` was removed from the live pod grid and QA Scorecard dropdown, and confirmed zero impact to historical records. Artifacts: `team_dissolved_and_removed_verified.png` and `qa_scorecard_after_team_removed_verified.png`.
+
+## FEATURE-009: Scorecard Title Standardization & Resigned Captain Failover Protocol
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "Why is the name of 'Assigned Pod Captain' is showing where the captain of Unity 1 has resigned. Also keep the name of the scorecard as 'Official CenturyPly QA Call Scorecard ' only"
+* **Key Enhancements:**
+  1. **Scorecard Header Name Clean-Up:** Changed heading to `"Official CenturyPly QA Call Scorecard"`.
+  2. **Active Captain Resolver & Failover Indicator:** If an RM's assigned pod captain has resigned or the team is in failover, the "Assigned Pod Captain" box displays `— (Vacant • In Failover to Senior Manager)` with an amber indicator badge, while the Senior Manager field reflects the interim reporting manager (`Arijit Nath`).
+  3. **Self-Healing State Isolation:** Decoupled initialization migrations in `DataContext.jsx` to prevent overwriting inactive/resigned employee states or restoring resigned captains back to active upon reload.
+* **Verification:** Production build passed cleanly in 20.25s. Verified locally and deployed to production.

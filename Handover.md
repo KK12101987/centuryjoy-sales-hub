@@ -163,3 +163,16 @@ The application will automatically detect Vite and the serverless functions unde
   - Reassigned all 4 members (`Rohan Sen`, `Kunal Ghosh`, `Sneha Roy`, `Pooja Verma`) directly to `Unity-II` with zero operational interruption (`Unity-II` expanded from 10 to 14 RMs).
   - Verified `Velocity-I` was purged from the "Live Pod Leadership Status & Failover Health" grid and the QA Scorecard "Franchise / Team" dropdown.
   - Verification artifacts: [team_dissolved_and_removed_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/team_dissolved_and_removed_verified.png) and [qa_scorecard_after_team_removed_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/qa_scorecard_after_team_removed_verified.png).
+
+---
+
+## 22. Scorecard Title Standardization & Resigned Captain Failover Protocol (Nov 25, 2026)
+- **Scorecard Title Clean-Up:** Renamed QA Call Scorecard heading to strictly: **"Official CenturyPly QA Call Scorecard"** (removed `(41 Sub-Parameters)` suffix).
+- **Resigned Captain Name Elimination:**
+  - When a Pod Captain resigns (e.g., `Mousumi Chakraborty` for `Unity-I`), their name is completely removed from the "Assigned Pod Captain" input box in `QaScorecard.jsx`.
+  - The input field now displays: `— (Vacant • In Failover to Senior Manager)` styled with an amber badge indicator and failover tag.
+  - The adjacent "Senior Manager" field continues to display the interim reporting manager (`Arijit Nath`).
+- **State Migration Fix in DataContext:**
+  - Resolved regression where initial load migration unintentionally reactivated resigned captains and forced subordinates' `captain_name` back to them.
+  - Inactive/resigned captain states (`status === 'inactive'`, `wasCaptain === true`) and subordinate failover flags (`tempSupervisedByManager === true`) are now permanently preserved across browser reloads.
+  - Accidental resignation revert capability remains accessible in the "Accidental Resignation & Offboarding Revert Center" in `UserManagement.jsx`.

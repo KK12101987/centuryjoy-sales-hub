@@ -225,3 +225,14 @@ eplace mode preserving tickets from other months.
      - All past sales tickets, disbursements, and completed QA call scorecards attributed to the dissolved team remain 100% permanently preserved in the database.
      - The dissolved team is tracked in `century_removed_teams_v2` and cleanly filtered out from active selection dropdowns in QA Scorecards, Scope transfer forms, and leadership grids.
   4. *Rule 22 Watermark Enforcement:* `verifyWatermarkIntegrity()` is invoked inside `removeTeam`.
+
+---
+
+### Decision 035: Resigned Pod Captain Failover Display Protocol in QA Scorecard & Name Standardization
+* **Date:** 2026-11-25
+* **Context:** User requested that when a pod captain has resigned (e.g., Unity-I's captain Mousumi Chakraborty), their name must not appear under "Assigned Pod Captain" in the QA Call Scorecard. Additionally, the scorecard title must strictly be "Official CenturyPly QA Call Scorecard" without the "(41 Sub-Parameters)" suffix.
+* **Architecture & Mechanics:**
+  1. *Decoupled Self-Healing Migration from Inactive State Overwrites:* Fixed initialization logic in `DataContext.jsx` that previously overwrote inactive/resigned employee states (`status === 'inactive'`). Canonical directory and hierarchy checks now strictly respect soft-offboarded and resigned statuses, preventing unintended re-activation of separated captains.
+  2. *Active Captain Resolver (`activeCaptain`):* Standardized captain resolution in `QaScorecard.jsx`. If an RM's pod is in failover (`tempSupervisedByManager === true`), or their designated captain is inactive or equal to the Senior Manager, `activeCaptain` evaluates to `null`.
+  3. *Failover Visual Indicator:* When a pod captain is resigned, the "Assigned Pod Captain" input renders an amber failover badge displaying `— (Vacant • In Failover to Senior Manager)`, while the adjacent "Senior Manager" field explicitly displays the interim manager (e.g. `Arijit Nath`), guaranteeing complete transparency with zero ambiguity.
+  4. *Scorecard Title Standardization:* Consolidated title across all headers to exactly `"Official CenturyPly QA Call Scorecard"`.

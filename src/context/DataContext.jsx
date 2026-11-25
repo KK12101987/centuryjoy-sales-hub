@@ -123,20 +123,27 @@ export function DataProvider({ children }) {
           }
           parsed.tree['Arijit Nath']['Arshi Afreen Jamal'] = arshi;
 
-          // GUARANTEE Mousumi Chakraborty (Unity-I) is present in hierarchy tree
-          if (!parsed.tree['Arijit Nath']['Mousumi Chakraborty']) {
-            parsed.tree['Arijit Nath']['Mousumi Chakraborty'] = [
-              'Aparna Biswas',
-              'Chandrima Bhattacharya',
-              'Mousumi Chakraborty',
-              'Naga Sindhuja',
-              'Rajrupa Dey',
-              'Sk Shamsher Ali',
-              'Somashree Saha',
-              'Srabani Chakraborti',
-              'SWASITKA KOLLA'
-            ];
-            treeUpdated = true;
+          // GUARANTEE Unity-I is present in hierarchy tree, respecting captain resignation / failover
+          if (parsed.tree['Arijit Nath']) {
+            const hasUnityInterimKey = Object.keys(parsed.tree['Arijit Nath']).some((k) => k.includes('Unity-I'));
+            // Remove Mousumi if her resignation is active
+            if (parsed.tree['Arijit Nath']['Mousumi Chakraborty']) {
+              delete parsed.tree['Arijit Nath']['Mousumi Chakraborty'];
+              treeUpdated = true;
+            }
+            if (!hasUnityInterimKey) {
+              parsed.tree['Arijit Nath']['Unity-I (Interim: Arijit Nath)'] = [
+                'Aparna Biswas',
+                'Chandrima Bhattacharya',
+                'Naga Sindhuja',
+                'Rajrupa Dey',
+                'Sk Shamsher Ali',
+                'Somashree Saha',
+                'Srabani Chakraborti',
+                'SWASITKA KOLLA'
+              ];
+              treeUpdated = true;
+            }
           }
 
           // GUARANTEE Silpa Palchina (Zenith Pod) is present in hierarchy tree
@@ -697,19 +704,46 @@ export function DataProvider({ children }) {
             return rm;
           });
 
-          // Ensure all Canonical Digital Pod Captains (including Mousumi Chakraborty & Silpa Palchina) are present & active
-          const requiredCaptains = [
-            {
+          // Ensure Mousumi Chakraborty is properly recorded as resigned (status: inactive, wasCaptain: true)
+          // and Unity-I subordinates are in active failover to Senior Manager Arijit Nath
+          const mousumiIdx = parsed.findIndex((r) => r.rm_name.toLowerCase() === 'mousumi chakraborty');
+          if (mousumiIdx === -1) {
+            parsed.push({
               id: 293,
               rm_name: 'Mousumi Chakraborty',
               team_name: 'Unity-I',
-              captain_name: 'Mousumi Chakraborty',
+              captain_name: 'Arijit Nath',
               manager_name: 'Arijit Nath',
               dialer_id: 'Mousumi_C',
-              designation: 'Pod Captain',
-              status: 'active',
-            },
-            {
+              designation: 'Ex-Captain',
+              status: 'inactive',
+              wasCaptain: true,
+              deactivationReason: 'Pod Captain Resigned - Auto-Failover to Senior Manager Arijit Nath',
+              deactivatedAt: '2026-11-24T12:00:00.000Z',
+            });
+            modified = true;
+          } else {
+            // Keep Mousumi Chakraborty resigned and inactive
+            if (parsed[mousumiIdx].status !== 'inactive' || !parsed[mousumiIdx].wasCaptain) {
+              parsed[mousumiIdx] = {
+                ...parsed[mousumiIdx],
+                team_name: 'Unity-I',
+                captain_name: 'Arijit Nath',
+                manager_name: 'Arijit Nath',
+                designation: 'Ex-Captain',
+                status: 'inactive',
+                wasCaptain: true,
+                deactivationReason: parsed[mousumiIdx].deactivationReason || 'Pod Captain Resigned - Auto-Failover to Senior Manager Arijit Nath',
+                deactivatedAt: parsed[mousumiIdx].deactivatedAt || '2026-11-24T12:00:00.000Z',
+              };
+              modified = true;
+            }
+          }
+
+          // Ensure Silpa Palchina (Zenith Pod) is present & active
+          const silpaIdx = parsed.findIndex((r) => r.rm_name.toLowerCase() === 'silpa palchina');
+          if (silpaIdx === -1) {
+            parsed.push({
               id: 294,
               rm_name: 'Silpa Palchina',
               team_name: 'Zenith Pod',
@@ -718,34 +752,11 @@ export function DataProvider({ children }) {
               dialer_id: 'Silpa_P',
               designation: 'Pod Captain',
               status: 'active',
-            },
-          ];
+            });
+            modified = true;
+          }
 
-          requiredCaptains.forEach((cap) => {
-            const existingIdx = parsed.findIndex((r) => r.rm_name.toLowerCase() === cap.rm_name.toLowerCase());
-            if (existingIdx === -1) {
-              parsed.push(cap);
-              modified = true;
-            } else {
-              if (
-                parsed[existingIdx].team_name !== cap.team_name ||
-                parsed[existingIdx].captain_name !== cap.captain_name ||
-                parsed[existingIdx].status === 'inactive'
-              ) {
-                parsed[existingIdx] = {
-                  ...parsed[existingIdx],
-                  team_name: cap.team_name,
-                  captain_name: cap.captain_name,
-                  manager_name: cap.manager_name,
-                  designation: cap.designation,
-                  status: 'active',
-                };
-                modified = true;
-              }
-            }
-          });
-
-          // Ensure Mousumi Chakraborty's subordinates have team_name = 'Unity-I'
+          // Ensure Unity-I subordinates have team_name = 'Unity-I', manager = 'Arijit Nath', and are in failover mode
           const unity1Members = [
             'aparna biswas',
             'chandrima bhattacharya',
@@ -759,20 +770,34 @@ export function DataProvider({ children }) {
           parsed = parsed.map((rm) => {
             const name = (rm.rm_name || '').toLowerCase();
             if (unity1Members.includes(name)) {
+              let changed = false;
+              const updated = { ...rm };
+              if (updated.team_name !== 'Unity-I') {
+                updated.team_name = 'Unity-I';
+                changed = true;
+              }
+              if (updated.manager_name !== 'Arijit Nath') {
+                updated.manager_name = 'Arijit Nath';
+                changed = true;
+              }
+              // Failover fields: temporarily supervised by manager
               if (
-                rm.team_name !== 'Unity-I' ||
-                rm.captain_name !== 'Mousumi Chakraborty' ||
-                rm.manager_name !== 'Arijit Nath' ||
-                rm.status === 'inactive'
+                !updated.tempSupervisedByManager ||
+                updated.captain_name !== 'Arijit Nath' ||
+                updated.previousCaptain !== 'Mousumi Chakraborty'
               ) {
+                updated.captain_name = 'Arijit Nath';
+                updated.previousCaptain = 'Mousumi Chakraborty';
+                updated.tempSupervisedByManager = true;
+                changed = true;
+              }
+              if (updated.status === 'inactive' && !updated.deactivatedAt) {
+                updated.status = 'active';
+                changed = true;
+              }
+              if (changed) {
                 modified = true;
-                return {
-                  ...rm,
-                  team_name: 'Unity-I',
-                  captain_name: 'Mousumi Chakraborty',
-                  manager_name: 'Arijit Nath',
-                  status: 'active',
-                };
+                return updated;
               }
             }
             return rm;
