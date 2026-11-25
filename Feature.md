@@ -65,3 +65,19 @@
      * Filterable by Standard (>=58s), Short (<58s), 00:00:00 (Verify), and Disposed.
      * Audio listening link (`🎧`) and "Audit Now" button that instantly pre-populates the QA Scorecard and displays the active call audio banner.
 * **Verification:** Production build passed cleanly in 33.39s. Visual inspection verified by browser subagent.
+
+## FEATURE-007: Dynamic Teams, Members & Captains Management Console
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "Also add feature to add teams, its members and captains if it comes in near future. Once done test it."
+* **Key Enhancements:**
+  1. **`CreateTeamModal`:** Allows administrators to define a new Digital Team/Pod (e.g., "Velocity-I", "Nova Pod"), assign an executive Senior Manager, select/register a Pod Captain, and assign initial members.
+  2. **`AddMemberModal`:** Fast modal to add individual Relationship Managers to any existing or custom pod, automatically inheriting captain and manager hierarchy.
+  3. **In-Grid Quick Actions:**
+     - Top action buttons: `+ Create New Team / Pod` and `+ Add Team Member (RM)`.
+     - Direct `[+ Member]` pill button on every active pod card in the Live Pod Leadership grid.
+     - Dedicated dashed `+ Create New Digital Pod` card at the end of the pod grid.
+  4. **Universal Integration:**
+     - Propagates to `QaScorecard.jsx` Franchise/Team dropdown.
+     - Propagates to Supervisory Scope reassignment forms.
+     - Propagates to the live organizational tree (`hierarchy.tree`).
+* **Verification:** Production build passed with 0 errors in 50.82s. Verified with live browser testing.

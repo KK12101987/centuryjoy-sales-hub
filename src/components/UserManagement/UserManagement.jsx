@@ -39,7 +39,10 @@ import {
   UserCheck,
   History,
   Database,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  PlusCircle,
+  FolderPlus
 } from 'lucide-react';
 
 export default function UserManagement() {
@@ -56,6 +59,9 @@ export default function UserManagement() {
     revertOffboard,
     promoteEmployee,
     lastOffboardAction,
+    customTeams,
+    addNewTeam,
+    addNewMemberToTeam,
     qaAudits
   } = useData();
 
@@ -77,6 +83,31 @@ export default function UserManagement() {
     targetRole: 'captain', // 'captain' | 'manager'
     targetTeam: 'Unity-II',
     assignedAgents: [],
+  });
+
+  // Dynamic Team & Member Creation States
+  const [createTeamModalOpen, setCreateTeamModalOpen] = useState(false);
+  const [createTeamData, setCreateTeamData] = useState({
+    teamName: '',
+    seniorManager: 'Arijit Nath',
+    captainMode: 'existing', // 'existing' | 'new'
+    existingCaptainName: '',
+    newCaptainName: '',
+    newCaptainDialerId: '',
+    newCaptainMobile: '',
+    selectedMembers: [],
+    extraNewMembers: '',
+  });
+
+  const [addMemberModalOpen, setAddMemberModalOpen] = useState(false);
+  const [addMemberData, setAddMemberData] = useState({
+    rmName: '',
+    teamName: 'Unity-II',
+    captainName: '',
+    managerName: 'Arijit Nath',
+    dialerId: '',
+    mobileNumber: '',
+    designation: 'Relationship Manager',
   });
 
   // Dedicated Captain Resignation tab state
@@ -136,9 +167,10 @@ export default function UserManagement() {
     const fromRms = (rmDirectory || [])
       .map((r) => (r.team_name || '').trim())
       .filter((t) => t && !t.toLowerCase().includes('physical'));
-    const combined = [...new Set([...canonical, ...fromRms])];
+    const fromCustom = customTeams || [];
+    const combined = [...new Set([...canonical, ...fromCustom, ...fromRms])];
     return combined.sort();
-  }, [rmDirectory]);
+  }, [rmDirectory, customTeams]);
 
   // Filtered users for Tab 1 User Accounts
   const filteredUsers = useMemo(() => {
@@ -236,6 +268,137 @@ export default function UserManagement() {
         text: `Successfully reverted offboarding! Restored "${rmName}" and reinstated all pod hierarchy.`,
         canRevert: false,
         revertTarget: '',
+      });
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
+    }
+  };
+
+  const handleCreateTeamSubmit = (e) => {
+    e.preventDefault();
+    const team = (createTeamData.teamName || '').trim();
+    if (!team) {
+      alert('Please enter a team name.');
+      return;
+    }
+
+    try {
+      let capName = '';
+      let isNew = false;
+      let capDetails = {};
+
+      if (createTeamData.captainMode === 'existing') {
+        capName = createTeamData.existingCaptainName;
+      } else {
+        capName = (createTeamData.newCaptainName || '').trim();
+        isNew = true;
+        capDetails = {
+          dialerId: createTeamData.newCaptainDialerId,
+          mobileNumber: createTeamData.newCaptainMobile,
+        };
+      }
+
+      // Collect initial members
+      let members = [...createTeamData.selectedMembers];
+      if (createTeamData.extraNewMembers) {
+        const extraNames = createTeamData.extraNewMembers
+          .split(',')
+          .map((n) => n.trim())
+          .filter(Boolean);
+        extraNames.forEach((name) => {
+          if (!members.includes(name)) {
+            members.push(name);
+          }
+        });
+      }
+
+      addNewTeam({
+        teamName: team,
+        seniorManager: createTeamData.seniorManager,
+        captainName: capName,
+        initialMembers: members,
+        isNewCaptain: isNew,
+        captainDetails: capDetails,
+      });
+
+      // If there were extra brand new members, register each one in the RM directory
+      if (createTeamData.extraNewMembers) {
+        const extraNames = createTeamData.extraNewMembers
+          .split(',')
+          .map((n) => n.trim())
+          .filter(Boolean);
+        extraNames.forEach((name) => {
+          addNewMemberToTeam({
+            rmName: name,
+            teamName: team,
+            captainName: capName,
+            managerName: createTeamData.seniorManager,
+          });
+        });
+      }
+
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully created team "${team}" under Senior Manager "${createTeamData.seniorManager}" with Pod Captain "${capName || 'Interim'}" and ${members.length} members!`,
+        canRevert: false,
+        revertTarget: '',
+      });
+
+      setCreateTeamModalOpen(false);
+      setCreateTeamData({
+        teamName: '',
+        seniorManager: 'Arijit Nath',
+        captainMode: 'existing',
+        existingCaptainName: '',
+        newCaptainName: '',
+        newCaptainDialerId: '',
+        newCaptainMobile: '',
+        selectedMembers: [],
+        extraNewMembers: '',
+      });
+      setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message, canRevert: false, revertTarget: '' });
+    }
+  };
+
+  const handleAddMemberSubmit = (e) => {
+    e.preventDefault();
+    const name = (addMemberData.rmName || '').trim();
+    const team = (addMemberData.teamName || '').trim();
+    if (!name || !team) {
+      alert('Please fill in Member Name and Team.');
+      return;
+    }
+
+    try {
+      addNewMemberToTeam({
+        rmName: name,
+        teamName: team,
+        captainName: addMemberData.captainName,
+        managerName: addMemberData.managerName,
+        dialerId: addMemberData.dialerId,
+        mobileNumber: addMemberData.mobileNumber,
+        designation: addMemberData.designation,
+      });
+
+      setAlertMsg({
+        type: 'success',
+        text: `Successfully added "${name}" to Team "${team}" under Captain "${addMemberData.captainName || 'Direct'}"!`,
+        canRevert: false,
+        revertTarget: '',
+      });
+
+      setAddMemberModalOpen(false);
+      setAddMemberData({
+        rmName: '',
+        teamName: 'Unity-II',
+        captainName: '',
+        managerName: 'Arijit Nath',
+        dialerId: '',
+        mobileNumber: '',
+        designation: 'Relationship Manager',
       });
       setTimeout(() => setAlertMsg({ type: '', text: '', canRevert: false, revertTarget: '' }), 5000);
     } catch (err) {
@@ -936,63 +1099,96 @@ export default function UserManagement() {
           </div>
 
           {/* Pod Status Overview Grid */}
-          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
-                <Building2 className="w-4 h-4 text-amber-500" />
-                <span>Live Pod Leadership Status & Failover Health</span>
-              </h3>
-              <span className="text-[11px] text-slate-400">{podsOverview.length} Operational Digital Teams</span>
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                  <Building2 className="w-4 h-4 text-amber-500" />
+                  <span>Live Pod Leadership Status & Failover Health</span>
+                </h3>
+                <span className="text-[11px] text-slate-400">{podsOverview.length} Operational Digital Teams</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCreateTeamModalOpen(true)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/20 transition-all flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Create New Team / Pod</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddMemberData({
+                      rmName: '',
+                      teamName: teamsList[0] || 'Unity-II',
+                      captainName: '',
+                      managerName: 'Arijit Nath',
+                      dialerId: '',
+                      mobileNumber: '',
+                      designation: 'Relationship Manager',
+                    });
+                    setAddMemberModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 border border-slate-200 dark:border-slate-700 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>+ Add Team Member (RM)</span>
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {podsOverview.map((pod) => (
                 <div
                   key={pod.teamName}
-                  className={`p-3.5 rounded-xl border text-xs transition-all ${
+                  className={`p-3.5 rounded-xl border text-xs transition-all flex flex-col justify-between ${
                     pod.isFailover
                       ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800/60'
                       : 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center space-x-1.5">
-                      <span className="font-bold text-slate-900 dark:text-white text-sm">{pod.teamName}</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
-                        Digital Pod
-                      </span>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{pod.teamName}</span>
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
+                          Digital Pod
+                        </span>
+                      </div>
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          pod.isFailover ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                        }`}
+                        title={pod.isFailover ? 'Captain resigned - Under Senior Manager failover' : 'Active Pod'}
+                      />
                     </div>
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${
-                        pod.isFailover ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
-                      }`}
-                      title={pod.isFailover ? 'Captain resigned - Under Senior Manager failover' : 'Active Pod'}
-                    />
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Senior Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
-                  </div>
-                  <div className="text-[11px] mt-1.5">
-                    {pod.captainName ? (
-                      <div>
-                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold block">
-                          Captain: {pod.captainName}
-                        </span>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          {pod.totalRms} Active RMs in team
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Senior Manager: <strong className="text-slate-700 dark:text-slate-300">{pod.seniorManager}</strong>
+                    </div>
+                    <div className="text-[11px] mt-1.5">
+                      {pod.captainName ? (
+                        <div>
+                          <span className="text-emerald-700 dark:text-emerald-400 font-semibold block">
+                            Captain: {pod.captainName}
+                          </span>
+                          <div className="text-[10px] text-slate-500 mt-0.5">
+                            {pod.totalRms} Active RMs in team
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="p-2 rounded-lg bg-amber-100/70 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800">
-                        <span className="text-amber-800 dark:text-amber-300 font-bold block text-[11px]">
-                          ⚠️ Captain Resigned{pod.resignedCaptainName ? ` (${pod.resignedCaptainName})` : ''}
-                        </span>
-                        <span className="text-[10px] text-amber-700 dark:text-amber-400 block mt-0.5">
-                          Team "{pod.teamName}" & {pod.totalRms} members intact under Senior Manager {pod.seniorManager}
-                        </span>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="p-2 rounded-lg bg-amber-100/70 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800">
+                          <span className="text-amber-800 dark:text-amber-300 font-bold block text-[11px]">
+                            ⚠️ Captain Resigned{pod.resignedCaptainName ? ` (${pod.resignedCaptainName})` : ''}
+                          </span>
+                          <span className="text-[10px] text-amber-700 dark:text-amber-400 block mt-0.5">
+                            Team "{pod.teamName}" & {pod.totalRms} members intact under Senior Manager {pod.seniorManager}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5">
                     {pod.captainName ? (
                       <button
                         onClick={() => {
@@ -1016,12 +1212,51 @@ export default function UserManagement() {
                         }}
                         className="text-[10px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 flex items-center space-x-1"
                       >
-                        <span>Promote Successor to {pod.teamName} →</span>
+                        <span>Promote Successor →</span>
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddMemberData({
+                          rmName: '',
+                          teamName: pod.teamName,
+                          captainName: pod.captainName || '',
+                          managerName: pod.seniorManager || 'Arijit Nath',
+                          dialerId: '',
+                          mobileNumber: '',
+                          designation: 'Relationship Manager',
+                        });
+                        setAddMemberModalOpen(true);
+                      }}
+                      className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 bg-slate-100 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center space-x-1 shrink-0"
+                      title={`Add member directly to ${pod.teamName}`}
+                    >
+                      <Plus className="w-3 h-3 text-purple-500" />
+                      <span>Member</span>
+                    </button>
                   </div>
                 </div>
               ))}
+
+              {/* + Create New Digital Pod Dashed Card */}
+              <button
+                type="button"
+                onClick={() => setCreateTeamModalOpen(true)}
+                className="p-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-purple-500 dark:hover:border-purple-500 bg-slate-50/40 dark:bg-slate-900/20 hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-all flex flex-col items-center justify-center space-y-2 text-center group cursor-pointer min-h-[140px]"
+              >
+                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-bold text-xs text-slate-800 dark:text-slate-200 block">
+                    + Create New Digital Pod
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    Designate Captain & Add Members
+                  </span>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -2190,6 +2425,395 @@ export default function UserManagement() {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Create New Digital Team / Pod */}
+      {createTeamModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    Create New Digital Team / Pod
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Establish a new operational pod, designate its Pod Captain, and set initial team members.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCreateTeamModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTeamSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Team / Pod Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={createTeamData.teamName}
+                  onChange={(e) => setCreateTeamData((prev) => ({ ...prev, teamName: e.target.value }))}
+                  placeholder="e.g. Velocity-I, Nova Pod, Apex-I"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Senior Manager *
+                </label>
+                <select
+                  value={createTeamData.seniorManager}
+                  onChange={(e) => setCreateTeamData((prev) => ({ ...prev, seniorManager: e.target.value }))}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-medium"
+                >
+                  {managersList.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">Pod Captain Assignment</span>
+                  <div className="flex items-center space-x-2 text-[11px]">
+                    <label className="flex items-center space-x-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="captainMode"
+                        checked={createTeamData.captainMode === 'existing'}
+                        onChange={() => setCreateTeamData((prev) => ({ ...prev, captainMode: 'existing' }))}
+                        className="text-purple-600 focus:ring-purple-500"
+                      />
+                      <span>Promote Existing RM</span>
+                    </label>
+                    <label className="flex items-center space-x-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="captainMode"
+                        checked={createTeamData.captainMode === 'new'}
+                        onChange={() => setCreateTeamData((prev) => ({ ...prev, captainMode: 'new' }))}
+                        className="text-purple-600 focus:ring-purple-500"
+                      />
+                      <span>Register New Captain</span>
+                    </label>
+                  </div>
+                </div>
+
+                {createTeamData.captainMode === 'existing' ? (
+                  <div>
+                    <label className="block text-[11px] text-slate-500 mb-1">
+                      Select Active RM to promote as Captain:
+                    </label>
+                    <select
+                      value={createTeamData.existingCaptainName}
+                      onChange={(e) => setCreateTeamData((prev) => ({ ...prev, existingCaptainName: e.target.value }))}
+                      className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                    >
+                      <option value="">-- Select Active Employee --</option>
+                      {activeRms.map((rm) => (
+                        <option key={rm.rm_name} value={rm.rm_name}>
+                          {rm.rm_name} (Current: {rm.team_name} • {rm.designation || 'RM'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[11px] text-slate-500 mb-0.5">Captain Full Name *</label>
+                      <input
+                        type="text"
+                        value={createTeamData.newCaptainName}
+                        onChange={(e) => setCreateTeamData((prev) => ({ ...prev, newCaptainName: e.target.value }))}
+                        placeholder="e.g. Rohan Sen"
+                        className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] text-slate-500 mb-0.5">Dialer ID</label>
+                        <input
+                          type="text"
+                          value={createTeamData.newCaptainDialerId}
+                          onChange={(e) => setCreateTeamData((prev) => ({ ...prev, newCaptainDialerId: e.target.value }))}
+                          placeholder="e.g. Rohan_S"
+                          className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-500 mb-0.5">Mobile Number</label>
+                        <input
+                          type="text"
+                          value={createTeamData.newCaptainMobile}
+                          onChange={(e) => setCreateTeamData((prev) => ({ ...prev, newCaptainMobile: e.target.value }))}
+                          placeholder="e.g. 9830012345"
+                          className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">
+                    Assign Existing Team Members (RMs)
+                  </label>
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold">
+                    {createTeamData.selectedMembers.length} Selected
+                  </span>
+                </div>
+                <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-900/40 space-y-1">
+                  {activeRms.map((rm) => {
+                    const isChecked = createTeamData.selectedMembers.includes(rm.rm_name);
+                    return (
+                      <label
+                        key={rm.rm_name}
+                        className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setCreateTeamData((prev) => ({
+                              ...prev,
+                              selectedMembers: checked
+                                ? [...prev.selectedMembers, rm.rm_name]
+                                : prev.selectedMembers.filter((m) => m !== rm.rm_name),
+                            }));
+                          }}
+                          className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="font-medium text-slate-900 dark:text-white">{rm.rm_name}</span>
+                        <span className="text-[10px] text-slate-400">({rm.team_name} • Sup: {rm.captain_name})</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Or Add New Members Directly (Optional comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={createTeamData.extraNewMembers}
+                  onChange={(e) => setCreateTeamData((prev) => ({ ...prev, extraNewMembers: e.target.value }))}
+                  placeholder="e.g. Pooja Verma, Amit Roy, Priya Sen"
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Comma-separated names will automatically be registered as new RMs in this pod.
+                </span>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setCreateTeamModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/20 flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>Create Team & Synchronize Hierarchy</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Add Team Member (Relationship Manager) */}
+      {addMemberModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    Add Team Member (Relationship Manager)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Add a new RM or assign an existing agent to a specific pod.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddMemberModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMemberSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Relationship Manager (RM) Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addMemberData.rmName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setAddMemberData((prev) => ({
+                      ...prev,
+                      rmName: name,
+                      dialerId: prev.dialerId ? prev.dialerId : name.trim().replace(/\s+/g, '_'),
+                    }));
+                  }}
+                  placeholder="e.g. Pooja Verma"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Franchise / Team *
+                </label>
+                <select
+                  value={addMemberData.teamName}
+                  onChange={(e) => {
+                    const team = e.target.value;
+                    const matchingPod = podsOverview.find((p) => p.teamName === team);
+                    setAddMemberData((prev) => ({
+                      ...prev,
+                      teamName: team,
+                      captainName: matchingPod?.captainName || prev.captainName,
+                      managerName: matchingPod?.seniorManager || prev.managerName,
+                    }));
+                  }}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold"
+                >
+                  {teamsList.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Assigned Pod Captain
+                  </label>
+                  <select
+                    value={addMemberData.captainName}
+                    onChange={(e) => setAddMemberData((prev) => ({ ...prev, captainName: e.target.value }))}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                  >
+                    <option value="">-- Choose Captain --</option>
+                    {activeCaptainsList.map((c) => (
+                      <option key={c.rm_name} value={c.rm_name}>
+                        {c.rm_name} ({c.team_name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Senior Manager
+                  </label>
+                  <select
+                    value={addMemberData.managerName}
+                    onChange={(e) => setAddMemberData((prev) => ({ ...prev, managerName: e.target.value }))}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                  >
+                    {managersList.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Dialer Agent ID
+                  </label>
+                  <input
+                    type="text"
+                    value={addMemberData.dialerId}
+                    onChange={(e) => setAddMemberData((prev) => ({ ...prev, dialerId: e.target.value }))}
+                    placeholder="e.g. Pooja_V"
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Mobile / Phone (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={addMemberData.mobileNumber}
+                    onChange={(e) => setAddMemberData((prev) => ({ ...prev, mobileNumber: e.target.value }))}
+                    placeholder="e.g. 9830012345"
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                  Designation
+                </label>
+                <input
+                  type="text"
+                  value={addMemberData.designation}
+                  onChange={(e) => setAddMemberData((prev) => ({ ...prev, designation: e.target.value }))}
+                  placeholder="Relationship Manager"
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setAddMemberModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Add Member to Team</span>
+                </button>
+              </div>
+
+            </form>
           </div>
         </div>
       )}

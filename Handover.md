@@ -127,3 +127,20 @@ The application will automatically detect Vite and the serverless functions unde
 - **Accidental Resignation & Offboarding Revert Center:** 1-click restore table with instant green "Revert Resignation" button to reinstate the employee and reconnect their subordinate pod hierarchy.
 - **Offboarding Tab Deep-Link Banner:** Added guidance banner in the "Remove / Offboard Employee" tab with a 1-click button to jump directly to the Captain Resignation tab.
 - **Zero Database Impact:** Inactive employees remain preserved across all historical L2 disbursements, call logs, and completed QA scorecards.
+
+---
+
+## 20. Dynamic Creation of Teams, Members & Captains Console (Nov 25, 2026)
+- **Dynamic Team / Pod Creation:** Administrators can create new digital pods (e.g. `Velocity-I`, `Nova Pod`) on the fly, with automated persistence in `century_custom_teams_v2` in localStorage.
+- **Captain Selection Modes:** Offers flexible leadership assignment: promote an existing RM to Pod Captain or register a brand-new captain with customized dialer and mobile credentials.
+- **Fast Team Member Addition:** Dedicated `AddMemberModal` allows adding RMs to any active pod with automatic inheritance of team name, captain, and senior manager hierarchy.
+- **In-Grid Quick Actions:**
+  - Header actions: `+ Create New Team / Pod` and `+ Add Team Member (RM)` in the Captain Resignation & Scope tabs.
+  - Pod Card `[+ Member]` action for 1-click member addition directly into that pod.
+  - Dashed `+ Create New Digital Pod` card at the end of the leadership overview grid.
+- **System-Wide Ingestion:** Newly created teams and members automatically propagate across:
+  - The Live Pod Leadership Status & Failover Health grid.
+  - The Supervisory Scope reassignment forms.
+  - The QA Call Scorecard Franchise/Team selector and RM dropdown.
+  - The live organizational tree (`hierarchy.tree`).
+- **Zero Database Distortion:** Historical records remain 100% intact with strict anti-tamper watermark verification.

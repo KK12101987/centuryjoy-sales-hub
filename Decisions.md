@@ -196,3 +196,17 @@ eplace mode preserving tickets from other months.
   2. *Captain Resignation Auto-Failover:* Automatically reassign active subordinate agents to report directly to their immediate Senior Manager (`captain_name` = immediate manager, `tempSupervisedByManager: true`, `previousCaptain: rmName`).
   3. *Pod Succession & Role Promotion:* Dedicated modal to promote a candidate to Pod Captain or Senior Manager, re-clustering subordinate agents under them.
   4. *Multi-Tier Revert / Rollback Protocol:* Immediate banner undo, quick-revert card, and Inactive Archive "Revert Offboarding" button that restores the captain and auto-reattaches all their subordinate agents.
+
+---
+
+### Decision 033: Dynamic Creation of Teams, Members, and Captains with Real-Time Hierarchy Synchronization
+* **Date:** 2026-11-25
+* **Context:** User requested the ability to add new teams, team members, and pod captains dynamically to accommodate near-future organizational expansion.
+* **Architecture & Mechanics:**
+  1. *Dynamic Custom Teams Registry (`century_custom_teams_v2`):* Stores dynamically added pod names alongside the canonical digital pods (`Unity-I`, `Unity-II`, `Catlyst-I`, `Catlyst-II`, `SoarZone-I`, `SoarZone-II`, `Zenith Pod`), ensuring new pods persist across reloads and system resets.
+  2. *Dual Captain Assignment Mode:* Administrators can either promote an existing Relationship Manager into the Pod Captain role or register a brand-new captain with customized contact/dialer credentials.
+  3. *Zero Database Impact & Real-Time Sync:*
+     - Adding teams or members modifies only the organizational metadata directory (`century_rm_directory_v2`) and the organizational tree (`century_hierarchy_tree_v2`).
+     - Historical tickets, calls, and QA scorecards are never altered or deleted.
+     - New teams and their members immediately populate the Pod Leadership status cards, supervisory reassignment dropdowns, and QA Call Scorecard Franchise/Team filters.
+  4. *Rule 22 Anti-Tamper Enforcement:* Embedded `verifyWatermarkIntegrity()` inside `addNewTeam` and `addNewMemberToTeam` to guarantee that structural organizational expansions cannot be executed if the anti-tamper watermark has been modified.

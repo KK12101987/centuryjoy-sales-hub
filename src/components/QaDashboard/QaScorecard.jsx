@@ -148,7 +148,7 @@ export const PARAMETERS = [
 ];
 
 export default function QaScorecard({ auditTarget = null, onClearTarget = null, onBackToHistory = null, canAudit: propCanAudit, currentUser: propCurrentUser }) {
-  const { rmDirectory, addQaAudit, currentUser: contextUser } = useData();
+  const { rmDirectory, addQaAudit, currentUser: contextUser, customTeams } = useData();
   const currentUser = propCurrentUser || contextUser;
   const canAudit = propCanAudit !== undefined ? propCanAudit : isAuthorizedAuditor(currentUser);
 
@@ -272,10 +272,12 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
   const [lockMessage, setLockMessage] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Unique Franchises / Teams from RM Directory
+  // Unique Franchises / Teams from RM Directory + Custom Dynamic Teams
   const franchises = useMemo(() => {
-    return [...new Set(rmDirectory.map((r) => (r.team_name || "").trim()).filter(Boolean))];
-  }, [rmDirectory]);
+    const fromRms = rmDirectory.map((r) => (r.team_name || "").trim()).filter(Boolean);
+    const fromCustom = customTeams || [];
+    return [...new Set([...fromCustom, ...fromRms])].sort();
+  }, [rmDirectory, customTeams]);
 
   // Filtered RMs (robust against Unity-II vs Unity 2 variations, excludes soft-offboarded employees for new evaluations)
   const availableRms = useMemo(() => {

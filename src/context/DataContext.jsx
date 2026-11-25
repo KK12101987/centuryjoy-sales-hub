@@ -1077,6 +1077,221 @@ export function DataProvider({ children }) {
     return promotedCandidate;
   };
 
+  // Persistent registry of dynamic custom teams created by administrators
+  const [customTeams, setCustomTeams] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_custom_teams_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  // Dynamically add a new Team / Pod, designate its Pod Captain, and assign members
+  const addNewTeam = ({
+    teamName,
+    seniorManager = 'Arijit Nath',
+    captainName = '',
+    initialMembers = [],
+    isNewCaptain = false,
+    captainDetails = {},
+  }) => {
+    verifyWatermarkIntegrity();
+    const cleanTeam = (teamName || '').trim();
+    if (!cleanTeam) {
+      throw new Error('Team / Pod name cannot be empty.');
+    }
+
+    // 1. Persist to customTeams
+    setCustomTeams((prev) => {
+      if (prev.some((t) => t.toLowerCase() === cleanTeam.toLowerCase())) return prev;
+      const updated = [...prev, cleanTeam];
+      try {
+        localStorage.setItem('century_custom_teams_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    const cleanCaptain = (captainName || '').trim();
+
+    // 2. Update RM directory with Captain and Initial Members
+    setRmDirectory((prev) => {
+      let updated = [...prev];
+
+      // If captain provided:
+      if (cleanCaptain) {
+        const existingCaptIndex = updated.findIndex(
+          (r) => r.rm_name.toLowerCase() === cleanCaptain.toLowerCase()
+        );
+
+        if (existingCaptIndex >= 0 && !isNewCaptain) {
+          // Promote / Reassign existing RM as Captain of this team
+          updated[existingCaptIndex] = {
+            ...updated[existingCaptIndex],
+            team_name: cleanTeam,
+            captain_name: cleanCaptain,
+            manager_name: seniorManager,
+            designation: 'Pod Captain',
+            status: 'active',
+          };
+        } else {
+          // Register brand new Pod Captain
+          const newCaptainRecord = {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            rm_name: cleanCaptain,
+            team_name: cleanTeam,
+            captain_name: cleanCaptain,
+            manager_name: seniorManager,
+            dialer_id: captainDetails?.dialerId || cleanCaptain.replace(/\s+/g, '_'),
+            mobile_number: captainDetails?.mobileNumber || '',
+            designation: 'Pod Captain',
+            status: 'active',
+          };
+          updated.push(newCaptainRecord);
+        }
+      }
+
+      // Assign initial members to this team
+      if (Array.isArray(initialMembers) && initialMembers.length > 0) {
+        updated = updated.map((rm) => {
+          if (initialMembers.some((m) => m.toLowerCase() === rm.rm_name.toLowerCase())) {
+            return {
+              ...rm,
+              team_name: cleanTeam,
+              captain_name: cleanCaptain || seniorManager,
+              manager_name: seniorManager,
+              status: 'active',
+            };
+          }
+          return rm;
+        });
+      }
+
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 3. Update Hierarchy Tree
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      if (!tree[seniorManager]) tree[seniorManager] = {};
+
+      const podCaptainKey = cleanCaptain || `${cleanTeam} (Interim)`;
+
+      // Clean up assigned members and captain from other pods in the tree
+      const memberList = Array.isArray(initialMembers) ? initialMembers : [];
+      for (const m in tree) {
+        for (const c in tree[m]) {
+          if (m === seniorManager && c === podCaptainKey) continue;
+          tree[m][c] = (tree[m][c] || []).filter(
+            (ag) => !memberList.includes(ag) && ag.toLowerCase() !== cleanCaptain.toLowerCase()
+          );
+        }
+      }
+
+      const existingPodMembers = tree[seniorManager][podCaptainKey] || [];
+      const combinedMembers = [...new Set([...existingPodMembers, ...memberList])];
+      tree[seniorManager][podCaptainKey] =
+        combinedMembers.length > 0 ? combinedMembers : cleanCaptain ? [cleanCaptain] : [];
+
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return { teamName: cleanTeam, captainName: cleanCaptain, seniorManager };
+  };
+
+  // Add a new or existing Relationship Manager to a specific team
+  const addNewMemberToTeam = ({
+    rmName,
+    teamName,
+    captainName = '',
+    managerName = 'Arijit Nath',
+    dialerId = '',
+    mobileNumber = '',
+    designation = 'Relationship Manager',
+  }) => {
+    verifyWatermarkIntegrity();
+    const cleanName = (rmName || '').trim();
+    const cleanTeam = (teamName || '').trim();
+    if (!cleanName || !cleanTeam) {
+      throw new Error('Member name and Team name are required.');
+    }
+
+    const finalCaptain = captainName || 'Direct Supervision';
+
+    setRmDirectory((prev) => {
+      let updated = [...prev];
+      const existingIndex = updated.findIndex(
+        (r) => r.rm_name.toLowerCase() === cleanName.toLowerCase()
+      );
+
+      if (existingIndex >= 0) {
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          team_name: cleanTeam,
+          captain_name: finalCaptain,
+          manager_name: managerName,
+          designation: designation || updated[existingIndex].designation || 'Relationship Manager',
+          dialer_id: dialerId || updated[existingIndex].dialer_id || cleanName.replace(/\s+/g, '_'),
+          mobile_number: mobileNumber || updated[existingIndex].mobile_number || '',
+          status: 'active',
+        };
+      } else {
+        const newRm = {
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          rm_name: cleanName,
+          team_name: cleanTeam,
+          captain_name: finalCaptain,
+          manager_name: managerName,
+          dialer_id: dialerId || cleanName.replace(/\s+/g, '_'),
+          mobile_number: mobileNumber || '',
+          designation: designation || 'Relationship Manager',
+          status: 'active',
+        };
+        updated.push(newRm);
+      }
+
+      try {
+        localStorage.setItem('century_rm_directory_v2', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Update Hierarchy Tree
+    setHierarchy((prev) => {
+      const tree = JSON.parse(JSON.stringify(prev.tree || {}));
+      if (!tree[managerName]) tree[managerName] = {};
+      if (!tree[managerName][finalCaptain]) tree[managerName][finalCaptain] = [];
+
+      // Remove from any other pod
+      for (const m in tree) {
+        for (const c in tree[m]) {
+          tree[m][c] = (tree[m][c] || []).filter((ag) => ag.toLowerCase() !== cleanName.toLowerCase());
+        }
+      }
+
+      if (!tree[managerName][finalCaptain].includes(cleanName)) {
+        tree[managerName][finalCaptain].push(cleanName);
+      }
+
+      const newH = { ...prev, tree };
+      try {
+        localStorage.setItem('century_hierarchy_tree_v2', JSON.stringify(newH));
+      } catch (e) {}
+      return newH;
+    });
+
+    return { rmName: cleanName, teamName: cleanTeam, captainName: finalCaptain };
+  };
+
   // Global Scope Filter for Consolidated View
   const [scopeFilter, setScopeFilter] = useState({
     manager: 'all',
@@ -1167,6 +1382,9 @@ export function DataProvider({ children }) {
     revertOffboard,
     promoteEmployee,
     lastOffboardAction,
+    customTeams,
+    addNewTeam,
+    addNewMemberToTeam,
     scopeFilter,
     setScopeFilter,
     isUploadModalOpen,
