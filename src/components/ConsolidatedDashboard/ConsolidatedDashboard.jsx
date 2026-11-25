@@ -5,15 +5,9 @@ import {
   CreditCard, 
   PhoneCall, 
   CheckCircle2, 
-  TrendingUp, 
-  Users, 
-  Calendar, 
   Filter, 
-  ArrowUpRight, 
-  ShieldAlert, 
   Award, 
   Activity,
-  Layers,
   ChevronRight
 } from 'lucide-react';
 

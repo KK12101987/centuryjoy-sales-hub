@@ -373,3 +373,27 @@ eplace mode preserving tickets from other months.
      - Pending dialer calls queue scoped to supervised RMs so leadership only views pending calls originating from their division/pod.
   6. *Navbar Scope Synchronization (`Navbar.jsx`):*
      - Navigation tab badges (`L2 Approvals`, `RM Telephony`, `QA & QC Tools`) display dynamically scoped record counts matching the user's supervisory scope.
+
+---
+
+### Decision 042: Anti-Slop Audit, Dead Code Pruning & Trailing-Edge Hygiene (Nov 25, 2026)
+* **Context:**
+  - Audited the entire project under Rule 19 ("Anti-Slop & Dead Code Pruning") and Rule 20 ("Platform Version Policy Alignment").
+* **Actions Taken:**
+  1. *Unused Named Imports Pruned (41 total):*
+     - `LoginPage.jsx`: `KeyRound`, `Users`
+     - `Navbar.jsx`: `Building2`
+     - `UploadCenterModal.jsx`: `Users`, `RefreshCw`, `ArrowRight`
+     - `ConsolidatedDashboard.jsx`: `TrendingUp`, `Users`, `Calendar`, `ArrowUpRight`, `ShieldAlert`, `Layers`
+     - `QaDashboard.jsx`: `isAuthorizedAuditor`, `AlertTriangle`, `PlusCircle`, `Layers`, `HelpCircle`, `ChevronDown`, `ChevronUp`, `Save`, `Award`, `FileSpreadsheet`, `PhoneCall`, `Volume2`, `Sparkles`
+     - `QaScorecard.jsx`: `User`, `Sparkles`, `CheckCircle2`, `AlertTriangle`
+     - `RMProductivity.jsx`: `Calendar`, `RefreshCw`
+     - `UserManagement.jsx`: `getAllUsers`, `canConductCallAudits`, `getPermittedModules`, `KeyRound`, `Lock`, `Mail`, `RefreshCw`, `UserX`, `PlusCircle`, `FolderPlus`
+  2. *Dead Utilities Pruned:*
+     - Removed uninvoked `f1` formatter from `src/utils/formatters.js`.
+  3. *Static Analysis Verification:*
+     - Verified 0 unreferenced source files across `src/` (all 33 files actively mapped).
+     - Verified 0 active `console.log` statements in client source code.
+     - Pinned `node >= 20.0.0` and `build.target: 'es2022'` in `vite.config.js`.
+  4. *Rule 22 Watermark Integrity:*
+     - Confirmed `#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` coupled to bootstrap and active watchers.

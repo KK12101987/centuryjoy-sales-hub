@@ -11,14 +11,12 @@ import {
   Search, 
   ChevronRight, 
   ChevronDown, 
-  Calendar, 
   Filter, 
   GitBranch, 
-  FileSpreadsheet,
-  CheckCircle2,
-  TrendingUp,
-  RefreshCw,
-  Building2
+  FileSpreadsheet, 
+  CheckCircle2, 
+  TrendingUp, 
+  Building2 
 } from 'lucide-react';
 
 export default function RMProductivity() {

@@ -5,15 +5,6 @@
 // Format numbers in Indian Locale (en-IN)
 export const nf = new Intl.NumberFormat('en-IN');
 
-// Format 1 decimal place
-export const f1 = (v) => {
-  if (v == null || isNaN(v)) return '0.0';
-  return new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(v);
-};
-
 // Format Currency in INR
 export const formatINR = (val) => {
   if (val == null || isNaN(val)) return '₹0';

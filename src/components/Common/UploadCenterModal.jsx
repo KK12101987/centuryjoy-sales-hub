@@ -9,12 +9,9 @@ import {
   CreditCard,
   PhoneCall,
   Download,
-  Users,
   Headphones,
   Check,
-  RefreshCw,
-  Eye,
-  ArrowRight
+  Eye
 } from 'lucide-react';
 import { 
   CANONICAL_FIELDS, 

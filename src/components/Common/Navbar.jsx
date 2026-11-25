@@ -11,12 +11,11 @@ import {
   Sun, 
   LogOut, 
   ShieldCheck, 
-  Building2,
-  ChevronDown,
-  Calendar,
-  Check,
-  UploadCloud,
-  RefreshCw
+  ChevronDown, 
+  Calendar, 
+  Check, 
+  UploadCloud, 
+  RefreshCw 
 } from 'lucide-react';
 
 export default function Navbar() {

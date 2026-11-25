@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { 
-  isAuthorizedAuditor, 
   getAuditorScope, 
   ROLES, 
   isDeveloperUser,
@@ -11,24 +10,13 @@ import {
 import QaScorecard from './QaScorecard';
 import { 
   CheckCircle2, 
-  AlertTriangle, 
   BarChart3, 
   PieChart, 
   Search, 
   UploadCloud, 
-  PlusCircle, 
-  Layers, 
-  HelpCircle, 
-  ChevronDown, 
-  ChevronUp, 
-  Save, 
   ShieldAlert, 
-  Award,
   Activity,
-  FileSpreadsheet,
   Headphones,
-  PhoneCall,
-  Volume2,
   Trash2,
   Check,
   RotateCcw,
@@ -37,8 +25,7 @@ import {
   Filter,
   X,
   Target,
-  ExternalLink,
-  Sparkles
+  ExternalLink
 } from 'lucide-react';
 
 export default function QaDashboard() {

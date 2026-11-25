@@ -1,27 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { 
-  getAllUsers, 
   createUser, 
   updateUser, 
   deleteUser, 
   toggleUserStatus, 
   ROLE_DEFINITIONS, 
   ROLES,
-  getAllowedUploadTabs,
-  canConductCallAudits,
-  getPermittedModules
+  getAllowedUploadTabs
 } from '../../utils/auth';
 import { 
   Users, 
   UserPlus, 
   ShieldCheck, 
-  KeyRound, 
   Search, 
   Edit3, 
   Trash2, 
-  Lock, 
-  Mail, 
   User, 
   ToggleLeft, 
   ToggleRight, 
@@ -32,20 +26,16 @@ import {
   Sparkles,
   GitBranch,
   Save,
-  RefreshCw,
   Layers,
   ArrowRight,
   UserMinus,
-  UserX,
   RotateCcw,
   Archive,
   UserCheck,
   History,
   Database,
   AlertTriangle,
-  Plus,
-  PlusCircle,
-  FolderPlus
+  Plus
 } from 'lucide-react';
 
 export default function UserManagement() {

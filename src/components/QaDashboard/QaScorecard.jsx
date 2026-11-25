@@ -4,12 +4,8 @@ import { isAuthorizedAuditor } from '../../utils/auth';
 import { 
   Award, 
   CheckSquare, 
-  User, 
   Save, 
   ShieldAlert, 
-  Sparkles, 
-  CheckCircle2,
-  AlertTriangle,
   Lock
 } from 'lucide-react';
 
