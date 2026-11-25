@@ -364,7 +364,11 @@ export default function ConsolidatedDashboard() {
             </p>
           </div>
           <span className="text-xs font-semibold text-slate-400">
-            4 Senior Leadership Executives
+            {currentUser?.role === 'manager'
+              ? `${currentUser.managerKey} Division`
+              : currentUser?.role === 'captain'
+              ? `${currentUser.teamName || currentUser.captainKey} Pod`
+              : `${managerComparison.length} Senior Leadership Executives`}
           </span>
         </div>
 
