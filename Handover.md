@@ -372,3 +372,26 @@ The application will automatically detect Vite and the serverless functions unde
   - Vite build passed in 16.54s.
   - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
+
+---
+
+## 33. Fatal Parameter Failure Tracking & Pod Connect Target Removal (Nov 25, 2026)
+- **Pod Connect Target Removal:**
+  - Removed arbitrary `Pod Connect Target: 50.0% (Met ✅)` footer from the Pod Captain KPI cards in `ManagerHub.jsx`.
+  - Replaced with operational `Connected Calls: {nf.format(podTotalConnected)} Successful`.
+- **Fatal Parameter Calls Integration:**
+  - Added `Fatal Calls` column to both the Captain's `Relationship Managers Leaderboard` and the Manager's `Relationship Managers Roster`.
+  - Counts calls where `a.is_fatal === true` for each RM.
+  - Shows `0` for clean records, and a prominent alert badge (`🚨 {fatalCount} Failed`) when breaches exist.
+- **Fatal-Aware Performance Tier Evaluation:**
+  - Implemented `evaluatePerformanceTier()`:
+    - Fatal failures strictly override average scores (`fatalCount >= 2` -> `Critical`, `fatalCount === 1` -> `At Risk`).
+    - Agents with zero fatals evaluated by `Top Performer` (conn >= 54% & QA >= 86%), `On Track` (conn >= 48% & QA >= 82%), or `Needs Coaching`.
+    - Ronika Banerjee correctly surfaced as `At Risk (1 Fatal)` despite high talk score, and Akash Kumar Shaw surfaced as `Critical (2 Fatals)`.
+- **Rule 21b Hygiene Verification:**
+  - 34/34 source files mapped and referenced.
+  - 0 unused imports, 0 console.log statements, 0 orphaned components.
+  - Vite build compiled in 23.96s with 0 errors.
+  - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
+

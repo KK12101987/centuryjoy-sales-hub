@@ -484,3 +484,36 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - The entire application (L2 Financials, Calling Telephony, QA Audits, Divisions & Pods, and Navbar badges) now behaves as a unified, reactive multi-month platform.
 
+## Decision 046: Fatal Parameter Call Failures Integration & Pod Target Removal
+* **Date:** November 25, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - The developer specified that there is currently no "Pod Connect Target" and requested removing that target element from the Pod Dashboard.
+  - In addition, the developer requested displaying the count of calls that failed Fatal Parameters in both the Pod Captain Dashboard (`Relationship Managers Leaderboard`) and the Manager Dashboard (`Relationship Managers Roster`), and judging the RM's `Performance Tier` by factoring in fatal call failures.
+* **Actions Taken:**
+  1. *Removed Pod Connect Target:*
+     - In `src/components/ManagerHub/ManagerHub.jsx`, removed the arbitrary `Pod Connect Target: 50.0% (Met ✅)` footer.
+     - Replaced with operational metric `Connected Calls: {nf.format(podTotalConnected)} Successful`.
+  2. *Fatal Parameter Failures Tracking & Tier Judgment:*
+     - Filtered individual RM audits for fatal violations: `const fatalCount = rmAudits.filter((a) => a.is_fatal).length`.
+     - Built `evaluatePerformanceTier(dials, connRate, qaScore, fatalCount)`:
+       - Fatal parameter failures strictly override high average scores:
+         - `fatalCount >= 2`: Judged as `Critical ({fatalCount} Fatals)` (deep rose alert badge).
+         - `fatalCount === 1`: Judged as `At Risk (1 Fatal)` (rose warning badge).
+       - Zero fatal failures follow standard operational benchmarks:
+         - `connRate >= 54 && qaScore >= 86`: `Top Performer` (emerald badge).
+         - `connRate >= 48 && qaScore >= 82`: `On Track` (blue badge).
+         - `dials === 0`: `No Activity` (slate badge).
+         - Otherwise: `Needs Coaching` (amber badge).
+  3. *Table Column Enhancements:*
+     - Added `Fatal Calls` column to both the Captain's `Relationship Managers Leaderboard` and the Manager's `Relationship Managers Roster`.
+     - Added `Performance Tier` column to the Manager's `Relationship Managers Roster` (aligned with the Captain's leaderboard).
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 34/34 source files mapped and referenced.
+     - 0 unused imports, 0 console.log statements.
+     - Production Vite build compiled in 23.96s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified intact.
+* **Consequences:**
+  - RM performance evaluation now strictly enforces QA fatal compliance, ensuring agents with critical compliance breaches (such as Ronika Banerjee with 1 fatal call or Akash Kumar Shaw with 2 fatal calls) are clearly surfaced to leadership.
+
+

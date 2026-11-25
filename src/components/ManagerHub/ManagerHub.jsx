@@ -31,6 +31,47 @@ const POD_CAPTAINS = [
   { captain: 'Shiuli Bhattacharjee', team: 'SoarZone-I', manager: 'Niladri Bhadra', badge: 'High Volume' }
 ];
 
+const evaluatePerformanceTier = (dials, connRate, qaScore, fatalCount) => {
+  if (dials === 0) {
+    return {
+      tier: 'No Activity',
+      color: 'bg-slate-800/80 text-slate-400 border-slate-700/80'
+    };
+  }
+  // Fatal Parameter Breaches strictly override general QA/productivity
+  if (fatalCount >= 2) {
+    return {
+      tier: `Critical (${fatalCount} Fatals)`,
+      color: 'bg-rose-950/80 text-rose-300 border-rose-800/80'
+    };
+  }
+  if (fatalCount === 1) {
+    return {
+      tier: 'At Risk (1 Fatal)',
+      color: 'bg-rose-950/60 text-rose-300 border-rose-800/60'
+    };
+  }
+  // Zero Fatalities - standard operational criteria
+  const rateNum = Number(connRate) || 0;
+  const scoreNum = Number(qaScore) || 0;
+  if (rateNum >= 54 && scoreNum >= 86) {
+    return {
+      tier: 'Top Performer',
+      color: 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
+    };
+  }
+  if (rateNum >= 48 && scoreNum >= 82) {
+    return {
+      tier: 'On Track',
+      color: 'bg-blue-950/60 text-blue-300 border-blue-800/60'
+    };
+  }
+  return {
+    tier: 'Needs Coaching',
+    color: 'bg-amber-950/60 text-amber-300 border-amber-800/60'
+  };
+};
+
 export default function ManagerHub() {
   verifyWatermarkIntegrity();
   const { 
@@ -182,8 +223,12 @@ export default function ManagerHub() {
         const dur = rmTele.reduce((s, r) => s + (r.dur || 0), 0);
         const connRate = dials > 0 ? ((conn / dials) * 100).toFixed(1) : '0.0';
         const rmAudits = baseQa.filter((a) => (a.rm_name || '').toLowerCase() === (rm.rm_name || '').toLowerCase());
+        const fatalCount = rmAudits.filter((a) => a.is_fatal).length;
         const validQa = rmAudits.filter((a) => !a.is_fatal);
-        const qaScore = validQa.length > 0 ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) : '85.0';
+        const qaScore = validQa.length > 0 
+          ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) 
+          : (rmAudits.length > 0 ? '0.0' : '85.0');
+        const perf = evaluatePerformanceTier(dials, connRate, qaScore, fatalCount);
 
         return {
           rm_name: rm.rm_name,
@@ -193,7 +238,10 @@ export default function ManagerHub() {
           connected: conn,
           connRate,
           duration: dur,
-          qaScore
+          qaScore,
+          fatalCount,
+          badge: perf.tier,
+          badgeColor: perf.color
         };
       })
       .sort((a, b) => b.dials - a.dials);
@@ -262,15 +310,12 @@ export default function ManagerHub() {
         const dur = rmTele.reduce((s, r) => s + (r.dur || 0), 0);
         const connRate = dials > 0 ? ((conn / dials) * 100).toFixed(1) : '0.0';
         const rmAudits = podQa.filter((a) => (a.rm_name || '').toLowerCase() === (rm.rm_name || '').toLowerCase());
+        const fatalCount = rmAudits.filter((a) => a.is_fatal).length;
         const validQa = rmAudits.filter((a) => !a.is_fatal);
-        const qaScore = validQa.length > 0 ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) : '85.0';
-
-        let badge = 'On Track';
-        let badgeColor = 'bg-blue-950/60 text-blue-300 border-blue-800/60';
-        if (Number(connRate) >= 54 && Number(qaScore) >= 86) {
-          badge = 'Top Performer';
-          badgeColor = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60';
-        }
+        const qaScore = validQa.length > 0 
+          ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) 
+          : (rmAudits.length > 0 ? '0.0' : '85.0');
+        const perf = evaluatePerformanceTier(dials, connRate, qaScore, fatalCount);
 
         return {
           rm_name: rm.rm_name,
@@ -279,8 +324,9 @@ export default function ManagerHub() {
           connRate,
           duration: dur,
           qaScore,
-          badge,
-          badgeColor
+          fatalCount,
+          badge: perf.tier,
+          badgeColor: perf.color
         };
       })
       .sort((a, b) => b.dials - a.dials);
@@ -566,6 +612,8 @@ export default function ManagerHub() {
                       <th className="py-3 px-4">Connect %</th>
                       <th className="py-3 px-4">Talk Time</th>
                       <th className="py-3 px-4">QA Avg</th>
+                      <th className="py-3 px-4">Fatal Calls</th>
+                      <th className="py-3 px-4">Performance Tier</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
@@ -579,6 +627,20 @@ export default function ManagerHub() {
                         <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
                         <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
                         <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                        <td className="py-3 px-4 font-mono">
+                          {rm.fatalCount > 0 ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70">
+                              🚨 {rm.fatalCount} Failed
+                            </span>
+                          ) : (
+                            <span className="text-slate-500 font-medium">0</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${rm.badgeColor}`}>
+                            {rm.badge}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -633,8 +695,8 @@ export default function ManagerHub() {
                 <span className="font-semibold text-emerald-400">{podConnRate}%</span> Connected ({nf.format(podTotalConnected)} calls)
               </p>
               <div className="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-500">Pod Connect Target</span>
-                <span className="font-bold text-emerald-400">Target: 50.0% (Met ✅)</span>
+                <span className="text-slate-500">Connected Calls</span>
+                <span className="font-bold text-emerald-400">{nf.format(podTotalConnected)} Successful</span>
               </div>
             </div>
 
@@ -697,6 +759,7 @@ export default function ManagerHub() {
                     <th className="py-3 px-4">Connect %</th>
                     <th className="py-3 px-4">Cumulative Talk Time</th>
                     <th className="py-3 px-4">QA Avg Score</th>
+                    <th className="py-3 px-4">Fatal Calls</th>
                     <th className="py-3 px-4">Performance Tier</th>
                   </tr>
                 </thead>
@@ -709,6 +772,15 @@ export default function ManagerHub() {
                       <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
                       <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
                       <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                      <td className="py-3 px-4 font-mono">
+                        {rm.fatalCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70">
+                            🚨 {rm.fatalCount} Failed
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 font-medium">0</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${rm.badgeColor}`}>
                           {rm.badge}
