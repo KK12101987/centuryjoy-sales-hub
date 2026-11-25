@@ -395,3 +395,19 @@ The application will automatically detect Vite and the serverless functions unde
   - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
 
+---
+
+## 34. Subordinate Digital Pod Scoping Leak Resolution (Nov 25, 2026)
+- **Problem Resolved:**
+  - In Niladri Bhadra's Division Dashboard, subordinate digital pods displayed identical values across all cards (12,787 dials, 51.0% connectivity) and rendered a duplicate "Niladri Bhadra Pod".
+- **Fix Implemented:**
+  - `divisionPods` in `ManagerHub.jsx` now filters `POD_CAPTAINS` by manager name, strictly scoping to legitimate digital pods (`SoarZone-II` and `SoarZone-I` for Niladri Bhadra; eliminating the duplicate manager entry).
+  - Fixed filter condition to `r.m === activeManagerName && (r.c === p.captain || r.a === p.team)`, eliminating the `|| r.m === activeManagerName` leak that caused every pod card to match the division total dials.
+  - Verified exact numbers: In November 2026, SoarZone-II correctly displays **5,586 Dials** (48.5% Conn), and SoarZone-I displays **7,201 Dials** (53.0% Conn), summing to 12,787.
+- **Rule 21b Audit Verified:**
+  - 34/34 source files referenced. 0 unused imports, 0 console logs.
+  - Production Vite build passed in 23.33s with 0 errors.
+  - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
+
+

@@ -185,22 +185,67 @@ export default function ManagerHub() {
   // Subordinate Pod Breakdown for Manager
   const divisionPods = useMemo(() => {
     if (isPhysicalManager) return [];
-    const mgrTree = hierarchy?.tree?.[activeManagerName] || {};
-    return Object.entries(mgrTree).map(([capName, rmList]) => {
-      const capTele = baseTelephony.filter((r) => r.c === capName || r.m === activeManagerName);
+    
+    // Legitimate subordinate digital pods assigned to this Senior Manager
+    const managerPods = POD_CAPTAINS.filter(
+      (p) => p.manager.toLowerCase() === activeManagerName.toLowerCase()
+    );
+
+    return managerPods.map((p) => {
+      const capName = p.captain;
+      const podTeam = p.team;
+
+      // Telephony strictly scoped to this manager AND this specific pod / captain
+      const capTele = baseTelephony.filter((r) => {
+        const mMatch = r.m && r.m.toLowerCase() === activeManagerName.toLowerCase();
+        if (!mMatch) return false;
+        const cMatch = r.c && r.c.toLowerCase() === capName.toLowerCase();
+        const tMatch = podTeam && (r.a === podTeam || (r.c && r.c.toLowerCase().includes(podTeam.toLowerCase())));
+        return cMatch || tMatch;
+      });
+
       const podDials = capTele.reduce((sum, r) => sum + (r.t || 0), 0);
       const podConn = capTele.reduce((sum, r) => sum + (r.conn || 0), 0);
       const connRate = podDials > 0 ? ((podConn / podDials) * 100).toFixed(1) : '0.0';
-      const capQa = baseQa.filter((a) => a.captain_name === capName);
+
+      // QA Audits strictly scoped to this manager AND this specific pod / captain
+      const capQa = baseQa.filter((a) => {
+        const mMatch = a.manager_name && a.manager_name.toLowerCase() === activeManagerName.toLowerCase();
+        if (!mMatch) return false;
+        const cMatch = a.captain_name && a.captain_name.toLowerCase() === capName.toLowerCase();
+        const tMatch = podTeam && (a.team_name === podTeam || (a.captain_name && a.captain_name.toLowerCase().includes(podTeam.toLowerCase())));
+        return cMatch || tMatch;
+      });
+
       const validQa = capQa.filter((a) => !a.is_fatal);
-      const qaScore = validQa.length > 0 ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) : '85.0';
+      const qaScore = validQa.length > 0 
+        ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) 
+        : '85.0';
       
-      const podTickets = baseTickets.filter((t) => t.captain === capName || t.manager === activeManagerName);
+      // Tickets strictly scoped to this manager AND this specific pod
+      const podTickets = baseTickets.filter((t) => {
+        const mMatch = t.manager && t.manager.toLowerCase() === activeManagerName.toLowerCase();
+        if (!mMatch) return false;
+        const cMatch = t.captain && t.captain.toLowerCase() === capName.toLowerCase();
+        const tMatch = podTeam && (t.invType === podTeam || (t.stream && t.stream.includes(podTeam)));
+        return cMatch || tMatch;
+      });
       const podDisb = podTickets.reduce((s, t) => s + (Number(t.finalTotalAmount) || 0), 0);
+
+      // Active RMs count for this pod
+      const podRmsCount = (rmDirectory || []).filter((rm) => {
+        const mMatch = rm.manager_name && rm.manager_name.toLowerCase() === activeManagerName.toLowerCase();
+        if (!mMatch) return false;
+        const cMatch = rm.captain_name && rm.captain_name.toLowerCase() === capName.toLowerCase();
+        const tMatch = podTeam && (rm.team_name === podTeam || (rm.captain_name && rm.captain_name.toLowerCase().includes(podTeam.toLowerCase())));
+        return cMatch || tMatch;
+      }).length;
 
       return {
         captain: capName,
-        rmCount: Array.isArray(rmList) ? rmList.length : 0,
+        teamName: podTeam,
+        badge: p.badge,
+        rmCount: podRmsCount,
         dials: podDials,
         connected: podConn,
         connRate,
@@ -209,7 +254,7 @@ export default function ManagerHub() {
         auditsCount: capQa.length
       };
     });
-  }, [activeManagerName, hierarchy, isPhysicalManager, baseTelephony, baseQa, baseTickets]);
+  }, [activeManagerName, isPhysicalManager, baseTelephony, baseQa, baseTickets, rmDirectory]);
 
   // RM Roster for this Division
   const divisionRms = useMemo(() => {
@@ -558,9 +603,9 @@ export default function ManagerHub() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {divisionPods.map((pod) => (
-                  <div key={pod.captain} className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 hover:border-brand-500/40 transition-all">
+                  <div key={pod.teamName || pod.captain} className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 hover:border-brand-500/40 transition-all">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-bold text-white">{pod.captain} Pod</h3>
+                      <h3 className="text-sm font-bold text-white">{pod.teamName || pod.captain} Pod</h3>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
                         {pod.rmCount} RMs
                       </span>

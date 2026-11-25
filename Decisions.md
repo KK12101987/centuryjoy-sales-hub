@@ -516,4 +516,31 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - RM performance evaluation now strictly enforces QA fatal compliance, ensuring agents with critical compliance breaches (such as Ronika Banerjee with 1 fatal call or Akash Kumar Shaw with 2 fatal calls) are clearly surfaced to leadership.
 
+## Decision 047: Subordinate Digital Pod Scoping Leak Resolution
+* **Date:** November 25, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - The developer provided a screenshot showing that under the Senior Manager Division Dashboard (Niladri Bhadra), all 3 cards in "Subordinate Digital Pods" displayed identical numbers: 12,787 dials, 51.0% connectivity, and included a duplicate "Niladri Bhadra Pod".
+* **Root Cause:**
+  - In `src/components/ManagerHub/ManagerHub.jsx`, `divisionPods` previously iterated over raw `hierarchy.tree[activeManagerName]` keys. This tree included direct supervision/unassigned records keyed under the manager's own name (`Niladri Bhadra`), falsely rendering the manager as their own subordinate pod.
+  - Furthermore, the filter condition was `r.c === capName || r.m === activeManagerName`. Because `r.m === activeManagerName` evaluated to true for every record in the division, every single pod card matched the division's total dials (12,787).
+* **Actions Taken:**
+  1. *Iterate Only Legitimate Subordinate Pods:*
+     - Filtered `POD_CAPTAINS` by `p.manager === activeManagerName` to guarantee only authentic subordinate pods appear (`SoarZone-II` and `SoarZone-I` for Niladri Bhadra; eliminating the duplicate manager card).
+  2. *Strict Multi-Factor Pod Scoping:*
+     - Scoped telephony strictly to `r.m === activeManagerName && (r.c === p.captain || r.a === p.team)`.
+     - Scoped QA audits strictly to `a.manager_name === activeManagerName && (a.captain_name === p.captain || a.team_name === p.team)`.
+     - Scoped tickets strictly to `t.manager === activeManagerName && (t.captain === p.captain || t.invType === p.team)`.
+     - Dynamic pod RM count evaluated from `rmDirectory`.
+  3. *Professional Card Header:*
+     - Header renders `{pod.teamName} Pod` (e.g. `SoarZone-II Pod` and `SoarZone-I Pod`) with `Pod Captain: {pod.captain}`.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 34/34 source files mapped and referenced.
+     - 0 unused imports, 0 console.log statements.
+     - Production Vite build compiled in 23.33s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified intact.
+* **Consequences:**
+  - Subordinate pod breakdown cards now reflect their genuine individual pod metrics across all months (e.g., in November, SoarZone-II shows 5,586 dials / 48.5% conn, while SoarZone-I shows 7,201 dials / 53.0% conn, summing to 12,787).
+
+
 
