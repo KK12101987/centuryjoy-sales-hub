@@ -50,8 +50,12 @@ export default function ManagerHub() {
   const isManager = currentUser?.role === 'manager';
   const isCaptain = currentUser?.role === 'captain';
 
-  const effectiveManagerName = currentUser?.managerKey || (isManager ? currentUser.name : 'Niladri Bhadra');
-  const effectiveCaptainName = currentUser?.captainKey || (isCaptain ? (currentUser.teamName || currentUser.name) : 'Arshi Afreen Jamal');
+  const effectiveManagerName = (currentUser?.managerKey && currentUser.managerKey !== 'all') 
+    ? currentUser.managerKey 
+    : (isManager ? currentUser.name : 'Niladri Bhadra');
+  const effectiveCaptainName = (currentUser?.captainKey && currentUser.captainKey !== 'all')
+    ? currentUser.captainKey
+    : (isCaptain ? (currentUser.teamName || currentUser.name) : 'Arshi Afreen Jamal');
 
   // Admin View State
   const [viewType, setViewType] = useState(() => (isCaptain ? 'pod' : 'manager'));
@@ -59,8 +63,8 @@ export default function ManagerHub() {
   const [selectedPodCaptain, setSelectedPodCaptain] = useState(() => effectiveCaptainName);
 
   // Active Manager or Pod Determination
-  const activeManagerName = isManager ? effectiveManagerName : (isSuperAdmin ? selectedManager : 'Niladri Bhadra');
-  const activeCaptainName = isCaptain ? effectiveCaptainName : (isSuperAdmin ? selectedPodCaptain : 'Arshi Afreen Jamal');
+  const activeManagerName = isManager ? effectiveManagerName : (isSuperAdmin ? (selectedManager && selectedManager !== 'all' ? selectedManager : 'Niladri Bhadra') : 'Niladri Bhadra');
+  const activeCaptainName = isCaptain ? effectiveCaptainName : (isSuperAdmin ? (selectedPodCaptain && selectedPodCaptain !== 'all' ? selectedPodCaptain : 'Arshi Afreen Jamal') : 'Arshi Afreen Jamal');
   const isPhysicalManager = activeManagerName === 'Amit Singal' || activeManagerName.toLowerCase().includes('singal');
 
   // Master Base Datasets
@@ -151,7 +155,7 @@ export default function ManagerHub() {
     return (rmDirectory || [])
       .filter((rm) => rm.manager_name === activeManagerName)
       .map((rm) => {
-        const rmTele = baseTelephony.filter((r) => (r.rm || '').toLowerCase() === (rm.rm_name || '').toLowerCase());
+        const rmTele = baseTelephony.filter((r) => ((r.r || r.rm || '')).toLowerCase() === (rm.rm_name || '').toLowerCase());
         const dials = rmTele.reduce((s, r) => s + (r.t || 0), 0);
         const conn = rmTele.reduce((s, r) => s + (r.conn || 0), 0);
         const dur = rmTele.reduce((s, r) => s + (r.dur || 0), 0);
@@ -231,7 +235,7 @@ export default function ManagerHub() {
         return cMatch || tMatch;
       })
       .map((rm) => {
-        const rmTele = podTelephony.filter((r) => (r.rm || '').toLowerCase() === (rm.rm_name || '').toLowerCase());
+        const rmTele = podTelephony.filter((r) => ((r.r || r.rm || '')).toLowerCase() === (rm.rm_name || '').toLowerCase());
         const dials = rmTele.reduce((s, r) => s + (r.t || 0), 0);
         const conn = rmTele.reduce((s, r) => s + (r.conn || 0), 0);
         const dur = rmTele.reduce((s, r) => s + (r.dur || 0), 0);
