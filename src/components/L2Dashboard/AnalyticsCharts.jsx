@@ -1,6 +1,6 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
-import { Calendar, Smartphone, Building2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 function formatINR(val) {
   if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;

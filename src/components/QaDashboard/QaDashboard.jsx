@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
-import { nf, f1 } from '../../utils/formatters';
 import { isAuthorizedAuditor, getAuditorScope, ROLES, isDeveloperUser } from '../../utils/auth';
 import QaScorecard from './QaScorecard';
 import { 

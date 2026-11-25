@@ -289,4 +289,18 @@ eplace mode preserving tickets from other months.
      - Added a `century_users_updated` custom event listener in `DataContext.jsx` to immediately synchronize both the `users` collection and `currentUser` profile in React state without requiring full page reloads.
      - Updated `updateUser(email, updates)` to sync `century_joy_auth_user_v2` in localStorage if the currently authenticated user's profile is modified.
 
+---
+
+### Decision 039: Software Factory & Anti-Slop Audit, Dead Code Pruning, and Operational Bug Fixes
+* **Date:** 2026-11-25
+* **Context:** In accordance with Global AI Guidelines (Rules 19, 20, 21), a deep architectural audit was conducted across all 5 modules of the application to identify edge-case bugs, prune dead code, remove obsolete imports and dependencies, and verify end-to-end operational hygiene.
+* **Findings & Precision Fixes:**
+  1. *Pending Call Auto-Disposal on Audit:* In `QaScorecard.jsx`, submitting an evaluation for an incoming dialer call now triggers `updateDialerCall(auditTarget.phone_no, { status: 'Disposed - Audited' })`, ensuring audited records transition cleanly from pending calls into the disposed category.
+  2. *Reinstated Pod Captain Hierarchy Tree Preservation:* In `DataContext.jsx` (`revertOffboard`), fixed a state sequencing race condition where `target.wasCaptain` was reset prior to hierarchy reconstruction. A cached `wasCaptainFlag` now guarantees that reverting an offboarded captain accurately restores their supervisory pod node in the organizational tree.
+  3. *Zero-Slop Code Hygiene & Dependency Pruning:*
+     - Pruned unused backend dependency (`nodemailer`) from `package.json`.
+     - Removed 16 unused icon and formatter imports across 11 source files (`LoginPage.jsx`, `ConsolidatedDashboard.jsx`, `AnalyticsCharts.jsx`, `AuditPodsSection.jsx`, `DigitalPodsSection.jsx`, `ManagerBreakdown.jsx`, `PhysicalTeamsSection.jsx`, `QaDashboard.jsx`, `QaScorecard.jsx`, `RMProductivity.jsx`, `DataContext.jsx`).
+     - Verified zero active `console.log` statements in production source files.
+
+
 

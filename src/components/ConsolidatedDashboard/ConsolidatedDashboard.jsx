@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from '../../context/DataContext';
-import { formatINR, nf, f1, fmtDuration } from '../../utils/formatters';
+import { formatINR, nf, fmtDuration } from '../../utils/formatters';
 import { 
   CreditCard, 
   PhoneCall, 

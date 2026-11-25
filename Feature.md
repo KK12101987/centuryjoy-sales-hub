@@ -134,4 +134,14 @@
   4. **Active Session Sync:** Updated `DataContext` and `updateUser` to automatically refresh active auth sessions and user rosters in real-time.
 * **Verification:** Production build passed cleanly in 21s. Verified live on production browser subagent with name editing across multiple user accounts.
 
+## FEATURE-013: Anti-Slop Trailing-Edge Hygiene & Operational Defect Elimination
+* **Status:** DELIVERED & VERIFIED
+* **User Request:** "use the app as a developer and check out all the nooks and crany of it to find bugs. Once found report it and fix it. Use the 'Software Factory & Anti-Slop Guidelines (Trailing-Edge Hygiene)' to audit the project and then test once again"
+* **Key Enhancements:**
+  1. **Dialer Call Auto-Disposal:** Submitting an evaluation for an incoming dialer call in `QaScorecard.jsx` now automatically disposes the call in `dialerCalls` (`status: 'Disposed - Audited'`), keeping pending queues synchronized.
+  2. **Hierarchy Tree Reinstatement:** Ensured `revertOffboard` in `DataContext.jsx` restores supervisory pod nodes for reinstated captains without dropping them into general pools.
+  3. **Dead Code & Dependency Pruning:** Removed `nodemailer` from `package.json` and pruned 16 unused imports across 11 source files.
+* **Verification:** Production build passed in 8.26s. Verified live on production browser subagent across all 5 operational suites.
+
+
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
-import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, ShieldAlert, CheckCircle2, User } from 'lucide-react';
+import { ChevronRight, Shield, Smartphone, Building2, ShieldCheck, ShieldAlert, User } from 'lucide-react';
 
 function formatINR(val) {
   if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;

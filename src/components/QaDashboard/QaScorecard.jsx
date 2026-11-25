@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
-import { isAuthorizedAuditor, ROLES } from '../../utils/auth';
+import { isAuthorizedAuditor } from '../../utils/auth';
 import { 
   Award, 
   CheckSquare, 
@@ -149,7 +149,7 @@ export const PARAMETERS = [
 ];
 
 export default function QaScorecard({ auditTarget = null, onClearTarget = null, onBackToHistory = null, canAudit: propCanAudit, currentUser: propCurrentUser }) {
-  const { rmDirectory, addQaAudit, currentUser: contextUser, customTeams } = useData();
+  const { rmDirectory, addQaAudit, currentUser: contextUser, customTeams, updateDialerCall } = useData();
   const currentUser = propCurrentUser || contextUser;
   const canAudit = propCanAudit !== undefined ? propCanAudit : isAuthorizedAuditor(currentUser);
 
@@ -549,6 +549,12 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
     };
 
     addQaAudit(payload);
+
+    // If this audit was initiated from an incoming dialer call target, mark the dialer call as Audited!
+    if (auditTarget?.phone_no && updateDialerCall) {
+      updateDialerCall(auditTarget.phone_no, { status: 'Disposed - Audited' });
+    }
+
     setMsg(`✓ Audit successfully logged! Score: ${percentage}%`);
     setTimeout(() => setMsg(""), 4000);
   };

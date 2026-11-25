@@ -227,4 +227,17 @@ The application will automatically detect Vite and the serverless functions unde
 - **Reactive State Propagation:**
   - Added real-time event listener (`century_users_updated`) in `DataContext.jsx` to ensure active sessions and user rosters update instantaneously upon saving account edits.
 
+---
+
+## 26. Comprehensive Anti-Slop Audit & Operational Bug Fixes (Nov 25, 2026)
+- **Dialer Call Queue Auto-Disposal:**
+  - Auditing and submitting an incoming dialer call now marks the call as `Disposed - Audited` in `dialerCalls`, automatically moving it out of the active Pending Calls queue.
+- **Revert Offboarding Captain Hierarchy Restoration:**
+  - Resolved race condition in `revertOffboard` (`DataContext.jsx`) by tracking `wasCaptainFlag` to guarantee restored captains retain their supervisory pod in the hierarchy tree.
+- **Dead Code & Dependency Pruning:**
+  - Removed unimported `nodemailer` dependency from `package.json`.
+  - Pruned 16 dead imports across 11 components, achieving 0 unused imports across the entire codebase.
+  - Production bundle builds in ~8s with 100% clean module transformation.
+
+
 

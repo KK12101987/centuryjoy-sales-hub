@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { SEED_USERS, ROLE_DEFINITIONS, ROLES } from '../../utils/auth';
+import { SEED_USERS } from '../../utils/auth';
 import { 
   ShieldCheck, 
   Lock, 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
-import { nf, f1, fmtDuration } from '../../utils/formatters';
+import { nf, fmtDuration } from '../../utils/formatters';
 import * as XLSX from 'xlsx';
 import { 
   PhoneCall, 

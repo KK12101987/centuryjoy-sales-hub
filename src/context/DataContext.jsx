@@ -6,7 +6,7 @@ import rawTelephony from '../data/seedTelephony.json';
 import rawQaAudits from '../data/seedQaAudits.json';
 import rawRMs from '../data/rmDirectory.json';
 import rawDialerCalls from '../data/seedDialerData.json';
-import { getAllUsers, saveUsersList, SEED_USERS, ROLES } from '../utils/auth';
+import { getAllUsers, SEED_USERS, ROLES } from '../utils/auth';
 import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
 
 // Default ticket corpus combining baseline October (2,688) & November (326)
@@ -1015,10 +1015,11 @@ export function DataProvider({ children }) {
   const revertOffboard = (rmName) => {
     verifyWatermarkIntegrity();
     let restoredRm = null;
+    let wasCaptainFlag = false;
 
     setRmDirectory((prev) => {
       const target = prev.find((r) => r.rm_name.toLowerCase() === rmName.toLowerCase());
-      const wasCaptain = target?.wasCaptain;
+      wasCaptainFlag = Boolean(target?.wasCaptain);
       const originalCaptain = rmName;
 
       const updated = prev.map((rm) => {
@@ -1034,7 +1035,7 @@ export function DataProvider({ children }) {
         }
 
         // If this captain's subordinates were temporarily moved under manager, restore them to this captain
-        if (wasCaptain && rm.previousCaptain && rm.previousCaptain.toLowerCase() === rmName.toLowerCase()) {
+        if (wasCaptainFlag && rm.previousCaptain && rm.previousCaptain.toLowerCase() === rmName.toLowerCase()) {
           return {
             ...rm,
             captain_name: originalCaptain,
@@ -1062,7 +1063,7 @@ export function DataProvider({ children }) {
 
       if (!tree[m]) tree[m] = {};
 
-      if (target.wasCaptain) {
+      if (wasCaptainFlag) {
         // Find agents belonging to this restored captain
         const subAgents = rmDirectory
           .filter((r) => (r.previousCaptain || '').toLowerCase() === rmName.toLowerCase())
