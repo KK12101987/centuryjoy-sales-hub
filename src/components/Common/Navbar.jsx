@@ -15,7 +15,8 @@ import {
   ChevronDown,
   Calendar,
   Check,
-  UploadCloud
+  UploadCloud,
+  RefreshCw
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -260,6 +261,22 @@ export default function Navbar() {
                 <span className="hidden sm:inline">Upload Data</span>
               </button>
             )}
+
+            {/* Hard Refresh App Button */}
+            <button
+              onClick={() => {
+                if ('caches' in window) {
+                  caches.keys().then((names) => {
+                    names.forEach((name) => caches.delete(name));
+                  });
+                }
+                window.location.reload(true);
+              }}
+              title="Force Refresh App (Clear Cache & Load Latest Version)"
+              className="p-2 rounded-xl text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 bg-slate-100 hover:bg-purple-50 dark:bg-slate-900 dark:hover:bg-purple-950/40 border border-slate-200 dark:border-slate-800 transition-colors shrink-0 cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
 
             {/* Theme Toggle */}
             <button
