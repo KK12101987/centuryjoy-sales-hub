@@ -267,6 +267,14 @@ The application will automatically detect Vite and the serverless functions unde
   - User Accounts table displays clear badges for **Supervisory Scope** (`Division: [Key]`, `Pod: [Team]`, `QA Scope: [All/Self]`) and **Upload & Ingestion Rights** (`Full Ingestion`, `Dialer, Telephony & QA`, `L2 Financials Only`, `View-Only`).
 - **Rule 22 Watermark Anti-Tamper Protocol:**
   - Watermark (`#antigravity-watermark-kushalkar` with `"Crafted with ❤️ and Antigravity by KUSHAL KAR"`) coupled to application bootstrap and all state transitions.
+- **End-to-End Live Browser Verification (Nov 25, 2026):**
+  - Confirmed 100% pass across all 6 role scenarios on production Vercel deployment:
+    1. Senior Manager (Niladri Bhadra): [rbac_manager_niladri_qa_locked.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_manager_niladri_qa_locked.png) and [rbac_manager_niladri_telephony_no_upload.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_manager_niladri_telephony_no_upload.png).
+    2. Pod Captain (Arshi Afreen Jamal): [rbac_captain_arshi_qa_locked.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_captain_arshi_qa_locked.png).
+    3. Senior QA Auditor (Arindam Mitra): [rbac_auditor_arindam_upload_portal.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_auditor_arindam_upload_portal.png) and [rbac_auditor_arindam_scorecard.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_auditor_arindam_scorecard.png).
+    4. Quality Auditor (Sayan Banik): [rbac_auditor_sayan_no_upload.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_auditor_sayan_no_upload.png).
+    5. L2 Financials Ingestion (Tanmoy Kar): [rbac_tanmoy_l2_upload_only.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_tanmoy_l2_upload_only.png).
+    6. Super Admin & Governance Console (Kushal Kar): [rbac_governance_accounts_table.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_governance_accounts_table.png), [rbac_governance_create_manager.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_governance_create_manager.png), [rbac_governance_create_captain.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_governance_create_captain.png), and [rbac_governance_create_auditor.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/rbac_governance_create_auditor.png).
 
 
 
