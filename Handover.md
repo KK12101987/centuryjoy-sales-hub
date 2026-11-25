@@ -157,3 +157,9 @@ The application will automatically detect Vite and the serverless functions unde
 - **Zero Database Impact Guarantee:**
   - Decommissioned teams are tracked in `century_removed_teams_v2` and excluded from future scheduling, dropdowns, and evaluations.
   - All past sales tickets, call records, and completed QA scorecards remain 100% permanently intact.
+- **Live Production Verification:**
+  - Tested on live production ([centuryjoy-sales-hub.vercel.app](https://centuryjoy-sales-hub.vercel.app/)) by browser subagent `88f37d2d-a6d3-4c01-a4e8-0f256bc0f79a`.
+  - Successfully dissolved pod `Velocity-I` via trash can action.
+  - Reassigned all 4 members (`Rohan Sen`, `Kunal Ghosh`, `Sneha Roy`, `Pooja Verma`) directly to `Unity-II` with zero operational interruption (`Unity-II` expanded from 10 to 14 RMs).
+  - Verified `Velocity-I` was purged from the "Live Pod Leadership Status & Failover Health" grid and the QA Scorecard "Franchise / Team" dropdown.
+  - Verification artifacts: [team_dissolved_and_removed_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/team_dissolved_and_removed_verified.png) and [qa_scorecard_after_team_removed_verified.png](file:///C:/Users/User/.gemini/antigravity/brain/35c48f7c-c4ee-4561-ad62-4bca0aacd4d7/qa_scorecard_after_team_removed_verified.png).
