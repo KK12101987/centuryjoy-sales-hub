@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { formatINR, nf, fmtDuration } from '../../utils/formatters';
 import { verifyWatermarkIntegrity } from '../../utils/integrity';
+import { exportToCsv } from '../../utils/exportCsv';
 import { 
   CreditCard, 
   PhoneCall, 
@@ -11,7 +12,14 @@ import {
   Building2, 
   Layers, 
   Sparkles,
-  Info
+  Info,
+  Download,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  GraduationCap,
+  X,
+  Check
 } from 'lucide-react';
 
 const SENIOR_MANAGERS = [
@@ -84,7 +92,9 @@ export default function ManagerHub() {
     qaAudits,
     rmDirectory,
     hierarchy,
-    selectedMonth
+    selectedMonth,
+    coachingLogs,
+    logCoachingAction
   } = useData();
 
   // Role resolution
@@ -108,6 +118,20 @@ export default function ManagerHub() {
   const activeManagerName = isManager ? effectiveManagerName : (isSuperAdmin ? (selectedManager && selectedManager !== 'all' ? selectedManager : 'Niladri Bhadra') : 'Niladri Bhadra');
   const activeCaptainName = isCaptain ? effectiveCaptainName : (isSuperAdmin ? (selectedPodCaptain && selectedPodCaptain !== 'all' ? selectedPodCaptain : 'Arshi Afreen Jamal') : 'Arshi Afreen Jamal');
   const isPhysicalManager = activeManagerName === 'Amit Singal' || activeManagerName.toLowerCase().includes('singal');
+
+  // Coaching Action Modal States
+  const [coachingTarget, setCoachingTarget] = useState(null);
+  const [coachingFocus, setCoachingFocus] = useState("GTM Adherence & Product Guidelines");
+  const [coachingNotes, setCoachingNotes] = useState("");
+  const [coachingDate, setCoachingDate] = useState(new Date().toISOString().split("T")[0]);
+  const [coachingStatus, setCoachingStatus] = useState("Completed");
+  const [coachingToast, setCoachingToast] = useState("");
+
+  // Table Search and Filter Presets
+  const [managerSearch, setManagerSearch] = useState("");
+  const [managerFilter, setManagerFilter] = useState("all");
+  const [podSearch, setPodSearch] = useState("");
+  const [podFilter, setPodFilter] = useState("all");
 
   // Master Base Datasets strictly adhering to active operational month
   const baseTickets = useMemo(() => {
@@ -362,6 +386,8 @@ export default function ManagerHub() {
           : (rmAudits.length > 0 ? '0.0' : '85.0');
         const perf = evaluatePerformanceTier(dials, connRate, qaScore, fatalCount);
 
+        const isCoached = (coachingLogs || []).some(c => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase());
+
         return {
           rm_name: rm.rm_name,
           dials,
@@ -371,11 +397,198 @@ export default function ManagerHub() {
           qaScore,
           fatalCount,
           badge: perf.tier,
-          badgeColor: perf.color
+          badgeColor: perf.color,
+          isCoached
         };
       })
       .sort((a, b) => b.dials - a.dials);
-  }, [activePodConfig, rmDirectory, podTelephony, podQa]);
+  }, [activePodConfig, rmDirectory, podTelephony, podQa, coachingLogs]);
+
+  // Month-over-Month Comparative Analytics
+  const momAnalytics = useMemo(() => {
+    // 1. Division MoM (Oct baseline)
+    const octDivTele = (telephony || []).filter(r => r.m === activeManagerName && (r.d || '').startsWith('2026-10'));
+    const octDivDials = octDivTele.reduce((s, r) => s + (r.t || 0), 0);
+    const octDivConn = octDivTele.reduce((s, r) => s + (r.conn || 0), 0);
+    const octDivConnRate = octDivDials > 0 ? (octDivConn / octDivDials) * 100 : 0;
+    const octDivQa = (qaAudits || []).filter(a => a.manager_name === activeManagerName && !a.is_fatal && (a.audit_date || a.call_date || a.created_at || '').startsWith('2026-10'));
+    const octDivAvgQa = octDivQa.length > 0 ? (octDivQa.reduce((s, a) => s + Number(a.overall_score || 0), 0) / octDivQa.length) : 0;
+
+    // 2. Pod MoM (Oct baseline)
+    const octPodTele = (telephony || []).filter(r => {
+      const cMatch = r.c?.toLowerCase() === activePodConfig.captain.toLowerCase();
+      const tMatch = r.c?.toLowerCase().includes((activePodConfig.team || '').toLowerCase());
+      return (cMatch || tMatch) && (r.d || '').startsWith('2026-10');
+    });
+    const octPodDials = octPodTele.reduce((s, r) => s + (r.t || 0), 0);
+    const octPodConn = octPodTele.reduce((s, r) => s + (r.conn || 0), 0);
+    const octPodConnRate = octPodDials > 0 ? (octPodConn / octPodDials) * 100 : 0;
+    const octPodQa = (qaAudits || []).filter(a => {
+      const cMatch = a.captain_name?.toLowerCase() === activePodConfig.captain.toLowerCase();
+      const tMatch = a.team_name?.toLowerCase() === activePodConfig.team.toLowerCase();
+      return (cMatch || tMatch) && !a.is_fatal && (a.audit_date || a.call_date || a.created_at || '').startsWith('2026-10');
+    });
+    const octPodAvgQa = octPodQa.length > 0 ? (octPodQa.reduce((s, a) => s + Number(a.overall_score || 0), 0) / octPodQa.length) : 0;
+
+    return {
+      octDivDials,
+      octDivConnRate,
+      octDivAvgQa,
+      octPodDials,
+      octPodConnRate,
+      octPodAvgQa
+    };
+  }, [telephony, qaAudits, activeManagerName, activePodConfig]);
+
+  const renderMomBadge = (currentVal, octVal, unit = '%', isRateOrScore = false) => {
+    if (selectedMonth === '2026-10') {
+      return (
+        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700">
+          Baseline
+        </span>
+      );
+    }
+    if (selectedMonth === 'all') {
+      return (
+        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-indigo-300 bg-indigo-950/70 px-2 py-0.5 rounded-full border border-indigo-800/70">
+          Consolidated
+        </span>
+      );
+    }
+    if (!octVal || octVal === 0) return null;
+
+    let delta = 0;
+    if (isRateOrScore) {
+      delta = Number(currentVal) - Number(octVal);
+    } else {
+      delta = ((Number(currentVal) - Number(octVal)) / Number(octVal)) * 100;
+    }
+    const isPositive = delta >= 0;
+    const formattedDelta = Math.abs(delta).toFixed(1);
+
+    return (
+      <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+        isPositive 
+          ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/70' 
+          : 'text-rose-400 bg-rose-950/60 border-rose-800/70'
+      }`}>
+        {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+        <span>{isPositive ? `+${formattedDelta}` : `-${formattedDelta}`}{unit} MoM</span>
+      </span>
+    );
+  };
+
+  // Filtered Roster Lists
+  const filteredDivisionRms = useMemo(() => {
+    return divisionRms.filter((rm) => {
+      if (managerSearch) {
+        const q = managerSearch.toLowerCase();
+        const matchName = rm.rm_name.toLowerCase().includes(q);
+        const matchTeam = (rm.team_name || '').toLowerCase().includes(q);
+        const matchCap = (rm.captain_name || '').toLowerCase().includes(q);
+        if (!matchName && !matchTeam && !matchCap) return false;
+      }
+      const isCoached = (coachingLogs || []).some(c => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase());
+      if (managerFilter === 'top') return rm.badge.includes('Top Performer');
+      if (managerFilter === 'ontrack') return rm.badge.includes('On Track');
+      if (managerFilter === 'atrisk') return rm.fatalCount > 0 || rm.badge.includes('At Risk') || rm.badge.includes('Critical');
+      if (managerFilter === 'coaching') return rm.badge.includes('Needs Coaching');
+      if (managerFilter === 'completed') return isCoached;
+      return true;
+    });
+  }, [divisionRms, managerSearch, managerFilter, coachingLogs]);
+
+  const filteredPodRms = useMemo(() => {
+    return podRms.filter((rm) => {
+      if (podSearch) {
+        const q = podSearch.toLowerCase();
+        if (!rm.rm_name.toLowerCase().includes(q)) return false;
+      }
+      const isCoached = (coachingLogs || []).some(c => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase());
+      if (podFilter === 'top') return rm.badge.includes('Top Performer');
+      if (podFilter === 'ontrack') return rm.badge.includes('On Track');
+      if (podFilter === 'atrisk') return rm.fatalCount > 0 || rm.badge.includes('At Risk') || rm.badge.includes('Critical');
+      if (podFilter === 'coaching') return rm.badge.includes('Needs Coaching');
+      if (podFilter === 'completed') return isCoached;
+      return true;
+    });
+  }, [podRms, podSearch, podFilter, coachingLogs]);
+
+  // CSV Export Handlers
+  const handleExportDivisionRoster = () => {
+    const headers = [
+      { key: 'rm_name', label: 'RM Agent' },
+      { key: 'captain_name', label: 'Pod Captain' },
+      { key: 'team_name', label: 'Pod Team' },
+      { key: 'dials', label: 'Outbound Dials' },
+      { key: 'connected', label: 'Connected Calls' },
+      { key: 'connRate', label: 'Connect %' },
+      { key: 'talkTimeFmt', label: 'Total Talk Time' },
+      { key: 'qaScore', label: 'QA Avg Score %' },
+      { key: 'fatalCount', label: 'Fatal Calls' },
+      { key: 'badge', label: 'Performance Tier' },
+      { key: 'coachingStatus', label: 'Coaching Status' }
+    ];
+    const rows = filteredDivisionRms.map(r => ({
+      ...r,
+      talkTimeFmt: fmtDuration(r.duration),
+      coachingStatus: (coachingLogs || []).some(c => c.rmName?.toLowerCase() === r.rm_name?.toLowerCase()) ? 'Coached' : 'Pending'
+    }));
+    exportToCsv(`${activeManagerName.replace(/\s+/g, '_')}_Division_RM_Roster_${selectedMonth}`, headers, rows);
+  };
+
+  const handleExportPodLeaderboard = () => {
+    const headers = [
+      { key: 'rm_name', label: 'RM Agent' },
+      { key: 'dials', label: 'Outbound Dials' },
+      { key: 'connected', label: 'Connected Calls' },
+      { key: 'connRate', label: 'Connect %' },
+      { key: 'talkTimeFmt', label: 'Cumulative Talk Time' },
+      { key: 'qaScore', label: 'QA Avg Score %' },
+      { key: 'fatalCount', label: 'Fatal Calls' },
+      { key: 'badge', label: 'Performance Tier' },
+      { key: 'coachingStatus', label: 'Coaching Status' }
+    ];
+    const rows = filteredPodRms.map(r => ({
+      ...r,
+      talkTimeFmt: fmtDuration(r.duration),
+      coachingStatus: (coachingLogs || []).some(c => c.rmName?.toLowerCase() === r.rm_name?.toLowerCase()) ? 'Coached' : 'Pending'
+    }));
+    exportToCsv(`${activePodConfig.team}_RM_Leaderboard_${selectedMonth}`, headers, rows);
+  };
+
+  // Coaching Handlers
+  const handleOpenCoachingModal = (rm) => {
+    setCoachingTarget(rm);
+    setCoachingDate(new Date().toISOString().split("T")[0]);
+    setCoachingStatus("Completed");
+    setCoachingFocus(rm.fatalCount > 0 ? "GTM Adherence & Product Guidelines" : "Call Opening & Objection Handling");
+    setCoachingNotes("");
+  };
+
+  const handleSaveCoaching = (e) => {
+    e.preventDefault();
+    if (!coachingTarget) return;
+
+    if (logCoachingAction) {
+      logCoachingAction({
+        rmName: coachingTarget.rm_name,
+        teamName: coachingTarget.team_name || activePodConfig.team,
+        captainName: coachingTarget.captain_name || activeCaptainName,
+        managerName: activeManagerName,
+        supervisor: currentUser?.name || activeCaptainName,
+        date: coachingDate,
+        focus: coachingFocus,
+        notes: coachingNotes,
+        status: coachingStatus,
+        fatalCountBefore: coachingTarget.fatalCount
+      });
+    }
+
+    setCoachingToast(`✓ Coaching session successfully logged for ${coachingTarget.rm_name}!`);
+    setTimeout(() => setCoachingToast(""), 4000);
+    setCoachingTarget(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -522,7 +735,10 @@ export default function ManagerHub() {
                 <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-xl">
                   <PhoneCall className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-semibold text-emerald-400">Division Calls</span>
+                <div className="flex items-center gap-2">
+                  {!isPhysicalManager && renderMomBadge(divisionDials, momAnalytics.octDivDials, '%', false)}
+                  <span className="text-xs font-semibold text-emerald-400">Division Calls</span>
+                </div>
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pillar 2 • Calling Telephony</span>
@@ -555,7 +771,10 @@ export default function ManagerHub() {
                 <div className="w-12 h-12 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-xl">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-semibold text-amber-400">Division QA</span>
+                <div className="flex items-center gap-2">
+                  {!isPhysicalManager && renderMomBadge(divisionAvgQa, momAnalytics.octDivAvgQa, '%', true)}
+                  <span className="text-xs font-semibold text-amber-400">Division QA</span>
+                </div>
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pillar 3 • Quality Assurance</span>
@@ -636,19 +855,79 @@ export default function ManagerHub() {
           {/* Division RM Roster Table */}
           {!isPhysicalManager && divisionRms.length > 0 && (
             <div className="bg-[#0e1320] border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-sm font-bold text-white">Relationship Managers Roster ({activeManagerName} Division)</h3>
-                  <p className="text-xs text-slate-400">Reporting agents across all assigned digital pods</p>
+                  <p className="text-xs text-slate-400">Reporting agents across all assigned digital pods • Click At-Risk badges to log coaching</p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">
-                  {divisionRms.length} Calling Agents
-                </span>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={managerSearch}
+                      onChange={(e) => setManagerSearch(e.target.value)}
+                      placeholder="Search RM, pod or captain..."
+                      className="pl-8 pr-3 py-1.5 bg-slate-900/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none w-48 sm:w-56"
+                    />
+                    {managerSearch && (
+                      <button 
+                        onClick={() => setManagerSearch('')}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 1-Click CSV Export Button */}
+                  <button
+                    onClick={handleExportDivisionRoster}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                    title="Export filtered roster to Microsoft Excel / CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Export CSV</span>
+                  </button>
+
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">
+                    {filteredDivisionRms.length} of {divisionRms.length} RMs
+                  </span>
+                </div>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Quick Filter Preset Pills */}
+              <div className="px-6 py-2.5 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-400 font-semibold mr-1">Filter View:</span>
+                {[
+                  { key: 'all', label: `All RMs (${divisionRms.length})` },
+                  { key: 'top', label: `🌟 Top Performers (${divisionRms.filter(r => r.badge.includes('Top Performer')).length})` },
+                  { key: 'ontrack', label: `✓ On Track (${divisionRms.filter(r => r.badge.includes('On Track')).length})` },
+                  { key: 'atrisk', label: `🚨 At Risk / Fatals (${divisionRms.filter(r => r.fatalCount > 0 || r.badge.includes('At Risk') || r.badge.includes('Critical')).length})` },
+                  { key: 'coaching', label: `⚠️ Needs Coaching (${divisionRms.filter(r => r.badge.includes('Needs Coaching')).length})` },
+                  { key: 'completed', label: `🎓 Coached (${divisionRms.filter(r => r.isCoached).length})` }
+                ].map((pill) => (
+                  <button
+                    key={pill.key}
+                    onClick={() => setManagerFilter(pill.key)}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                      managerFilter === pill.key
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Table with Sticky Header */}
+              <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
                 <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-900/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                  <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                    <tr>
                       <th className="py-3 px-4">RM Agent</th>
                       <th className="py-3 px-4">Pod Captain</th>
                       <th className="py-3 px-4">Pod Team</th>
@@ -659,35 +938,72 @@ export default function ManagerHub() {
                       <th className="py-3 px-4">QA Avg</th>
                       <th className="py-3 px-4">Fatal Calls</th>
                       <th className="py-3 px-4">Performance Tier</th>
+                      <th className="py-3 px-4 text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {divisionRms.map((rm) => (
-                      <tr key={rm.rm_name} className="hover:bg-slate-800/40">
-                        <td className="py-3 px-4 font-bold text-white">{rm.rm_name}</td>
-                        <td className="py-3 px-4 text-slate-300">{rm.captain_name}</td>
-                        <td className="py-3 px-4 text-indigo-400">{rm.team_name}</td>
-                        <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
-                        <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
-                        <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
-                        <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
-                        <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
-                        <td className="py-3 px-4 font-mono">
-                          {rm.fatalCount > 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70">
-                              🚨 {rm.fatalCount} Failed
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 font-medium">0</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${rm.badgeColor}`}>
-                            {rm.badge}
-                          </span>
+                    {filteredDivisionRms.length === 0 ? (
+                      <tr>
+                        <td colSpan="11" className="py-8 text-center text-slate-400">
+                          No relationship managers match the current search or filter criteria.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredDivisionRms.map((rm) => (
+                        <tr key={rm.rm_name} className="hover:bg-slate-800/40">
+                          <td className="py-3 px-4 font-bold text-white flex items-center gap-1.5">
+                            <span>{rm.rm_name}</span>
+                            {rm.isCoached && (
+                              <span className="text-[10px] text-emerald-400" title="Coaching conducted">🎓</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-slate-300">{rm.captain_name}</td>
+                          <td className="py-3 px-4 text-indigo-400">{rm.team_name}</td>
+                          <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
+                          <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
+                          <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
+                          <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
+                          <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                          <td className="py-3 px-4 font-mono">
+                            {rm.fatalCount > 0 ? (
+                              <button
+                                onClick={() => handleOpenCoachingModal(rm)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70 hover:bg-rose-900/80 cursor-pointer transition-colors"
+                                title="Click to log counseling/coaching session"
+                              >
+                                🚨 {rm.fatalCount} Failed
+                              </button>
+                            ) : (
+                              <span className="text-slate-500 font-medium">0</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() => handleOpenCoachingModal(rm)}
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${rm.badgeColor}`}
+                              title="Click to view/log coaching session"
+                            >
+                              {rm.badge}
+                            </button>
+                            {rm.isCoached && (
+                              <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
+                                Coached
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => handleOpenCoachingModal(rm)}
+                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                              title="Log coaching session"
+                            >
+                              <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>Coach</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -729,8 +1045,11 @@ export default function ManagerHub() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm">
-              <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-xl mb-4">
-                <PhoneCall className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-xl">
+                  <PhoneCall className="w-6 h-6" />
+                </div>
+                {renderMomBadge(podTotalDials, momAnalytics.octPodDials, '%', false)}
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pod Dials</span>
               <div className="text-3xl font-extrabold text-white mt-1">
@@ -763,8 +1082,11 @@ export default function ManagerHub() {
             </div>
 
             <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm">
-              <div className="w-12 h-12 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-xl mb-4">
-                <Award className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-xl">
+                  <Award className="w-6 h-6" />
+                </div>
+                {renderMomBadge(podAvgQaScore, momAnalytics.octPodAvgQa, '%', true)}
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pod QA Compliance</span>
               <div className="text-3xl font-extrabold text-white mt-1">
@@ -785,19 +1107,79 @@ export default function ManagerHub() {
 
           {/* Pod RM Leaderboard Table */}
           <div className="bg-[#0e1320] border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-bold text-white">{activePodConfig.team} Relationship Managers Leaderboard</h3>
-                <p className="text-xs text-slate-400">Live dialing volume, talk duration, and quality metrics</p>
+                <p className="text-xs text-slate-400">Live dialing volume, talk duration, and quality metrics • Click At-Risk badges to log coaching</p>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
-                Captain: {activePodConfig.captain}
-              </span>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={podSearch}
+                    onChange={(e) => setPodSearch(e.target.value)}
+                    placeholder="Search RM agent..."
+                    className="pl-8 pr-3 py-1.5 bg-slate-900/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none w-44 sm:w-52"
+                  />
+                  {podSearch && (
+                    <button 
+                      onClick={() => setPodSearch('')}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* 1-Click CSV Export Button */}
+                <button
+                  onClick={handleExportPodLeaderboard}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  title="Export filtered leaderboard to Microsoft Excel / CSV"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Export CSV</span>
+                </button>
+
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
+                  Captain: {activePodConfig.captain}
+                </span>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Quick Filter Preset Pills */}
+            <div className="px-6 py-2.5 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-slate-400 font-semibold mr-1">Filter View:</span>
+              {[
+                { key: 'all', label: `All RMs (${podRms.length})` },
+                { key: 'top', label: `🌟 Top Performers (${podRms.filter(r => r.badge.includes('Top Performer')).length})` },
+                { key: 'ontrack', label: `✓ On Track (${podRms.filter(r => r.badge.includes('On Track')).length})` },
+                { key: 'atrisk', label: `🚨 At Risk / Fatals (${podRms.filter(r => r.fatalCount > 0 || r.badge.includes('At Risk') || r.badge.includes('Critical')).length})` },
+                { key: 'coaching', label: `⚠️ Needs Coaching (${podRms.filter(r => r.badge.includes('Needs Coaching')).length})` },
+                { key: 'completed', label: `🎓 Coached (${podRms.filter(r => r.isCoached).length})` }
+              ].map((pill) => (
+                <button
+                  key={pill.key}
+                  onClick={() => setPodFilter(pill.key)}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    podFilter === pill.key
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Table with Sticky Header */}
+            <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
               <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-900/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                  <tr>
                     <th className="py-3 px-4">RM Agent</th>
                     <th className="py-3 px-4">Outbound Dials</th>
                     <th className="py-3 px-4">Connected</th>
@@ -806,38 +1188,237 @@ export default function ManagerHub() {
                     <th className="py-3 px-4">QA Avg Score</th>
                     <th className="py-3 px-4">Fatal Calls</th>
                     <th className="py-3 px-4">Performance Tier</th>
+                    <th className="py-3 px-4 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {podRms.map((rm) => (
-                    <tr key={rm.rm_name} className="hover:bg-slate-800/40">
-                      <td className="py-3 px-4 font-bold text-white">{rm.rm_name}</td>
-                      <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
-                      <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
-                      <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
-                      <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
-                      <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
-                      <td className="py-3 px-4 font-mono">
-                        {rm.fatalCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70">
-                            🚨 {rm.fatalCount} Failed
-                          </span>
-                        ) : (
-                          <span className="text-slate-500 font-medium">0</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${rm.badgeColor}`}>
-                          {rm.badge}
-                        </span>
+                  {filteredPodRms.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="py-8 text-center text-slate-400">
+                        No relationship managers match the current search or filter criteria.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredPodRms.map((rm) => (
+                      <tr key={rm.rm_name} className="hover:bg-slate-800/40">
+                        <td className="py-3 px-4 font-bold text-white flex items-center gap-1.5">
+                          <span>{rm.rm_name}</span>
+                          {rm.isCoached && (
+                            <span className="text-[10px] text-emerald-400" title="Coaching conducted">🎓</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
+                        <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
+                        <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
+                        <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
+                        <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                        <td className="py-3 px-4 font-mono">
+                          {rm.fatalCount > 0 ? (
+                            <button
+                              onClick={() => handleOpenCoachingModal(rm)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70 hover:bg-rose-900/80 cursor-pointer transition-colors"
+                              title="Click to log counseling/coaching session"
+                            >
+                              🚨 {rm.fatalCount} Failed
+                            </button>
+                          ) : (
+                            <span className="text-slate-500 font-medium">0</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleOpenCoachingModal(rm)}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${rm.badgeColor}`}
+                            title="Click to view/log coaching session"
+                          >
+                            {rm.badge}
+                          </button>
+                          {rm.isCoached && (
+                            <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
+                              Coached
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => handleOpenCoachingModal(rm)}
+                            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                            title="Log coaching session"
+                          >
+                            <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Coach</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* 3. LOG COUNSELING / COACHING SESSION MODAL                    */}
+      {/* ============================================================= */}
+      {coachingTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-[#0e1320] border border-indigo-800/80 rounded-3xl max-w-lg w-full p-6 text-white shadow-2xl space-y-5 my-8">
+            
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-indigo-900/60 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-950/80 border border-indigo-800 flex items-center justify-center text-indigo-400">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>Log Coaching Session</span>
+                  </h3>
+                  <p className="text-xs text-indigo-300/80 mt-0.5">
+                    Record supervisory feedback and corrective counseling for Relationship Manager.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCoachingTarget(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target Agent Profile Card */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm">{coachingTarget.rm_name}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${coachingTarget.badgeColor}`}>
+                  {coachingTarget.badge}
+                </span>
+              </div>
+              <div className="text-slate-400 flex flex-wrap items-center gap-3">
+                <span>Team: <strong className="text-slate-200">{coachingTarget.team_name || activePodConfig.team}</strong></span>
+                <span>•</span>
+                <span>Captain: <strong className="text-slate-200">{coachingTarget.captain_name || activeCaptainName}</strong></span>
+                <span>•</span>
+                <span>Fatals: <strong className={coachingTarget.fatalCount > 0 ? "text-rose-400 font-bold" : "text-emerald-400"}>{coachingTarget.fatalCount}</strong></span>
+              </div>
+            </div>
+
+            {/* Coaching Form */}
+            <form onSubmit={handleSaveCoaching} className="space-y-4 text-xs">
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-300">Coaching Date</label>
+                  <input
+                    type="date"
+                    value={coachingDate}
+                    onChange={(e) => setCoachingDate(e.target.value)}
+                    required
+                    className="w-full p-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-300">Supervisor / Coach</label>
+                  <input
+                    type="text"
+                    value={currentUser?.name || activeCaptainName}
+                    readOnly
+                    className="w-full p-2 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-400 font-medium cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">Coaching Focus Area</label>
+                <select
+                  value={coachingFocus}
+                  onChange={(e) => setCoachingFocus(e.target.value)}
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium focus:outline-none"
+                >
+                  <option value="GTM Adherence & Product Guidelines">GTM Adherence & Misinformation Prevention (Fatal)</option>
+                  <option value="Redemption & Gratitude Points Process">Redemption & Joy Gratitude Points (Fatal)</option>
+                  <option value="CRM Meeting Notes & Documentation">CRM Meeting Notes & Verification (Fatal)</option>
+                  <option value="Call Opening & Introduction Pitch">Call Opening, Greeting & Self Introduction</option>
+                  <option value="Product Pricing & Objection Handling">Product & Pricing Requirement Discovery</option>
+                  <option value="Cross & Upsell Probing Techniques">Premium Product Upselling & Cross-Selling</option>
+                  <option value="Customer Softskills & Active Listening">Tone, Energy, Hold Verbiage & Voice Modulation</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">Counseling Notes & Action Items</label>
+                <textarea
+                  value={coachingNotes}
+                  onChange={(e) => setCoachingNotes(e.target.value)}
+                  placeholder="Record observed defects, specific guidance shared, agreed turnaround timeline..."
+                  rows={4}
+                  required
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">Resolution Status</label>
+                <div className="flex items-center gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                    <input
+                      type="radio"
+                      name="coachingStatus"
+                      value="Completed"
+                      checked={coachingStatus === 'Completed'}
+                      onChange={() => setCoachingStatus('Completed')}
+                      className="text-emerald-500 focus:ring-0"
+                    />
+                    <span className="font-semibold text-emerald-400">Coaching Completed</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                    <input
+                      type="radio"
+                      name="coachingStatus"
+                      value="In Progress"
+                      checked={coachingStatus === 'In Progress'}
+                      onChange={() => setCoachingStatus('In Progress')}
+                      className="text-amber-500 focus:ring-0"
+                    />
+                    <span className="font-semibold text-amber-400">In Progress / Follow-up Needed</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setCoachingTarget(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-900/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Coaching Record</span>
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* Global Coaching Feedback Toast */}
+      {coachingToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 text-xs font-bold animate-in slide-in-from-bottom duration-200">
+          <Check className="w-4 h-4" />
+          <span>{coachingToast}</span>
         </div>
       )}
 

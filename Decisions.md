@@ -542,5 +542,44 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Subordinate pod breakdown cards now reflect their genuine individual pod metrics across all months (e.g., in November, SoarZone-II shows 5,586 dials / 48.5% conn, while SoarZone-I shows 7,201 dials / 53.0% conn, summing to 12,787).
 
+## Decision 048: Scorecard Printing, Per-Team Email Chain Memory, 1-Click CSV Exports, Sticky Table Headers, MoM Deltas, Quick Filter Presets, Coaching Action Logging, and Route-Based Code Splitting
+* **Date:** November 26, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - The developer requested enhancements across operational convenience, reporting, supervisor coaching workflows, scorecard printability, automated fatal email confirmation with per-team chain memory, and performance code splitting.
+* **Actions Taken:**
+  1. *Scorecard Printability (`QaScorecard.jsx`):*
+     - Added dedicated "Print Scorecard" buttons in the scorecard header, banner, and floating Frosted Ribbon.
+     - Added `@media print` CSS block and a clean, high-contrast, executive-formatted A4 printable document (`printable-scorecard-root`) rendering CenturyPly company header, metadata grid, overall score capsule, full 11-parameter breakdown table with remarks, missed checklist pointers, summary observations, and official signature sign-off lines.
+  2. *Automated Fatal Parameter Alert & Per-Team Email Chain Memory:*
+     - Intercepted `handleSubmit` when `hasFatalError === true` to display the interactive `FatalEmailConfirmModal`.
+     - Allows QA to review, add, or delete `TO` and `CC` recipients as chips before dispatching notification.
+     - Automatically saves updated `TO` and `CC` preferences per pod team into `teamEmailChains` state and `century_team_email_chains` in `localStorage`, guaranteeing future audits for that team inherit the updated recipient list.
+     - Records dispatched alerts to `mailChainHistory` in `DataContext`.
+     - Provided a "Submit Without Email" fallback action to record the audit without dispatching an email.
+  3. *1-Click CSV / Excel Export:*
+     - Built `src/utils/exportCsv.js` with UTF-8 BOM encoding for complete Microsoft Excel compatibility.
+     - Added "Export CSV" buttons to the Senior Manager RM Roster (`ManagerHub.jsx`), Pod Captain Leaderboard (`ManagerHub.jsx`), and QA Audit History table (`QaDashboard.jsx`).
+  4. *Sticky Table Headers:*
+     - Upgraded tables in `ManagerHub.jsx` and `QaDashboard.jsx` with scrollable containers (`max-h-[520px] overflow-y-auto`) and sticky headers (`thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95"`).
+  5. *Month-over-Month (MoM) Delta Indicators:*
+     - Added dynamic MoM badges on Division and Pod KPI cards (Dials, Conn Rate, QA Score) comparing November vs October (e.g. `+X.X% MoM` in emerald or `-X.X% MoM` in rose). Shows `Baseline` for October and `Consolidated` for All Months.
+  6. *Quick Search & Filter Presets on Rosters:*
+     - Added quick filter preset pills (`All RMs`, `🌟 Top Performers`, `✓ On Track`, `🚨 At Risk / Fatals`, `⚠️ Needs Coaching`, `🎓 Coached`) and real-time search bars above the Division and Pod rosters.
+  7. *Direct "Log Coaching Action" Modal for At-Risk RMs:*
+     - Made `🚨 Failed` and `At Risk` badges clickable, opening a `CoachingActionModal` to record supervisory guidance, coaching focus area, action notes, and resolution status.
+     - Persists coaching records to `century_coaching_logs` in `localStorage` via `logCoachingAction` in `DataContext.jsx`.
+     - Renders a `🎓 Coached` badge next to coached agents in the rosters.
+  8. *Route-Based Code Splitting (`React.lazy` in `App.jsx`):*
+     - Lazy-loaded `ConsolidatedDashboard`, `ManagerHub`, `L2DashboardMain`, `RMProductivity`, `QaDashboard`, and `UserManagement` with `<Suspense fallback={<ModuleLoadingFallback />}>`.
+     - Chunked production JavaScript bundle, decreasing initial bundle parse overhead.
+  9. *Rule 21b Anti-Slop Audit Cycle:*
+     - 34/34 source files mapped and referenced. 0 unused imports, 0 console.log statements.
+     - Production build passed in 24.05s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+* **Consequences:**
+  - Executive operations portal now supports complete offline/paper auditing via printable scorecards, closed-loop coaching workflows from fatal defect to coaching session, automatic team recipient memory, and instant CSV exportability.
+
+
 
 

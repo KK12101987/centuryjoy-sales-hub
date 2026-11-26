@@ -638,6 +638,117 @@ export function DataProvider({ children }) {
     } catch (e) {}
   };
 
+  // E1. Team Email Chains Memory & Alert Persistence
+  const DEFAULT_TEAM_CHAINS = {
+    'Unity-II': {
+      to: ['arshi.jamal@centuryply.com'],
+      cc: ['arijit.nath@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'Unity-I': {
+      to: ['mousumi.chakraborty@centuryply.com'],
+      cc: ['arijit.nath@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'Catlyst-II': {
+      to: ['nasima.banu@centuryply.com'],
+      cc: ['surajit.laha@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'Catlyst-I': {
+      to: ['pallabi.chura@centuryply.com'],
+      cc: ['surajit.laha@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'SoarZone-II': {
+      to: ['ranjana.mohajan@centuryply.com'],
+      cc: ['niladri.bhadra@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'SoarZone-I': {
+      to: ['shiuli.bhattacharjee@centuryply.com'],
+      cc: ['niladri.bhadra@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    },
+    'Zenith Pod': {
+      to: ['silpa.palchina@centuryply.com'],
+      cc: ['arijit.nath@centuryply.com', 'nabonita.roy@centuryply.com', 'kushal.centuryply@gmail.com']
+    }
+  };
+
+  const [teamEmailChains, setTeamEmailChains] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_team_email_chains');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_TEAM_CHAINS;
+  });
+
+  const updateTeamEmailChain = (teamName, chain) => {
+    verifyWatermarkIntegrity();
+    setTeamEmailChains((prev) => {
+      const toList = Array.isArray(chain?.to) ? chain.to : (chain?.to || '').split(',').map(s => s.trim()).filter(Boolean);
+      const ccList = Array.isArray(chain?.cc) ? chain.cc : (chain?.cc || '').split(',').map(s => s.trim()).filter(Boolean);
+      const updated = {
+        ...prev,
+        [teamName]: {
+          to: toList.length > 0 ? toList : (prev[teamName]?.to || []),
+          cc: ccList
+        }
+      };
+      try {
+        localStorage.setItem('century_team_email_chains', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  // E2. Mail Chain History for Fatal Dispatches
+  const [mailChainHistory, setMailChainHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_mail_chain_history');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
+
+  const logFatalEmail = (record) => {
+    verifyWatermarkIntegrity();
+    const entry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      ...record
+    };
+    setMailChainHistory((prev) => {
+      const updated = [entry, ...prev];
+      try {
+        localStorage.setItem('century_mail_chain_history', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return entry;
+  };
+
+  // E3. Relationship Manager Coaching Logs
+  const [coachingLogs, setCoachingLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_coaching_logs');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
+
+  const logCoachingAction = (coachingRecord) => {
+    verifyWatermarkIntegrity();
+    const entry = {
+      id: Date.now(),
+      loggedAt: new Date().toISOString(),
+      ...coachingRecord
+    };
+    setCoachingLogs((prev) => {
+      const updated = [entry, ...prev];
+      try {
+        localStorage.setItem('century_coaching_logs', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return entry;
+  };
+
   // E. Dialer Calls & Audio Pipeline State
   const [dialerCalls, setDialerCalls] = useState(() => {
     try {
@@ -1779,6 +1890,12 @@ export function DataProvider({ children }) {
     uploadModalTab,
     openUploadModal,
     closeUploadModal,
+    teamEmailChains,
+    updateTeamEmailChain,
+    mailChainHistory,
+    logFatalEmail,
+    coachingLogs,
+    logCoachingAction,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

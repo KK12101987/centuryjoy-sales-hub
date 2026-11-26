@@ -1,17 +1,29 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import Navbar from './components/Common/Navbar';
 import LoginPage from './components/Common/LoginPage';
 import Watermark from './components/Common/Watermark';
 import UploadCenterModal from './components/Common/UploadCenterModal';
-import ConsolidatedDashboard from './components/ConsolidatedDashboard/ConsolidatedDashboard';
-import ManagerHub from './components/ManagerHub/ManagerHub';
-import L2DashboardMain from './components/L2Dashboard/L2DashboardMain';
-import RMProductivity from './components/RMProductivity/RMProductivity';
-import QaDashboard from './components/QaDashboard/QaDashboard';
-import UserManagement from './components/UserManagement/UserManagement';
-
 import ErrorBoundary from './components/Common/ErrorBoundary';
+
+// Route-Based Code Splitting (React.lazy) for Optimal Bundle Delivery
+const ConsolidatedDashboard = lazy(() => import('./components/ConsolidatedDashboard/ConsolidatedDashboard'));
+const ManagerHub = lazy(() => import('./components/ManagerHub/ManagerHub'));
+const L2DashboardMain = lazy(() => import('./components/L2Dashboard/L2DashboardMain'));
+const RMProductivity = lazy(() => import('./components/RMProductivity/RMProductivity'));
+const QaDashboard = lazy(() => import('./components/QaDashboard/QaDashboard'));
+const UserManagement = lazy(() => import('./components/UserManagement/UserManagement'));
+
+function ModuleLoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[420px] space-y-4">
+      <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+      <div className="text-xs font-bold text-slate-400 font-mono tracking-wider uppercase animate-pulse">
+        Loading Module Operations...
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
   const { currentUser, activeModule, isUploadModalOpen, closeUploadModal, uploadModalTab } = useData();
@@ -36,14 +48,16 @@ function AppContent() {
         initialTab={uploadModalTab} 
       />
 
-      {/* Main Content Viewport */}
+      {/* Main Content Viewport with Suspense Code Splitting */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeModule === 'consolidated' && <ConsolidatedDashboard />}
-        {activeModule === 'divisions' && <ManagerHub />}
-        {activeModule === 'l2' && <L2DashboardMain />}
-        {activeModule === 'productivity' && <RMProductivity />}
-        {activeModule === 'qa' && <QaDashboard />}
-        {activeModule === 'users' && <UserManagement />}
+        <Suspense fallback={<ModuleLoadingFallback />}>
+          {activeModule === 'consolidated' && <ConsolidatedDashboard />}
+          {activeModule === 'divisions' && <ManagerHub />}
+          {activeModule === 'l2' && <L2DashboardMain />}
+          {activeModule === 'productivity' && <RMProductivity />}
+          {activeModule === 'qa' && <QaDashboard />}
+          {activeModule === 'users' && <UserManagement />}
+        </Suspense>
       </main>
 
       {/* Executive Footer */}

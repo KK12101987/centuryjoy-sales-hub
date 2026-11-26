@@ -6,7 +6,13 @@ import {
   CheckSquare, 
   Save, 
   ShieldAlert, 
-  Lock
+  Lock,
+  Printer,
+  Mail,
+  Send,
+  X,
+  Plus,
+  AlertTriangle
 } from 'lucide-react';
 
 export const PARAMETERS = [
@@ -145,9 +151,26 @@ export const PARAMETERS = [
 ];
 
 export default function QaScorecard({ auditTarget = null, onClearTarget = null, onBackToHistory = null, canAudit: propCanAudit, currentUser: propCurrentUser }) {
-  const { rmDirectory, addQaAudit, currentUser: contextUser, customTeams, updateDialerCall } = useData();
+  const { 
+    rmDirectory, 
+    addQaAudit, 
+    currentUser: contextUser, 
+    customTeams, 
+    updateDialerCall,
+    teamEmailChains,
+    updateTeamEmailChain,
+    logFatalEmail
+  } = useData();
   const currentUser = propCurrentUser || contextUser;
   const canAudit = propCanAudit !== undefined ? propCanAudit : isAuthorizedAuditor(currentUser);
+
+  // Fatal Parameter Alert Modal States
+  const [isFatalModalOpen, setIsFatalModalOpen] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [modalTo, setModalTo] = useState([]);
+  const [modalCc, setModalCc] = useState([]);
+  const [newToInput, setNewToInput] = useState("");
+  const [newCcInput, setNewCcInput] = useState("");
 
   // Audit Form Header
   const [mobileNumber, setMobileNumber] = useState("");
@@ -509,6 +532,94 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
 
   const pctNum = parseFloat(percentage) || 0;
 
+  // Print Scorecard Handler
+  const handlePrintScorecard = () => {
+    window.print();
+  };
+
+  // Pre-Dispatch Fatal Alert Handlers
+  const handleAddToRecipient = () => {
+    const val = newToInput.trim();
+    if (val && !modalTo.includes(val)) {
+      setModalTo([...modalTo, val]);
+      setNewToInput("");
+    }
+  };
+
+  const handleRemoveToRecipient = (email) => {
+    setModalTo(modalTo.filter(e => e !== email));
+  };
+
+  const handleAddCcRecipient = () => {
+    const val = newCcInput.trim();
+    if (val && !modalCc.includes(val)) {
+      setModalCc([...modalCc, val]);
+      setNewCcInput("");
+    }
+  };
+
+  const handleRemoveCcRecipient = (email) => {
+    setModalCc(modalCc.filter(e => e !== email));
+  };
+
+  const handleConfirmFatalDispatch = () => {
+    if (!pendingPayload) return;
+    const teamKey = pendingPayload.team_name || "Unity-II";
+
+    // 1. Permanently update team email chain in DataContext & localStorage
+    if (updateTeamEmailChain) {
+      updateTeamEmailChain(teamKey, { to: modalTo, cc: modalCc });
+    }
+
+    // 2. Log fatal email in DataContext & localStorage
+    const fatalViolations = PARAMETERS.filter(p => p.fatal && pendingPayload[p.id] === 0).map(p => p.label);
+    if (logFatalEmail) {
+      logFatalEmail({
+        auditId: pendingPayload.id,
+        rmName: pendingPayload.rm_name,
+        teamName: teamKey,
+        captainName: pendingPayload.captain_name,
+        managerName: pendingPayload.manager_name,
+        auditorName: pendingPayload.auditor_name,
+        breachedParams: fatalViolations,
+        to: modalTo,
+        cc: modalCc,
+        auditDate: pendingPayload.audit_date,
+        callDate: pendingPayload.call_date,
+        duration: pendingPayload.call_duration,
+        pointerMissed: pendingPayload.pointer_missed,
+        observation: pendingPayload.observation
+      });
+    }
+
+    // 3. Save the actual audit
+    addQaAudit(pendingPayload);
+
+    // 4. Update dialer call if needed
+    if (auditTarget?.phone_no && updateDialerCall) {
+      updateDialerCall(auditTarget.phone_no, { status: 'Disposed - Audited (Fatal)' });
+    }
+
+    setIsFatalModalOpen(false);
+    setPendingPayload(null);
+    setMsg(`🚨 Fatal audit logged & Alert email dispatched to ${modalTo.length} recipients!`);
+    setTimeout(() => setMsg(""), 5000);
+  };
+
+  const handleSkipFatalDispatch = () => {
+    if (!pendingPayload) return;
+    addQaAudit(pendingPayload);
+
+    if (auditTarget?.phone_no && updateDialerCall) {
+      updateDialerCall(auditTarget.phone_no, { status: 'Disposed - Audited (Fatal)' });
+    }
+
+    setIsFatalModalOpen(false);
+    setPendingPayload(null);
+    setMsg("✓ Fatal audit recorded (email alert skipped).");
+    setTimeout(() => setMsg(""), 4000);
+  };
+
   // Submit Audit
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -543,6 +654,24 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
       is_fatal: hasFatalError,
       ...scores,
     };
+
+    // If fatal error detected, intercept and present the Pre-Dispatch Confirmation Modal
+    if (hasFatalError) {
+      setPendingPayload(payload);
+      const teamKey = payload.team_name || "Unity-II";
+      const existingChain = teamEmailChains?.[teamKey] || {
+        to: [activeCaptain ? `${activeCaptain.toLowerCase().replace(/\s+/g, '.')}@centuryply.com` : 'captain@centuryply.com'],
+        cc: [
+          currentManager ? `${currentManager.toLowerCase().replace(/\s+/g, '.')}@centuryply.com` : 'manager@centuryply.com',
+          'nabonita.roy@centuryply.com',
+          'kushal.centuryply@gmail.com'
+        ]
+      };
+      setModalTo(existingChain.to || []);
+      setModalCc(existingChain.cc || []);
+      setIsFatalModalOpen(true);
+      return;
+    }
 
     addQaAudit(payload);
 
@@ -604,6 +733,15 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrintScorecard}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold cursor-pointer transition-all flex items-center gap-1.5 shrink-0"
+              title="Print official A4 QA scorecard report"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-400" />
+              <span>Print Scorecard</span>
+            </button>
             {onBackToHistory && (
               <button
                 type="button"
@@ -637,11 +775,22 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
               Standardized evaluation across 8 core scoring parameters and 3 fatal compliance categories.
             </p>
           </div>
-          {lockMessage && (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300">
-              {lockMessage}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {lockMessage && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300">
+                {lockMessage}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handlePrintScorecard}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Print official QA scorecard report (A4 printable format)"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+              <span>Print Scorecard</span>
+            </button>
+          </div>
         </div>
 
         {msg && (
@@ -972,6 +1121,15 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
               </span>
             )}
             <button
+              type="button"
+              onClick={handlePrintScorecard}
+              className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm"
+              title="Print official scorecard report (A4 clean format)"
+            >
+              <Printer className="w-4 h-4 text-blue-400" />
+              <span className="hidden sm:inline">Print Scorecard</span>
+            </button>
+            <button
               onClick={canAudit ? handleSubmit : null}
               disabled={!canAudit}
               className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2 ${
@@ -1264,6 +1422,376 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
           />
         </div>
+      </div>
+
+      {/* ============================================================= */}
+      {/* 1. FATAL PARAMETER ALERT - PRE-DISPATCH CONFIRMATION MODAL    */}
+      {/* ============================================================= */}
+      {isFatalModalOpen && pendingPayload && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-[#0e1320] border border-rose-800/80 rounded-3xl max-w-2xl w-full p-6 text-white shadow-2xl space-y-5 my-8">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-rose-900/60 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-950/80 border border-rose-800 flex items-center justify-center text-rose-400">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>🚨 Fatal Call Audit Breach — Email Alert Dispatch</span>
+                  </h3>
+                  <p className="text-xs text-rose-300/80 mt-0.5">
+                    Non-negotiable fatal defect detected. Review and confirm recipient chain before dispatching notification.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFatalModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Breach Context Pill */}
+            <div className="bg-rose-950/30 border border-rose-900/50 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-semibold text-rose-200">
+                  RM: <strong className="text-white">{pendingPayload.rm_name}</strong> • Team: <strong className="text-white">{pendingPayload.team_name}</strong>
+                </div>
+                <div className="px-2.5 py-0.5 rounded-full bg-rose-900/60 border border-rose-700 text-rose-200 font-bold text-[11px]">
+                  Score: 0.00% (Fatal Override)
+                </div>
+              </div>
+              <div className="text-slate-300 flex items-center gap-2">
+                <span className="text-slate-400">Breached Categories:</span>
+                <span className="font-bold text-rose-400">
+                  {PARAMETERS.filter(p => p.fatal && pendingPayload[p.id] === 0).map(p => p.label).join(', ') || 'Fatal Parameter Breach'}
+                </span>
+              </div>
+            </div>
+
+            {/* Email Chain Configuration (TO & CC) */}
+            <div className="space-y-4 text-xs">
+              
+              {/* TO Field */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center justify-between">
+                  <span>TO (Primary Captain / Supervised Recipient):</span>
+                  <span className="text-[10px] text-slate-400">Press Enter or click Add to append</span>
+                </label>
+                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-900/90 border border-slate-800 rounded-xl min-h-[42px]">
+                  {modalTo.map((email) => (
+                    <span 
+                      key={email}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-950/80 border border-indigo-800 text-indigo-300 font-medium text-[11px]"
+                    >
+                      <span>{email}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveToRecipient(email)}
+                        className="hover:text-white hover:bg-indigo-800 rounded-full p-0.5"
+                        title="Remove recipient"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+                    <input
+                      type="email"
+                      value={newToInput}
+                      onChange={(e) => setNewToInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddToRecipient();
+                        }
+                      }}
+                      placeholder="Add TO recipient (e.g. captain@centuryply.com)..."
+                      className="w-full bg-transparent border-0 text-white placeholder-slate-500 focus:outline-none text-xs px-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddToRecipient}
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold flex items-center gap-0.5"
+                    >
+                      <Plus className="w-3 h-3" /> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* CC Field */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center justify-between">
+                  <span>CC (Senior Manager & Quality Leadership):</span>
+                  <span className="text-[10px] text-slate-400">Press Enter or click Add to append</span>
+                </label>
+                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-900/90 border border-slate-800 rounded-xl min-h-[42px]">
+                  {modalCc.map((email) => (
+                    <span 
+                      key={email}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 font-medium text-[11px]"
+                    >
+                      <span>{email}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCcRecipient(email)}
+                        className="hover:text-white hover:bg-slate-700 rounded-full p-0.5"
+                        title="Remove recipient"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+                    <input
+                      type="email"
+                      value={newCcInput}
+                      onChange={(e) => setNewCcInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCcRecipient();
+                        }
+                      }}
+                      placeholder="Add CC recipient (e.g. manager@centuryply.com)..."
+                      className="w-full bg-transparent border-0 text-white placeholder-slate-500 focus:outline-none text-xs px-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCcRecipient}
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold flex items-center gap-0.5"
+                    >
+                      <Plus className="w-3 h-3" /> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Email Preview Snippet */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
+              <div className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Email Dispatch Preview</span>
+              </div>
+              <div className="p-2.5 bg-slate-950/80 rounded-xl font-mono text-[11px] text-slate-300 space-y-1">
+                <div><strong className="text-white">Subject:</strong> [CRITICAL FATAL QA BREACH] Call Audit Failure: {pendingPayload.rm_name} ({pendingPayload.team_name})</div>
+                <div><strong className="text-white">Directive:</strong> Mandatory coaching session required within 24 hours. Performance tier shifted to At Risk.</div>
+                {pendingPayload.pointer_missed && (
+                  <div className="text-rose-300 truncate"><strong className="text-white">Checkpoints:</strong> {pendingPayload.pointer_missed}</div>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                💡 <span className="font-semibold text-slate-300">Permanent Memory:</span> Any additions or removals to TO/CC will be automatically remembered for all future audits of <strong className="text-white">{pendingPayload.team_name}</strong>.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsFatalModalOpen(false)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs cursor-pointer transition-all"
+              >
+                Cancel / Keep Editing
+              </button>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={handleSkipFatalDispatch}
+                  className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700 font-semibold text-xs cursor-pointer transition-all"
+                  title="Submit the fatal audit record without sending an email notification"
+                >
+                  Submit Without Email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmFatalDispatch}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer shadow-lg shadow-rose-900/30 flex items-center gap-2 transition-all"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Confirm & Send Dispatch</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* 2. PRINTABLE SCORECARD (ONLY VISIBLE DURING window.print())   */}
+      {/* ============================================================= */}
+      <style>{`
+        @media print {
+          /* Hide non-print application Chrome */
+          nav, header, footer, .no-print, #antigravity-watermark-kushalkar {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .printable-scorecard-root {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            padding: 28px !important;
+            background: white !important;
+            color: black !important;
+          }
+        }
+      `}</style>
+
+      <div className="hidden print:block printable-scorecard-root">
+        {/* Printable Header */}
+        <div className="border-b-2 border-slate-900 pb-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
+                CENTURY PLYBOARDS (INDIA) LIMITED
+              </h1>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mt-0.5">
+                Century Joy Executive Operations Suite • Official QA Call Evaluation Scorecard
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-mono font-bold text-slate-900">
+                Audit #{auditTarget?.id || 'NEW'}
+              </div>
+              <div className="text-[10px] text-slate-600">
+                Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Call & Evaluation Details Grid */}
+        <div className="grid grid-cols-2 gap-4 border border-slate-300 rounded-xl p-4 mb-6 text-xs">
+          <div className="space-y-1.5">
+            <div><span className="font-semibold text-slate-600">Relationship Manager:</span> <strong className="text-slate-900 text-sm">{rmName || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Franchise / Pod Team:</span> <strong className="text-slate-900">{franchise || selectedRmObj?.team_name || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Assigned Pod Captain:</span> <strong className="text-slate-900">{activeCaptain || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Senior Manager:</span> <strong className="text-slate-900">{currentManager || "—"}</strong></div>
+          </div>
+          <div className="space-y-1.5">
+            <div><span className="font-semibold text-slate-600">Customer Mobile No:</span> <strong className="text-slate-900 font-mono">{mobileNumber || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Call Duration:</span> <strong className="text-slate-900 font-mono">{callDuration || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Call Date:</span> <strong className="text-slate-900">{callDate || "—"}</strong> • <span className="font-semibold text-slate-600">Audit Date:</span> <strong className="text-slate-900">{auditDate || "—"}</strong></div>
+            <div><span className="font-semibold text-slate-600">Quality Auditor:</span> <strong className="text-slate-900">{auditorName || "—"}</strong></div>
+          </div>
+        </div>
+
+        {/* Result Capsule */}
+        <div className="flex items-center justify-between border-2 border-slate-900 rounded-xl p-4 mb-6 bg-slate-50">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Overall Quality Score</div>
+            <div className="text-3xl font-black text-slate-900 font-mono">
+              {percentage}%
+            </div>
+            <div className="text-xs text-slate-700 mt-0.5">
+              Awarded: <strong className="font-mono">{totalScore}</strong> of {totalPossible || (100 - naPoints)} Points • ({scoredApplicableCount} of {applicableParamsCount} parameters evaluated)
+            </div>
+          </div>
+          <div className="text-right">
+            <span className={`inline-block px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border-2 ${
+              hasFatalError 
+                ? 'bg-red-100 border-red-600 text-red-900' 
+                : pctNum >= 85 
+                  ? 'bg-emerald-100 border-emerald-600 text-emerald-900' 
+                  : pctNum >= 70 
+                    ? 'bg-amber-100 border-amber-600 text-amber-900' 
+                    : 'bg-red-100 border-red-600 text-red-900'
+            }`}>
+              {hasFatalError ? '🚨 FATAL BREACH (0.00%)' : pctNum >= 85 ? 'BENCHMARK MET' : pctNum >= 70 ? 'COACHING REQUIRED' : 'BELOW TARGET'}
+            </span>
+          </div>
+        </div>
+
+        {/* 11 Parameters Breakdown Table */}
+        <div className="mb-6">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">Detailed Parameter Evaluation</h3>
+          <table className="w-full text-left border-collapse text-xs border border-slate-300">
+            <thead>
+              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold uppercase">
+                <th className="py-2 px-3 border-r border-slate-300 w-10">#</th>
+                <th className="py-2 px-3 border-r border-slate-300">Evaluation Parameter</th>
+                <th className="py-2 px-3 border-r border-slate-300 w-24">Category</th>
+                <th className="py-2 px-3 border-r border-slate-300 w-16 text-center">Max</th>
+                <th className="py-2 px-3 border-r border-slate-300 w-20 text-center">Awarded</th>
+                <th className="py-2 px-3">Remarks / Feedback</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-300">
+              {PARAMETERS.map((p, idx) => {
+                const s = scores[p.id];
+                const isFatalZero = p.fatal && s === 0;
+                return (
+                  <tr key={p.id} className={isFatalZero ? "bg-red-50" : ""}>
+                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono">{idx + 1}</td>
+                    <td className="py-2 px-3 border-r border-slate-300 font-semibold">
+                      {p.label}
+                      {p.fatal && <span className="ml-1 text-[10px] font-bold text-red-700">(Fatal)</span>}
+                    </td>
+                    <td className="py-2 px-3 border-r border-slate-300 text-slate-600">
+                      {p.fatal ? 'Fatal Compliance' : 'Core Parameter'}
+                    </td>
+                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono font-bold">{p.max}</td>
+                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono font-bold">
+                      {s === "NA" ? "N/A" : s !== undefined ? s : "—"}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700 text-[11px]">
+                      {paramFeedback[p.id] || (isFatalZero ? "🚨 Breached Fatal Compliance" : "—")}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Missed Checkpoints & Summary Observations */}
+        <div className="space-y-3 mb-8 text-xs border border-slate-300 rounded-xl p-4">
+          <div>
+            <strong className="text-slate-900 block font-bold mb-0.5">Missed Checklist Pointers:</strong>
+            <p className="text-slate-700 font-mono text-[11px] leading-relaxed">
+              {pointerMissed || "None recorded • All applicable checkpoints fulfilled."}
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-200">
+            <strong className="text-slate-900 block font-bold mb-0.5">Auditor General Remarks & Coaching Directives:</strong>
+            <p className="text-slate-700 leading-relaxed">
+              {observation || "Call meets standard quality guidelines."}
+            </p>
+          </div>
+        </div>
+
+        {/* Sign-Off Block */}
+        <div className="grid grid-cols-2 gap-8 pt-8 border-t-2 border-slate-900 text-xs mt-12">
+          <div>
+            <div className="border-b border-slate-400 pb-12"></div>
+            <div className="mt-2 font-bold text-slate-900">Evaluated By: {auditorName || "Designated QA Auditor"}</div>
+            <div className="text-[11px] text-slate-600">Quality Assurance Department • Signature & Date</div>
+          </div>
+          <div>
+            <div className="border-b border-slate-400 pb-12"></div>
+            <div className="mt-2 font-bold text-slate-900">Acknowledged By: {activeCaptain || currentManager || "Supervisory Authority"}</div>
+            <div className="text-[11px] text-slate-600">Pod Captain / Senior Management • Signature & Date</div>
+          </div>
+        </div>
+
       </div>
 
     </div>

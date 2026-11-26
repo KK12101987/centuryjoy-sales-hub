@@ -8,6 +8,7 @@ import {
   getAllowedUploadTabs
 } from '../../utils/auth';
 import QaScorecard from './QaScorecard';
+import { exportToCsv } from '../../utils/exportCsv';
 import { 
   CheckCircle2, 
   BarChart3, 
@@ -25,7 +26,8 @@ import {
   Filter,
   X,
   Target,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 
 export default function QaDashboard() {
@@ -197,6 +199,30 @@ export default function QaDashboard() {
       return true;
     });
   }, [scopedQaAudits, searchHistory]);
+
+  // CSV Export for QA Audit History
+  const handleExportHistory = () => {
+    const headers = [
+      { key: 'id', label: 'Audit ID' },
+      { key: 'date', label: 'Audit Date' },
+      { key: 'rm_name', label: 'RM Agent' },
+      { key: 'team_name', label: 'Pod Team' },
+      { key: 'captain_name', label: 'Pod Captain' },
+      { key: 'manager_name', label: 'Senior Manager' },
+      { key: 'scoreFormatted', label: 'QA Score %' },
+      { key: 'status', label: 'Compliance Status' },
+      { key: 'auditor_name', label: 'Auditor' },
+      { key: 'pointer_missed', label: 'Missed Checkpoints' },
+      { key: 'observation', label: 'Auditor Remarks' }
+    ];
+    const rows = filteredHistory.map(a => ({
+      ...a,
+      date: a.audit_date || a.call_date || a.created_at || '—',
+      scoreFormatted: a.overall_score !== undefined ? `${a.overall_score}%` : '85.0%',
+      status: a.is_fatal ? 'FATAL BREACH (0%)' : (Number(a.overall_score) >= 85 ? 'BENCHMARK MET' : 'COACHING')
+    }));
+    exportToCsv(`QA_Audit_History_${new Date().toISOString().slice(0, 10)}`, headers, rows);
+  };
 
   // 7 QC Tools Filter State
   const [selectedQcTool, setSelectedQcTool] = useState('all'); // 'all' | 'scatter' | 'pareto' | 'fishbone' | 'histogram' | 'control' | 'checksheet' | 'stratification'
@@ -578,10 +604,10 @@ export default function QaDashboard() {
           </div>
 
           {/* Calls Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+              <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                <tr>
                   <th className="py-2.5 px-3">Customer Phone</th>
                   <th className="py-2.5 px-3">Call Duration</th>
                   <th className="py-2.5 px-3">Agent &amp; Process</th>
@@ -1370,6 +1396,17 @@ export default function QaDashboard() {
             
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400 font-mono">{filteredHistory.length} Audits Logged</span>
+
+              <button
+                type="button"
+                onClick={handleExportHistory}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                title="Export filtered audits to Microsoft Excel / CSV"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Export CSV</span>
+              </button>
+
               {qaScope === 'self' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                   Scoped: {currentUser?.name} Only
@@ -1427,10 +1464,10 @@ export default function QaDashboard() {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+              <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                <tr>
                   <th className="py-3 px-4">Date &amp; ID</th>
                   <th className="py-3 px-4">Agent Name</th>
                   <th className="py-3 px-4">Hierarchy</th>

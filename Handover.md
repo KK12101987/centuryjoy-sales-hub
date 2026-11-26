@@ -410,4 +410,50 @@ The application will automatically detect Vite and the serverless functions unde
   - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
 
+---
+
+## 35. Scorecard Printing, Per-Team Email Chain Memory & Dashboard Upgrades (Nov 26, 2026)
+- **Official Scorecard Printability (`QaScorecard.jsx`):**
+  - Added "Print Scorecard" buttons in the scorecard header, banner, and floating Frosted Ribbon.
+  - Added `@media print` styles and executive-formatted `.printable-scorecard-root` document containing:
+    - Official CenturyPly & Century Joy company header.
+    - Full evaluation metadata grid (RM, Team, Captain, Manager, Customer Mobile, Call Date, Call Duration, Audit Date, Auditor).
+    - Overall score capsule with performance tier badges.
+    - Standardized 11-parameter breakdown table with max points, awarded points, status, and remarks.
+    - Auto-populated missed checklist pointers and general auditor observations.
+    - Formal Quality Auditor and Supervisory Authority sign-off signature blocks.
+- **Fatal Parameter Email Dispatch Confirmation & Team Memory (`QaScorecard.jsx`):**
+  - Intercepted `handleSubmit` on `hasFatalError === true` to display the interactive `FatalEmailConfirmModal`.
+  - Displays target pod team, breached fatal categories, and interactive chip lists for both `TO` and `CC` recipients.
+  - QA can click `✕` to remove recipients or type and press Enter to add new recipients.
+  - On confirm, automatically updates `teamEmailChains` state and `century_team_email_chains` in `localStorage` so future audits for that team permanently remember the updated addresses.
+  - Logs sent alerts to `mailChainHistory` in `DataContext`.
+  - Offers "Submit Without Email" option to record audit without alert dispatch.
+- **1-Click CSV / Excel Export on Tables:**
+  - Created reusable `src/utils/exportCsv.js` with UTF-8 BOM encoding for seamless Microsoft Excel compatibility.
+  - Added export buttons to:
+    1. Senior Manager's `Relationship Managers Roster` in `ManagerHub.jsx`.
+    2. Pod Captain's `Relationship Managers Leaderboard` in `ManagerHub.jsx`.
+    3. Quality Auditor's `Audit History` table in `QaDashboard.jsx`.
+- **Sticky Table Headers:**
+  - Enforced `max-h-[520px] overflow-y-auto` with `thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95"` across rosters and audit history tables.
+- **Month-over-Month (MoM) Delta Indicators:**
+  - Added dynamic MoM badges on Division and Pod KPI cards (Dials, Conn Rate, QA Score) comparing November vs October (e.g., `+X.X% MoM` in emerald or `-X.X% MoM` in rose). Shows `Baseline` for October and `Consolidated` for All Months.
+- **Quick Search & Filter Presets on Rosters:**
+  - Added filter pills (`All RMs`, `🌟 Top Performers`, `✓ On Track`, `🚨 At Risk / Fatals`, `⚠️ Needs Coaching`, `🎓 Coached`) and real-time search inputs above the Division and Pod rosters.
+- **Direct "Log Coaching Action" Modal:**
+  - Clicking on `🚨 Failed` or `At Risk` badges opens a `CoachingActionModal` to record supervisory coaching sessions.
+  - Persists coaching history in `century_coaching_logs` in `localStorage` via `logCoachingAction` in `DataContext.jsx`.
+  - Displays a `🎓 Coached` badge next to coached agents in the rosters.
+- **Route-Based Code Splitting (`React.lazy` in `App.jsx`):**
+  - Lazy-loaded `ConsolidatedDashboard`, `ManagerHub`, `L2DashboardMain`, `RMProductivity`, `QaDashboard`, and `UserManagement` with `<Suspense fallback={<ModuleLoadingFallback />}>`.
+  - Module bundles split into independent chunks, improving initial page load time.
+- **Rule 21b Software Factory & Anti-Slop Audit Cycle:**
+  - 34/34 source files mapped and referenced.
+  - 0 unused imports, 0 console.log statements.
+  - Production Vite build compiled in 24.05s with 0 errors.
+  - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
+
+
 
