@@ -16,12 +16,15 @@ import {
   Check, 
   UploadCloud, 
   RefreshCw,
-  Layers 
+  Layers,
+  Monitor 
 } from 'lucide-react';
 
 export default function Navbar() {
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const monthDropdownRef = useRef(null);
+  const [isScaleDropdownOpen, setIsScaleDropdownOpen] = useState(false);
+  const scaleDropdownRef = useRef(null);
 
   const { 
     currentUser, 
@@ -40,14 +43,20 @@ export default function Navbar() {
     selectMonth,
     availableMonths,
     activeDatasetMeta,
-    openUploadModal
+    openUploadModal,
+    displayScale,
+    setDisplayScale,
+    effectiveZoom,
   } = useData();
 
-  // Close month dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
         setIsMonthDropdownOpen(false);
+      }
+      if (scaleDropdownRef.current && !scaleDropdownRef.current.contains(event.target)) {
+        setIsScaleDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -328,6 +337,105 @@ export default function Navbar() {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
+
+            {/* Resolution / Viewport Scale Controller */}
+            <div className="relative inline-block shrink-0" ref={scaleDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsScaleDropdownOpen(!isScaleDropdownOpen)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0 group"
+                title="Display Resolution Scaling & Auto-Fit Control"
+              >
+                <Monitor className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform shrink-0" />
+                <span className="hidden sm:inline font-mono text-[11px] font-bold">
+                  {displayScale === 'auto' ? `Auto (${Math.round(effectiveZoom * 100)}%)` : `${displayScale}%`}
+                </span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isScaleDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isScaleDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span>Screen Adaptation Scale</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 font-mono font-bold">
+                      {Math.round(effectiveZoom * 100)}% Active
+                    </span>
+                  </div>
+                  <div className="py-1">
+                    {[
+                      {
+                        id: 'auto',
+                        label: `Auto-Fit (${Math.round(effectiveZoom * 100)}%)`,
+                        subtitle: 'Dynamic screen resolution adaptation',
+                        badge: 'Recommended',
+                        icon: '⚡',
+                      },
+                      {
+                        id: '85',
+                        label: 'Compact (85%)',
+                        subtitle: 'Smaller laptops & 720p screens',
+                        icon: '📱',
+                      },
+                      {
+                        id: '90',
+                        label: 'Laptop View (90%)',
+                        subtitle: '1080p displays with 125% scaling',
+                        icon: '💻',
+                      },
+                      {
+                        id: '100',
+                        label: 'Standard (100%)',
+                        subtitle: 'Default 1:1 pixel rendering',
+                        icon: '🖥️',
+                      },
+                      {
+                        id: '110',
+                        label: 'Large (110%)',
+                        subtitle: 'Enlarged text for 4K / QHD monitors',
+                        icon: '🔍',
+                      },
+                    ].map((opt) => {
+                      const isSelected = displayScale === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setDisplayScale(opt.id);
+                            setIsScaleDropdownOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 text-left text-xs transition-colors flex items-center justify-between group cursor-pointer ${
+                            isSelected
+                              ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-slate-900 dark:text-white font-bold'
+                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm shrink-0">{opt.icon}</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}>
+                                  {opt.label}
+                                </span>
+                                {opt.badge && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    {opt.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-normal">
+                                {opt.subtitle}
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Theme Toggle */}
             <button

@@ -742,11 +742,11 @@ export default function ManagerHub() {
       {/* 1. SENIOR MANAGER DIVISION DASHBOARD VIEW                     */}
       {/* ------------------------------------------------------------- */}
       {(!isCaptain && (isManager || viewType === 'manager')) && (
-        <div className="space-y-6">
+        <div className="space-y-5">
 
           {/* Executive Division Banner */}
-          <div className={`bg-gradient-to-r ${isPhysicalManager ? 'from-slate-900 via-purple-950 to-slate-900 border-purple-900/40' : 'from-slate-900 via-indigo-950 to-slate-900 border-indigo-900/40'} border rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden`}>
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className={`bg-gradient-to-r ${isPhysicalManager ? 'from-slate-900 via-purple-950 to-slate-900 border-purple-900/40' : 'from-slate-900 via-indigo-950 to-slate-900 border-indigo-900/40'} border rounded-3xl p-5 sm:p-6 lg:p-7 text-white shadow-2xl relative overflow-hidden`}>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
               <div className="space-y-2">
                 <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full ${isPhysicalManager ? 'bg-purple-500/20 border-purple-400/30 text-purple-300' : 'bg-indigo-500/20 border-indigo-400/30 text-indigo-300'} text-xs font-bold`}>
                   <Building2 className="w-3.5 h-3.5" />
@@ -775,10 +775,10 @@ export default function ManagerHub() {
           </div>
 
           {/* Tri-Factor Pillar KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
             {/* Pillar 1: Financial Approvals */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm hover:border-indigo-500/40 transition-all">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-indigo-500/40 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-indigo-950/60 border border-indigo-900/60 flex items-center justify-center text-indigo-400 font-bold text-xl">
                   <CreditCard className="w-6 h-6" />
@@ -803,7 +803,7 @@ export default function ManagerHub() {
             </div>
 
             {/* Pillar 2: Calling Telephony */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm hover:border-emerald-500/40 transition-all">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-xl">
                   <PhoneCall className="w-6 h-6" />
@@ -839,7 +839,7 @@ export default function ManagerHub() {
             </div>
 
             {/* Pillar 3: Quality Assurance */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm hover:border-amber-500/40 transition-all">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-amber-500/40 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-xl">
                   <CheckCircle2 className="w-6 h-6" />
@@ -1101,11 +1101,11 @@ export default function ManagerHub() {
       {/* 2. POD CAPTAIN COMMAND DASHBOARD VIEW                         */}
       {/* ------------------------------------------------------------- */}
       {(isCaptain || (isSuperAdmin && viewType === 'pod')) && (
-        <div className="space-y-6">
+        <div className="space-y-5">
 
           {/* Pod Captain Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-900/40 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-900/40 rounded-3xl p-5 sm:p-6 lg:p-7 text-white shadow-2xl relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
               <div className="space-y-2">
                 <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -1126,9 +1126,9 @@ export default function ManagerHub() {
           </div>
 
           {/* Pod Operational KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-xl">
                   <PhoneCall className="w-6 h-6" />
@@ -1148,7 +1148,7 @@ export default function ManagerHub() {
               </div>
             </div>
 
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="w-12 h-12 rounded-xl bg-blue-950/60 border border-blue-900/60 flex items-center justify-center text-blue-400 font-bold text-xl mb-4">
                 <Users className="w-6 h-6" />
               </div>
@@ -1165,7 +1165,7 @@ export default function ManagerHub() {
               </div>
             </div>
 
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-xl">
                   <Award className="w-6 h-6" />

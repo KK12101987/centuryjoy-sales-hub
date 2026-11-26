@@ -98,6 +98,68 @@ export function DataProvider({ children }) {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // 4b. Dynamic Display Resolution Scaling & Auto-Fit Engine
+  const computeAutoZoom = () => {
+    if (typeof window === 'undefined') return 1.0;
+    const h = window.innerHeight;
+    const w = window.innerWidth;
+    // Compact Viewport (small laptops, 720p screens)
+    if (h < 720 || w < 1280) return 0.85;
+    // Standard 1080p Laptops with 125% Windows scaling (CSS viewport ~1536x720-864)
+    if (h < 920 || w < 1680) return 0.90;
+    // Ultra-wide or 4K Monitors
+    if (h >= 1200 && w >= 2200) return 1.05;
+    // Standard 1080p Desktop at 100% scaling
+    return 1.0;
+  };
+
+  const [displayScale, setDisplayScaleState] = useState(() => {
+    try {
+      return localStorage.getItem('century_display_scale_v2') || 'auto';
+    } catch (e) {
+      return 'auto';
+    }
+  });
+
+  const [effectiveZoom, setEffectiveZoom] = useState(() => {
+    try {
+      const saved = localStorage.getItem('century_display_scale_v2') || 'auto';
+      if (saved === 'auto') return computeAutoZoom();
+      return parseFloat(saved) / 100 || 1.0;
+    } catch (e) {
+      return 1.0;
+    }
+  });
+
+  useEffect(() => {
+    if (displayScale !== 'auto') {
+      const targetZoom = parseFloat(displayScale) / 100 || 1.0;
+      setEffectiveZoom(targetZoom);
+      return;
+    }
+
+    const handleResize = () => {
+      const autoZoom = computeAutoZoom();
+      setEffectiveZoom(autoZoom);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [displayScale]);
+
+  const updateDisplayScale = (newScale) => {
+    setDisplayScaleState(newScale);
+    try {
+      localStorage.setItem('century_display_scale_v2', newScale);
+    } catch (e) {}
+    if (newScale !== 'auto') {
+      setEffectiveZoom(parseFloat(newScale) / 100 || 1.0);
+    } else {
+      setEffectiveZoom(computeAutoZoom());
+    }
+  };
+
   // 4b. Real-time User Registry Event Synchronization
   useEffect(() => {
     const handleUsersUpdated = () => {
@@ -1896,6 +1958,9 @@ export function DataProvider({ children }) {
     logFatalEmail,
     coachingLogs,
     logCoachingAction,
+    displayScale,
+    setDisplayScale: updateDisplayScale,
+    effectiveZoom,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

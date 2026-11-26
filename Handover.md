@@ -490,6 +490,44 @@ The application will automatically detect Vite and the serverless functions unde
      - Production Vite build passed in 33.59s with code 0.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
+---
+
+## 37. Dynamic Resolution Auto-Fit Scaling & Screen Adaptation Engine (Nov 26, 2026)
+- **Problem & Root Cause Analysis:**
+  - On standard 1080p laptop displays ($1920 \times 1080$ at 125% Windows scaling, CSS viewport $\approx 1536 \times 720\text{--}864\text{px}$), the user had to manually set browser zoom to 90% (as shown in user attachment `media_1795689004214_f7034c09.jpg`) to see the complete dashboard (Navbar + Sub-bar + Pod/Division Banner + 3 Tri-Factor KPI Cards + Relationship Managers Leaderboard table) without vertical scrolling.
+  - The user requested an automated mechanism where the app automatically adapts its scale according to screen resolution, while also offering direct user control via a Navbar dropdown and preserving 100% scale for printouts.
+- **Architectural Implementation:**
+  1. *Dynamic Resolution Scaling & Auto-Fit Engine (`DataContext.jsx`):*
+     - Built `computeAutoZoom()`: detects `window.innerHeight` and `window.innerWidth`:
+       - $< 720\text{px}$ height or $< 1280\text{px}$ width: scales to `0.85` (85% Compact).
+       - $< 920\text{px}$ height or $< 1680\text{px}$ width: scales to `0.90` (90% Laptop View - matches 1080p 125% displays).
+       - $\ge 1200\text{px}$ height and $\ge 2200\text{px}$ width: scales to `1.05` (105% Large).
+       - Otherwise: scales to `1.0` (100% Standard).
+     - State `displayScale` (`'auto'`, `'85'`, `'90'`, `'100'`, `'110'`) persisted in `localStorage` (`century_display_scale_v2`).
+     - Added debounced resize listener on `window` in `'auto'` mode to automatically update `effectiveZoom` when the window is resized or docked.
+     - Exported `displayScale`, `setDisplayScale`, and `effectiveZoom` in context.
+  2. *Root Scale Wrapper & Max Width (`App.jsx`):*
+     - Wrapped the entire content container inside `<div id="app-scale-root" style={{ zoom: effectiveZoom }}>`.
+     - Broadened `<main>` max-width container from `max-w-7xl` (1280px) to `max-w-[1600px]`, matching `Navbar.jsx` for optimal horizontal layout utilization.
+  3. *Print Viewport Safety Override (`App.jsx`, `index.css`):*
+     - Enforced `@media print { #app-scale-root, body, html { zoom: 1 !important; } }`.
+     - Guarantees printable scorecards and PDF exports are rendered at 1:1 unscaled proportions regardless of screen scaling.
+  4. *Navbar Resolution Controller Dropdown (`Navbar.jsx`):*
+     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (90%)` / `90%`) next to the Theme Toggle button.
+     - 5 interactive presets:
+       - `⚡ Auto-Fit (90%)` (Recommended, dynamically auto-detected)
+       - `📱 Compact (85%)` (Small laptops & 720p displays)
+       - `💻 Laptop View (90%)` (1080p 125% scaling)
+       - `🖥️ Standard (100%)` (Default 1:1 pixel rendering)
+       - `🔍 Large (110%)` (Enlarged text for 4K / QHD monitors)
+  5. *Compact Vertical Padding & Card Geometry (`ManagerHub.jsx`):*
+     - Reduced division and pod banner padding from `p-6 sm:p-8` to `p-5 sm:p-6 lg:p-7`.
+     - Reduced Tri-Factor KPI Pillar card padding from `p-6` to `p-5` with `gap-5` (down from `gap-6`).
+  6. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across source files.
+     - Production Vite build compiled in 51.17s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
 
 
 

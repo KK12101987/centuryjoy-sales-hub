@@ -34,3 +34,10 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Print Viewport Safety Override */
+@media print {
+  #app-scale-root, body, html {
+    zoom: 1 !important;
+  }
+}
