@@ -1466,15 +1466,15 @@ export default function QaDashboard() {
 
           <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+              <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">
                 <tr>
-                  <th className="py-3 px-4">Date &amp; ID</th>
+                  <th className="py-3 px-4 w-28">Date &amp; ID</th>
                   <th className="py-3 px-4">Agent Name</th>
                   <th className="py-3 px-4">Hierarchy</th>
-                  <th className="py-3 px-4">Score %</th>
-                  <th className="py-3 px-4">Auditor</th>
+                  <th className="py-3 px-4 w-24">Score %</th>
+                  <th className="py-3 px-4 w-36">Auditor</th>
                   <th className="py-3 px-4">Missed Pointers / Feedback</th>
-                  <th className="py-3 px-4 text-right">Scorecard</th>
+                  <th className="py-3 px-4 text-right w-28">Scorecard</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1485,21 +1485,21 @@ export default function QaDashboard() {
                     className="hover:bg-amber-500/5 dark:hover:bg-amber-500/10 cursor-pointer transition-colors group"
                     title="Click to open full audit scorecard"
                   >
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
                       <div>{audit.audit_date}</div>
                       <div className="text-[10px] text-slate-400 group-hover:text-amber-400 flex items-center gap-1 transition-colors">
                         <span>#{audit.id}</span>
                         <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors">
+                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors whitespace-nowrap">
                       {audit.rm_name}
                     </td>
-                    <td className="py-3 px-4 text-slate-500">
+                    <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
                       <div>{audit.captain_name}</div>
                       <div className="text-[10px] text-slate-400">{audit.manager_name}</div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span className={`px-2.5 py-1 rounded-full font-bold text-xs ${
                         audit.is_fatal 
                           ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' 
@@ -1510,13 +1510,13 @@ export default function QaDashboard() {
                         {audit.is_fatal ? 'FATAL (0%)' : `${audit.overall_score}%`}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">
+                    <td className="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">
                       {audit.auditor_name}
                     </td>
-                    <td className="py-3 px-4 text-slate-500 max-w-xs truncate" title={audit.pointer_missed || audit.feedback}>
+                    <td className="py-3 px-4 text-slate-500 max-w-[280px] truncate" title={audit.pointer_missed || audit.feedback}>
                       {audit.pointer_missed || audit.feedback}
                     </td>
-                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => handleViewAudit(audit)}
