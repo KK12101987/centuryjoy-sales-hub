@@ -629,12 +629,14 @@ eplace mode preserving tickets from other months.
   - User requested an automated mechanism where the application dynamically detects screen resolution and automatically scales its layout to fit the screen seamlessly, while also providing manual user control and preserving standard 100% scaling during printing.
 * **Actions Taken:**
   1. *Dynamic Display Resolution Scaling & Auto-Fit Engine (`DataContext.jsx`):*
-     - Implemented `computeAutoZoom()` calculating ideal zoom factor from `window.innerHeight` and `window.innerWidth`:
-       - $< 720\text{px}$ height or $< 1280\text{px}$ width: scales to `0.85` (85% Compact).
-       - $< 920\text{px}$ height or $< 1680\text{px}$ width (e.g. 1080p 125% Windows scaling): scales to `0.90` (90% Laptop View).
-       - $\ge 1200\text{px}$ height and $\ge 2200\text{px}$ width (4K / ultra-wide): scales to `1.05` (105% Large).
-       - Default desktop: scales to `1.0` (100% Standard).
-     - Added `displayScale` state (`'auto'`, `'85'`, `'90'`, `'100'`, `'110'`) persisted in `localStorage` under `century_display_scale_v2`.
+     - Built `computeAutoZoom()` calculating optimal zoom based on real viewport height and browser zoom compensation:
+       - Detects if browser zoom itself is already zoomed ($\le 82\%$, e.g. Chrome at 75%) and prevents double-shrinking.
+       - $\le 740\text{px}$ height (720p / 768p displays or 125% laptop): scales to `0.70` (70%).
+       - $\le 1020\text{px}$ height (standard 1080p desktop with Chrome UI where height is ~900-980px): scales automatically to **`0.75` (75% Fit to Screen)**, fitting the complete dashboard on screen with zero manual browser zooming.
+       - $\le 1180\text{px}$ height: scales to `0.80` (80% Compact).
+       - $\le 1350\text{px}$ height: scales to `0.90` (90% Roomy).
+       - $> 1350\text{px}$ height (1440p / 4K monitors): scales to `1.0` (100% Standard).
+     - State `displayScale` persisted in `localStorage` under `century_display_scale_v2`.
      - Attached throttled `window.addEventListener('resize', ...)` listener in `'auto'` mode to automatically recompute zoom on screen resize or window docking.
      - Exported `displayScale`, `setDisplayScale`, and `effectiveZoom` in `DataContext`.
   2. *Root Scale Wrapper & Viewport Container (`App.jsx`):*
@@ -644,16 +646,18 @@ eplace mode preserving tickets from other months.
      - Added `@media print { #app-scale-root, body, html { zoom: 1 !important; } }` across global stylesheets.
      - Guarantees printable scorecards, audit certificates, and PDF exports are rendered at 1:1 unscaled proportions regardless of screen scaling.
   4. *Navbar Resolution Controller Dropdown (`Navbar.jsx`):*
-     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (90%)` / `90%`) next to the Theme Toggle button.
-     - Provides a 5-option interactive dropdown:
-       - `⚡ Auto-Fit (90%)` (Recommended, auto-detects viewport)
-       - `📱 Compact (85%)` (Small laptops & 720p displays)
-       - `💻 Laptop View (90%)` (1080p 125% scaling)
-       - `🖥️ Standard (100%)` (Default 1:1 pixel rendering)
-       - `🔍 Large (110%)` (Enlarged text for 4K / QHD monitors)
+     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (75%)` / `75%`) next to the Theme Toggle button.
+     - Provides a 6-option interactive dropdown:
+       - `⚡ Auto-Fit (75%)` (Recommended, auto-detects viewport)
+       - `🖥️ Fit to Screen (75%)` (Full view for 1080p displays)
+       - `📱 Compact (80%)` (Balanced overview for laptops)
+       - `💻 Laptop View (85%)` (Optimized readability for laptops)
+       - `📖 Roomy (90%)` (Slight scale compression)
+       - `🔍 Standard (100%)` (Default 1:1 pixel rendering)
   5. *Compact Vertical Padding & Card Geometry (`ManagerHub.jsx`):*
-     - Reduced division and pod banner padding from `p-6 sm:p-8` to `p-5 sm:p-6 lg:p-7`.
-     - Reduced Tri-Factor KPI Pillar card padding from `p-6` to `p-5` with `gap-5` (down from `gap-6`).
+     - Reduced division and pod banner padding to `p-4 sm:p-5 lg:p-6`.
+     - Reduced Tri-Factor KPI Pillar card padding to `p-4` with `gap-4`.
+     - Tightened subordinate pod card spacing and capped table containers at `max-h-[440px]`.
   6. *Rule 21b Anti-Slop Audit Cycle:*
      - 0 unused imports, 0 console.log statements across source files.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.

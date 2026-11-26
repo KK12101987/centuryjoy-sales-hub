@@ -101,16 +101,30 @@ export function DataProvider({ children }) {
   // 4b. Dynamic Display Resolution Scaling & Auto-Fit Engine
   const computeAutoZoom = () => {
     if (typeof window === 'undefined') return 1.0;
+
+    // Detect browser zoom factor (e.g. Chrome zoom set to 75% or 80%)
+    let browserZoom = 1.0;
+    try {
+      if (window.outerWidth && window.innerWidth) {
+        browserZoom = window.outerWidth / window.innerWidth;
+      }
+    } catch (e) {}
+
+    // If the browser itself is already zoomed out to <= 82% (like Chrome at 75%), do not double-scale
+    if (browserZoom <= 0.82) {
+      return 1.0;
+    }
+
+    // Evaluate viewport height in CSS pixels (at 100% browser zoom)
     const h = window.innerHeight;
-    const w = window.innerWidth;
-    // Compact Viewport (small laptops, 720p screens)
-    if (h < 720 || w < 1280) return 0.85;
-    // Standard 1080p Laptops with 125% Windows scaling (CSS viewport ~1536x720-864)
-    if (h < 920 || w < 1680) return 0.90;
-    // Ultra-wide or 4K Monitors
-    if (h >= 1200 && w >= 2200) return 1.05;
-    // Standard 1080p Desktop at 100% scaling
-    return 1.0;
+
+    // Standard 1080p desktop (1920x1080) with browser chrome typically has innerHeight ~900-960px.
+    // To fit the complete dashboard (banner + 3 KPI cards + subordinate pods + table), 75% scale is optimal.
+    if (h <= 740) return 0.70;       // Small 720p / 768p displays or 125% laptop
+    if (h <= 1020) return 0.75;      // Standard 1080p desktop / laptop (h ~900-980) -> 75% Auto-Fit!
+    if (h <= 1180) return 0.80;      // Mid-height displays
+    if (h <= 1350) return 0.90;      // 1200p / 1440p displays
+    return 1.0;                      // 1440p / 4K monitors
   };
 
   const [displayScale, setDisplayScaleState] = useState(() => {

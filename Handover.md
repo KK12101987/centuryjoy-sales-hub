@@ -498,12 +498,14 @@ The application will automatically detect Vite and the serverless functions unde
   - The user requested an automated mechanism where the app automatically adapts its scale according to screen resolution, while also offering direct user control via a Navbar dropdown and preserving 100% scale for printouts.
 - **Architectural Implementation:**
   1. *Dynamic Resolution Scaling & Auto-Fit Engine (`DataContext.jsx`):*
-     - Built `computeAutoZoom()`: detects `window.innerHeight` and `window.innerWidth`:
-       - $< 720\text{px}$ height or $< 1280\text{px}$ width: scales to `0.85` (85% Compact).
-       - $< 920\text{px}$ height or $< 1680\text{px}$ width: scales to `0.90` (90% Laptop View - matches 1080p 125% displays).
-       - $\ge 1200\text{px}$ height and $\ge 2200\text{px}$ width: scales to `1.05` (105% Large).
-       - Otherwise: scales to `1.0` (100% Standard).
-     - State `displayScale` (`'auto'`, `'85'`, `'90'`, `'100'`, `'110'`) persisted in `localStorage` (`century_display_scale_v2`).
+     - Built `computeAutoZoom()`: detects `window.innerHeight` and detects browser zoom compensation:
+       - Detects if browser zoom itself is already zoomed ($\le 82\%$, e.g. Chrome at 75%) and avoids double-scaling.
+       - $\le 740\text{px}$ height (720p / 768p displays or 125% laptop): scales to `0.70` (70%).
+       - $\le 1020\text{px}$ height (standard 1080p desktop with Chrome UI where height is ~900-980px): scales automatically to **`0.75` (75% Fit to Screen)**, fitting the complete dashboard on screen with zero manual browser zooming.
+       - $\le 1180\text{px}$ height: scales to `0.80` (80% Compact).
+       - $\le 1350\text{px}$ height: scales to `0.90` (90% Roomy).
+       - $> 1350\text{px}$ height (1440p / 4K monitors): scales to `1.0` (100% Standard).
+     - State `displayScale` (`'auto'`, `'75'`, `'80'`, `'85'`, `'90'`, `'100'`) persisted in `localStorage` (`century_display_scale_v2`).
      - Added debounced resize listener on `window` in `'auto'` mode to automatically update `effectiveZoom` when the window is resized or docked.
      - Exported `displayScale`, `setDisplayScale`, and `effectiveZoom` in context.
   2. *Root Scale Wrapper & Max Width (`App.jsx`):*
@@ -513,19 +515,21 @@ The application will automatically detect Vite and the serverless functions unde
      - Enforced `@media print { #app-scale-root, body, html { zoom: 1 !important; } }`.
      - Guarantees printable scorecards and PDF exports are rendered at 1:1 unscaled proportions regardless of screen scaling.
   4. *Navbar Resolution Controller Dropdown (`Navbar.jsx`):*
-     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (90%)` / `90%`) next to the Theme Toggle button.
-     - 5 interactive presets:
-       - `⚡ Auto-Fit (90%)` (Recommended, dynamically auto-detected)
-       - `📱 Compact (85%)` (Small laptops & 720p displays)
-       - `💻 Laptop View (90%)` (1080p 125% scaling)
-       - `🖥️ Standard (100%)` (Default 1:1 pixel rendering)
-       - `🔍 Large (110%)` (Enlarged text for 4K / QHD monitors)
+     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (75%)` / `75%`) next to the Theme Toggle button.
+     - 6 interactive presets:
+       - `⚡ Auto-Fit (75%)` (Recommended, dynamically auto-detected)
+       - `🖥️ Fit to Screen (75%)` (Full view for 1080p displays)
+       - `📱 Compact (80%)` (Balanced overview for laptops)
+       - `💻 Laptop View (85%)` (Optimized readability for laptops)
+       - `📖 Roomy (90%)` (Slight scale compression)
+       - `🔍 Standard (100%)` (Default 1:1 pixel rendering)
   5. *Compact Vertical Padding & Card Geometry (`ManagerHub.jsx`):*
-     - Reduced division and pod banner padding from `p-6 sm:p-8` to `p-5 sm:p-6 lg:p-7`.
-     - Reduced Tri-Factor KPI Pillar card padding from `p-6` to `p-5` with `gap-5` (down from `gap-6`).
+     - Reduced division and pod banner padding to `p-4 sm:p-5 lg:p-6`.
+     - Reduced Tri-Factor KPI Pillar card padding to `p-4` with `gap-4`.
+     - Tightened subordinate pod card spacing and capped table containers at `max-h-[440px]`.
   6. *Rule 21b Anti-Slop Audit Cycle:*
      - 0 unused imports, 0 console.log statements across source files.
-     - Production Vite build compiled in 51.17s with 0 errors.
+     - Production Vite build compiled in 22.26s with 0 errors.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
 
