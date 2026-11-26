@@ -49,7 +49,7 @@ export default function Navbar() {
     effectiveZoom,
   } = useData();
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
     function handleClickOutside(event) {
       if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
@@ -59,8 +59,18 @@ export default function Navbar() {
         setIsScaleDropdownOpen(false);
       }
     }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsMonthDropdownOpen(false);
+        setIsScaleDropdownOpen(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   if (!currentUser) return null;
@@ -182,7 +192,7 @@ export default function Navbar() {
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden xl:block whitespace-nowrap">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden 2xl:block whitespace-nowrap">
                 Unified L2 Financials • RM Productivity • Quality Assurance
               </p>
             </div>
@@ -448,7 +458,7 @@ export default function Navbar() {
 
             {/* User Profile & Scope Pill */}
             <div className="flex items-center space-x-2.5 pl-2 border-l border-slate-200 dark:border-slate-800 shrink-0">
-              <div className="text-right hidden sm:block shrink-0">
+              <div className="text-right hidden xl:block shrink-0">
                 <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-end space-x-1 whitespace-nowrap">
                   <span>{currentUser.name}</span>
                   {isDeveloperOrAdmin && <ShieldCheck className="w-3.5 h-3.5 text-purple-500 shrink-0" />}

@@ -1032,8 +1032,8 @@ export default function ManagerHub() {
                           </td>
                           <td className="py-3 px-4 text-slate-300">{rm.captain_name}</td>
                           <td className="py-3 px-4 text-indigo-400">{rm.team_name}</td>
-                          <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
-                          <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
+                          <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.dials)}</td>
+                          <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.connected)}</td>
                           <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
                           <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
                           <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
@@ -1291,8 +1291,8 @@ export default function ManagerHub() {
                             <span className="text-[10px] text-emerald-400" title="Coaching conducted">🎓</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 font-mono">{nf.format(rm.dials)}</td>
-                        <td className="py-3 px-4 font-mono">{nf.format(rm.connected)}</td>
+                        <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.dials)}</td>
+                        <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.connected)}</td>
                         <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
                         <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
                         <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
