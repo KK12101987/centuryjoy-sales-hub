@@ -690,8 +690,13 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
   return (
     <div className="space-y-6">
       
-      {/* Active Call / Historical Audit Banner */}
-      {auditTarget && (
+      {/* ============================================================= */}
+      {/* INTERACTIVE SCORECARD FORM (COMPLETELY SUPPRESSED IN PRINT)  */}
+      {/* ============================================================= */}
+      <div className="space-y-6 print:hidden">
+
+        {/* Active Call / Historical Audit Banner */}
+        {auditTarget && (
         <div className={`border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
           auditTarget.isHistorical 
             ? 'bg-amber-500/10 border-amber-500/30' 
@@ -1424,11 +1429,13 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         </div>
       </div>
 
+      </div> {/* END OF INTERACTIVE SCORECARD (print:hidden) */}
+
       {/* ============================================================= */}
       {/* 1. FATAL PARAMETER ALERT - PRE-DISPATCH CONFIRMATION MODAL    */}
       {/* ============================================================= */}
       {isFatalModalOpen && pendingPayload && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150 print:hidden">
           <div className="bg-[#0e1320] border border-rose-800/80 rounded-3xl max-w-2xl w-full p-6 text-white shadow-2xl space-y-5 my-8">
             
             {/* Modal Header */}
@@ -1631,16 +1638,19 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
       {/* ============================================================= */}
       <style>{`
         @media print {
-          /* Hide non-print application Chrome */
-          nav, header, footer, .no-print, #antigravity-watermark-kushalkar {
-            display: none !important;
-          }
-          body {
+          html, body {
             background: white !important;
             color: black !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             margin: 0 !important;
             padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          .printable-scorecard-root, .printable-scorecard-root * {
+            visibility: visible !important;
           }
           .printable-scorecard-root {
             display: block !important;
@@ -1648,30 +1658,44 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
-            padding: 28px !important;
+            margin: 0 !important;
+            padding: 8px 14px !important;
             background: white !important;
             color: black !important;
+            box-sizing: border-box !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+          }
+          nav, header, footer, .no-print, .print\\:hidden, #antigravity-watermark-kushalkar {
+            display: none !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 5mm 6mm 5mm 6mm;
+          }
+          tr, .break-inside-avoid {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
           }
         }
       `}</style>
 
       <div className="hidden print:block printable-scorecard-root">
         {/* Printable Header */}
-        <div className="border-b-2 border-slate-900 pb-4 mb-6">
+        <div className="border-b-2 border-slate-900 pb-2 mb-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
+              <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">
                 CENTURY PLYBOARDS (INDIA) LIMITED
               </h1>
-              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mt-0.5">
+              <p className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                 Century Joy Executive Operations Suite • Official QA Call Evaluation Scorecard
               </p>
             </div>
             <div className="text-right">
-              <div className="text-xs font-mono font-bold text-slate-900">
+              <div className="text-[11px] font-mono font-bold text-slate-900">
                 Audit #{auditTarget?.id || 'NEW'}
               </div>
-              <div className="text-[10px] text-slate-600">
+              <div className="text-[9px] text-slate-600">
                 Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
               </div>
             </div>
@@ -1679,14 +1703,14 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         </div>
 
         {/* Call & Evaluation Details Grid */}
-        <div className="grid grid-cols-2 gap-4 border border-slate-300 rounded-xl p-4 mb-6 text-xs">
-          <div className="space-y-1.5">
-            <div><span className="font-semibold text-slate-600">Relationship Manager:</span> <strong className="text-slate-900 text-sm">{rmName || "—"}</strong></div>
+        <div className="grid grid-cols-2 gap-2 border border-slate-300 rounded-lg p-2.5 mb-2.5 text-[10px]">
+          <div className="space-y-1">
+            <div><span className="font-semibold text-slate-600">Relationship Manager:</span> <strong className="text-slate-900 font-bold">{rmName || "—"}</strong></div>
             <div><span className="font-semibold text-slate-600">Franchise / Pod Team:</span> <strong className="text-slate-900">{franchise || selectedRmObj?.team_name || "—"}</strong></div>
             <div><span className="font-semibold text-slate-600">Assigned Pod Captain:</span> <strong className="text-slate-900">{activeCaptain || "—"}</strong></div>
             <div><span className="font-semibold text-slate-600">Senior Manager:</span> <strong className="text-slate-900">{currentManager || "—"}</strong></div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <div><span className="font-semibold text-slate-600">Customer Mobile No:</span> <strong className="text-slate-900 font-mono">{mobileNumber || "—"}</strong></div>
             <div><span className="font-semibold text-slate-600">Call Duration:</span> <strong className="text-slate-900 font-mono">{callDuration || "—"}</strong></div>
             <div><span className="font-semibold text-slate-600">Call Date:</span> <strong className="text-slate-900">{callDate || "—"}</strong> • <span className="font-semibold text-slate-600">Audit Date:</span> <strong className="text-slate-900">{auditDate || "—"}</strong></div>
@@ -1695,18 +1719,18 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         </div>
 
         {/* Result Capsule */}
-        <div className="flex items-center justify-between border-2 border-slate-900 rounded-xl p-4 mb-6 bg-slate-50">
+        <div className="flex items-center justify-between border-2 border-slate-900 rounded-lg p-2.5 mb-2.5 bg-slate-50">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Overall Quality Score</div>
-            <div className="text-3xl font-black text-slate-900 font-mono">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-600">Overall Quality Score</div>
+            <div className="text-2xl font-black text-slate-900 font-mono leading-tight">
               {percentage}%
             </div>
-            <div className="text-xs text-slate-700 mt-0.5">
+            <div className="text-[10px] text-slate-700 mt-0.5">
               Awarded: <strong className="font-mono">{totalScore}</strong> of {totalPossible || (100 - naPoints)} Points • ({scoredApplicableCount} of {applicableParamsCount} parameters evaluated)
             </div>
           </div>
           <div className="text-right">
-            <span className={`inline-block px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border-2 ${
+            <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border-2 ${
               hasFatalError 
                 ? 'bg-red-100 border-red-600 text-red-900' 
                 : pctNum >= 85 
@@ -1721,17 +1745,17 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         </div>
 
         {/* 11 Parameters Breakdown Table */}
-        <div className="mb-6">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">Detailed Parameter Evaluation</h3>
-          <table className="w-full text-left border-collapse text-xs border border-slate-300">
+        <div className="mb-2.5">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 mb-1">Detailed Parameter Evaluation</h3>
+          <table className="w-full text-left border-collapse text-[10px] border border-slate-300">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold uppercase">
-                <th className="py-2 px-3 border-r border-slate-300 w-10">#</th>
-                <th className="py-2 px-3 border-r border-slate-300">Evaluation Parameter</th>
-                <th className="py-2 px-3 border-r border-slate-300 w-24">Category</th>
-                <th className="py-2 px-3 border-r border-slate-300 w-16 text-center">Max</th>
-                <th className="py-2 px-3 border-r border-slate-300 w-20 text-center">Awarded</th>
-                <th className="py-2 px-3">Remarks / Feedback</th>
+                <th className="py-1 px-2 border-r border-slate-300 w-8 text-center">#</th>
+                <th className="py-1 px-2 border-r border-slate-300">Evaluation Parameter</th>
+                <th className="py-1 px-2 border-r border-slate-300 w-24">Category</th>
+                <th className="py-1 px-2 border-r border-slate-300 w-12 text-center">Max</th>
+                <th className="py-1 px-2 border-r border-slate-300 w-14 text-center">Awarded</th>
+                <th className="py-1 px-2">Remarks / Feedback</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-300">
@@ -1740,19 +1764,19 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
                 const isFatalZero = p.fatal && s === 0;
                 return (
                   <tr key={p.id} className={isFatalZero ? "bg-red-50" : ""}>
-                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono">{idx + 1}</td>
-                    <td className="py-2 px-3 border-r border-slate-300 font-semibold">
+                    <td className="py-1 px-2 border-r border-slate-300 text-center font-mono">{idx + 1}</td>
+                    <td className="py-1 px-2 border-r border-slate-300 font-semibold">
                       {p.label}
-                      {p.fatal && <span className="ml-1 text-[10px] font-bold text-red-700">(Fatal)</span>}
+                      {p.fatal && <span className="ml-1 text-[9px] font-bold text-red-700">(Fatal)</span>}
                     </td>
-                    <td className="py-2 px-3 border-r border-slate-300 text-slate-600">
+                    <td className="py-1 px-2 border-r border-slate-300 text-slate-600 text-[9px]">
                       {p.fatal ? 'Fatal Compliance' : 'Core Parameter'}
                     </td>
-                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono font-bold">{p.max}</td>
-                    <td className="py-2 px-3 border-r border-slate-300 text-center font-mono font-bold">
+                    <td className="py-1 px-2 border-r border-slate-300 text-center font-mono font-bold">{p.max}</td>
+                    <td className="py-1 px-2 border-r border-slate-300 text-center font-mono font-bold">
                       {s === "NA" ? "N/A" : s !== undefined ? s : "—"}
                     </td>
-                    <td className="py-2 px-3 text-slate-700 text-[11px]">
+                    <td className="py-1 px-2 text-slate-700 text-[9px]">
                       {paramFeedback[p.id] || (isFatalZero ? "🚨 Breached Fatal Compliance" : "—")}
                     </td>
                   </tr>
@@ -1763,32 +1787,32 @@ export default function QaScorecard({ auditTarget = null, onClearTarget = null, 
         </div>
 
         {/* Missed Checkpoints & Summary Observations */}
-        <div className="space-y-3 mb-8 text-xs border border-slate-300 rounded-xl p-4">
+        <div className="space-y-1.5 mb-2.5 text-[10px] border border-slate-300 rounded-lg p-2.5">
           <div>
             <strong className="text-slate-900 block font-bold mb-0.5">Missed Checklist Pointers:</strong>
-            <p className="text-slate-700 font-mono text-[11px] leading-relaxed">
+            <p className="text-slate-700 font-mono text-[9px] leading-relaxed">
               {pointerMissed || "None recorded • All applicable checkpoints fulfilled."}
             </p>
           </div>
-          <div className="pt-2 border-t border-slate-200">
+          <div className="pt-1.5 border-t border-slate-200">
             <strong className="text-slate-900 block font-bold mb-0.5">Auditor General Remarks & Coaching Directives:</strong>
-            <p className="text-slate-700 leading-relaxed">
+            <p className="text-slate-700 text-[10px] leading-relaxed">
               {observation || "Call meets standard quality guidelines."}
             </p>
           </div>
         </div>
 
         {/* Sign-Off Block */}
-        <div className="grid grid-cols-2 gap-8 pt-8 border-t-2 border-slate-900 text-xs mt-12">
+        <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-slate-900 text-[10px] mt-2 break-inside-avoid">
           <div>
-            <div className="border-b border-slate-400 pb-12"></div>
-            <div className="mt-2 font-bold text-slate-900">Evaluated By: {auditorName || "Designated QA Auditor"}</div>
-            <div className="text-[11px] text-slate-600">Quality Assurance Department • Signature & Date</div>
+            <div className="border-b border-slate-400 pb-8"></div>
+            <div className="mt-1 font-bold text-slate-900">Evaluated By: {auditorName || "Designated QA Auditor"}</div>
+            <div className="text-[9px] text-slate-600">Quality Assurance Department • Signature & Date</div>
           </div>
           <div>
-            <div className="border-b border-slate-400 pb-12"></div>
-            <div className="mt-2 font-bold text-slate-900">Acknowledged By: {activeCaptain || currentManager || "Supervisory Authority"}</div>
-            <div className="text-[11px] text-slate-600">Pod Captain / Senior Management • Signature & Date</div>
+            <div className="border-b border-slate-400 pb-8"></div>
+            <div className="mt-1 font-bold text-slate-900">Acknowledged By: {activeCaptain || currentManager || "Supervisory Authority"}</div>
+            <div className="text-[9px] text-slate-600">Pod Captain / Senior Management • Signature & Date</div>
           </div>
         </div>
 

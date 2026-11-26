@@ -431,7 +431,7 @@ export default function QaDashboard() {
     <div className="space-y-6">
       
       {/* Header & Tabs */}
-      <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 print:hidden">
         <div className="min-w-0 shrink">
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2 truncate">
             <CheckCircle2 className="w-5 h-5 text-amber-500 shrink-0" />

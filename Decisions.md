@@ -580,6 +580,47 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Executive operations portal now supports complete offline/paper auditing via printable scorecards, closed-loop coaching workflows from fatal defect to coaching session, automatic team recipient memory, and instant CSV exportability.
 
+## Decision 049: Scorecard PDF Print Isolation, Fatal-Aware Coaching Auto-Selection, Action Button State Transition (`[✓ Coaching Done]`), Multi-Tier Delegation Dispatch Routing, and String Prefix Collision Resolution
+* **Date:** November 26, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - Inspection of the user's uploaded `scorecard.pdf` confirmed that the evaluation report leaked interactive web elements (all 11 checklists, textareas, and floating frosted capsule ribbon) across 5 messy pages.
+  - In `ManagerHub.jsx`, the "Log Coaching Session" modal required auto-selecting the "Coaching Focus Area" matching the agent's breached fatal parameter.
+  - In both the Manager Roster and Captain Leaderboard tables, the Action column button needed to change from `[Coach]` to `[✓ Coaching Done]` once coaching was logged.
+  - Coaching delegation routing required sending the coaching request to the specific QA auditor who gave the fatal, with requests sent by the **Senior Manager** when the RM gets $\ge 3$ fatals and by the **Pod Captain** when $< 3$ fatals.
+  - Subordinate pod cards previously suffered from string prefix collision where `SoarZone-II` and `Unity-II` were matched by `.includes('SoarZone-I')` and `.includes('Unity-I')`.
+* **Actions Taken:**
+  1. *Scorecard PDF Print Isolation (`QaScorecard.jsx`, `Navbar.jsx`, `App.jsx`, `QaDashboard.jsx`):*
+     - Wrapped all interactive web UI elements in `QaScorecard.jsx` (form cards, inputs, textareas, buttons, and floating frosted capsule ribbon) inside `<div className="space-y-6 print:hidden">`.
+     - Added `print:hidden` to the fatal parameter confirmation modal (`isFatalModalOpen`), Navbar `<header>`, QA Dashboard tabs bar, and App `<footer>`.
+     - In `@media print`, enforced `body * { visibility: hidden !important; }` and `.printable-scorecard-root, .printable-scorecard-root * { visibility: visible !important; }`, preventing any non-print elements from leaking into the print buffer.
+     - Formatted `.printable-scorecard-root` for a compact, single-page A4 layout: 10px typography, compact table row padding (`py-1 px-2`), avoidance of page breaks (`break-inside: avoid`), and a clean dual sign-off block.
+  2. *Fatal-Aware "Coaching Focus Area" Auto-Selection (`ManagerHub.jsx`):*
+     - In `handleOpenCoachingModal(rm)`, dynamically queries the RM's latest fatal audit from `baseQa` / `qaAudits`.
+     - Maps the fatal breach to the matching coaching focus area:
+       - `redemption === 0` / keywords -> "Redemption & Gratitude Points Process (Fatal)"
+       - `gtm_adherence === 0` / keywords ("misinformation", "rude", "pricing") -> "GTM Adherence & Product Guidelines (Fatal)"
+       - `crm_update === 0` / keywords ("crm", "meeting") -> "CRM Meeting Notes & Documentation (Fatal)"
+  3. *Action Column Button State Transformation (`ManagerHub.jsx`):*
+     - In both Senior Manager Division Roster and Pod Captain Leaderboard tables, evaluated `rm.isCoached` via `coachingLogs.some(c => c.rmName === rm.rm_name && c.status === 'Completed')`.
+     - Added `coachingLogs` to dependency arrays to trigger immediate re-rendering upon saving a coaching action.
+     - Rendered `[✓ Coaching Done]` (styled as an emerald badge: `bg-emerald-950/70 border-emerald-800 text-emerald-300`) instead of `[Coach]` once coaching is completed.
+     - Clicking `[✓ Coaching Done]` reopens the modal pre-filled with the existing coaching notes for quick review or updates.
+  4. *Multi-Tier Delegation Dispatch Routing ($\ge 3$ vs $< 3$ Fatals):*
+     - Automatically identified the specific Quality Auditor who audited the fatal call (`latestFatal?.auditor_name || "Nabonita Roy"`).
+     - $\ge 3$ Fatals: Dispatched by **Senior Manager** to the designated QA Auditor (marked as `🏢 Senior Manager Escalation`).
+     - $< 3$ Fatals: Dispatched by **Pod Captain** to the designated QA Auditor (marked as `⚡ Pod Captain Action`).
+     - Modal displays the Multi-Tier Delegation Dispatch Banner with sender role, sender name, and target QA auditor.
+     - Persisted `senderRole`, `senderName`, `targetAuditor`, `delegationLevel` in `logCoachingAction`.
+  5. *String Prefix Collision Resolution across Pods (`ManagerHub.jsx`):*
+     - Replaced loose `.includes()` string matching on pod teams (which caused `SoarZone-II` to match `SoarZone-I`, and `Unity-II` to match `Unity-I`) with exact equality (`===`), guaranteeing completely independent, non-overlapping metrics for every digital pod.
+  6. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across all 27 source files.
+     - Production Vite build passed in 33.59s with code 0.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+* **Consequences:**
+  - Official QA scorecards now print on a crisp, elegant single A4 sheet with 0 leaking form chrome; coaching sessions automatically configure focus areas and supervisory routing based on defect severity; and the action column clearly distinguishes coached agents.
+
 
 
 

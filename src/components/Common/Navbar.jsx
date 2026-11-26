@@ -71,7 +71,7 @@ export default function Navbar() {
   }, [permittedModules, activeModule, switchModule]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm print:hidden">
       <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6">
         <div className="flex items-center justify-between h-16 gap-2">
           

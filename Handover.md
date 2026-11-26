@@ -454,6 +454,42 @@ The application will automatically detect Vite and the serverless functions unde
   - Production Vite build compiled in 24.05s with 0 errors.
   - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
+---
+
+## 36. Scorecard PDF Print Isolation, Fatal-Aware Coaching Auto-Selection & QA Delegation Routing (Nov 26, 2026)
+- **Problem & Root Cause Analysis:**
+  1. *PDF Print Bleed:* In `scorecard.pdf`, the interactive web form (11 checklist cards, buttons, textareas, and the floating frosted capsule ribbon) printed across 5 messy pages alongside the printable report because non-print chrome was not suppressed in `@media print`.
+  2. *Coaching Focus Area Manual Selection:* The coaching modal defaulted statically to "GTM Adherence" instead of auto-selecting the specific fatal parameter breached by the RM in their audited call.
+  3. *Action Column Button State Stagnation:* After logging a coaching session for an RM, the Action column button remained as `[Coach]` instead of transitioning to `[✓ Coaching Done]`.
+  4. *Coaching Request Delegation Routing:* Coaching requests for agents with $\ge 3$ fatals must be escalated by the **Senior Manager** to the QA auditor who evaluated the fatal call, whereas agents with $< 3$ fatals can be handled by the **Pod Captain** to that QA auditor.
+  5. *Pod Metrics Prefix Collision:* Loose `.includes()` matching allowed `SoarZone-II` and `Unity-II` to match `SoarZone-I` and `Unity-I`, causing overlapping numbers across subordinate pods.
+- **Fixes Implemented:**
+  1. *Scorecard Print Stylesheet Isolation (`QaScorecard.jsx`, `Navbar.jsx`, `App.jsx`, `QaDashboard.jsx`):*
+     - Wrapped all interactive web UI elements in `QaScorecard.jsx` inside `<div className="space-y-6 print:hidden">`.
+     - Added `print:hidden` to the fatal confirmation modal (`isFatalModalOpen`), Navbar `<header>`, QA Dashboard tabs bar, and App `<footer>`.
+     - In `@media print`, enforced `body * { visibility: hidden !important; }` and `.printable-scorecard-root, .printable-scorecard-root * { visibility: visible !important; }`.
+     - Optimized `.printable-scorecard-root` for a compact, single-page A4 layout: 10px typography, compact table row padding (`py-1 px-2`), avoidance of page breaks (`break-inside: avoid`), and a clean dual sign-off block.
+  2. *Fatal-Aware Focus Area Auto-Selection (`ManagerHub.jsx`):*
+     - In `handleOpenCoachingModal(rm)`, dynamically queries the RM's latest fatal audit from `baseQa` / `qaAudits`.
+     - Maps the fatal breach to the matching coaching focus area (`redemption === 0` -> Redemption, `gtm_adherence === 0` -> GTM Adherence, `crm_update === 0` -> CRM Meeting Notes).
+  3. *Action Column Button State Transformation (`ManagerHub.jsx`):*
+     - Evaluated `rm.isCoached` via `coachingLogs.some(c => c.rmName === rm.rm_name && c.status === 'Completed')` in both Senior Manager Roster and Pod Captain Leaderboard.
+     - Added `coachingLogs` to dependency arrays to trigger immediate re-rendering upon saving a coaching action.
+     - Rendered `[✓ Coaching Done]` (styled as an emerald badge: `bg-emerald-950/70 border-emerald-800 text-emerald-300`) instead of `[Coach]` once coaching is completed.
+     - Clicking `[✓ Coaching Done]` reopens the modal pre-filled with the existing coaching notes for quick review or updates.
+  4. *Multi-Tier Delegation Dispatch Routing ($\ge 3$ vs $< 3$ Fatals):*
+     - Automatically identified the specific Quality Auditor who audited the fatal call (`latestFatal?.auditor_name || "Nabonita Roy"`).
+     - $\ge 3$ Fatals: Dispatched by **Senior Manager** to the designated QA Auditor (marked as `🏢 Senior Manager Escalation`).
+     - $< 3$ Fatals: Dispatched by **Pod Captain** to the designated QA Auditor (marked as `⚡ Pod Captain Action`).
+     - Modal displays the Multi-Tier Delegation Dispatch Banner with sender role, sender name, and target QA auditor.
+     - Persisted `senderRole`, `senderName`, `targetAuditor`, `delegationLevel` in `logCoachingAction`.
+  5. *String Prefix Collision Resolution across Pods (`ManagerHub.jsx`):*
+     - Replaced loose `.includes()` string matching on pod teams with exact equality (`===`), guaranteeing completely independent, non-overlapping metrics for every digital pod.
+  6. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across all 27 source files.
+     - Production Vite build passed in 33.59s with code 0.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
 
 
 

@@ -61,7 +61,7 @@ function AppContent() {
       </main>
 
       {/* Executive Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-4 text-center text-xs text-slate-500 transition-colors">
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-4 text-center text-xs text-slate-500 transition-colors print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>

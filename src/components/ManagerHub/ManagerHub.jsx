@@ -126,6 +126,12 @@ export default function ManagerHub() {
   const [coachingDate, setCoachingDate] = useState(new Date().toISOString().split("T")[0]);
   const [coachingStatus, setCoachingStatus] = useState("Completed");
   const [coachingToast, setCoachingToast] = useState("");
+  const [coachingTargetAuditor, setCoachingTargetAuditor] = useState("Nabonita Roy");
+  const [coachingDelegation, setCoachingDelegation] = useState({ 
+    isEscalation: false, 
+    senderRole: 'Pod Captain', 
+    senderName: '' 
+  });
 
   // Table Search and Filter Presets
   const [managerSearch, setManagerSearch] = useState("");
@@ -219,12 +225,12 @@ export default function ManagerHub() {
       const capName = p.captain;
       const podTeam = p.team;
 
-      // Telephony strictly scoped to this manager AND this specific pod / captain
+      // Telephony strictly scoped to this manager AND this specific pod / captain (exact matching to avoid prefix collision)
       const capTele = baseTelephony.filter((r) => {
         const mMatch = r.m && r.m.toLowerCase() === activeManagerName.toLowerCase();
         if (!mMatch) return false;
         const cMatch = r.c && r.c.toLowerCase() === capName.toLowerCase();
-        const tMatch = podTeam && (r.a === podTeam || (r.c && r.c.toLowerCase().includes(podTeam.toLowerCase())));
+        const tMatch = podTeam && (r.a?.toLowerCase() === podTeam.toLowerCase() || r.c?.toLowerCase() === capName.toLowerCase());
         return cMatch || tMatch;
       });
 
@@ -232,12 +238,12 @@ export default function ManagerHub() {
       const podConn = capTele.reduce((sum, r) => sum + (r.conn || 0), 0);
       const connRate = podDials > 0 ? ((podConn / podDials) * 100).toFixed(1) : '0.0';
 
-      // QA Audits strictly scoped to this manager AND this specific pod / captain
+      // QA Audits strictly scoped to this manager AND this specific pod / captain (exact matching)
       const capQa = baseQa.filter((a) => {
         const mMatch = a.manager_name && a.manager_name.toLowerCase() === activeManagerName.toLowerCase();
         if (!mMatch) return false;
         const cMatch = a.captain_name && a.captain_name.toLowerCase() === capName.toLowerCase();
-        const tMatch = podTeam && (a.team_name === podTeam || (a.captain_name && a.captain_name.toLowerCase().includes(podTeam.toLowerCase())));
+        const tMatch = podTeam && (a.team_name?.toLowerCase() === podTeam.toLowerCase() || a.captain_name?.toLowerCase() === capName.toLowerCase());
         return cMatch || tMatch;
       });
 
@@ -246,12 +252,12 @@ export default function ManagerHub() {
         ? (validQa.reduce((s, a) => s + (Number(a.overall_score) || 0), 0) / validQa.length).toFixed(1) 
         : '85.0';
       
-      // Tickets strictly scoped to this manager AND this specific pod
+      // Tickets strictly scoped to this manager AND this specific pod (exact matching)
       const podTickets = baseTickets.filter((t) => {
         const mMatch = t.manager && t.manager.toLowerCase() === activeManagerName.toLowerCase();
         if (!mMatch) return false;
         const cMatch = t.captain && t.captain.toLowerCase() === capName.toLowerCase();
-        const tMatch = podTeam && (t.invType === podTeam || (t.stream && t.stream.includes(podTeam)));
+        const tMatch = podTeam && (t.invType?.toLowerCase() === podTeam.toLowerCase() || t.stream?.toLowerCase() === podTeam.toLowerCase());
         return cMatch || tMatch;
       });
       const podDisb = podTickets.reduce((s, t) => s + (Number(t.finalTotalAmount) || 0), 0);
@@ -261,7 +267,7 @@ export default function ManagerHub() {
         const mMatch = rm.manager_name && rm.manager_name.toLowerCase() === activeManagerName.toLowerCase();
         if (!mMatch) return false;
         const cMatch = rm.captain_name && rm.captain_name.toLowerCase() === capName.toLowerCase();
-        const tMatch = podTeam && (rm.team_name === podTeam || (rm.captain_name && rm.captain_name.toLowerCase().includes(podTeam.toLowerCase())));
+        const tMatch = podTeam && (rm.team_name?.toLowerCase() === podTeam.toLowerCase() || rm.captain_name?.toLowerCase() === capName.toLowerCase());
         return cMatch || tMatch;
       }).length;
 
@@ -299,6 +305,10 @@ export default function ManagerHub() {
           : (rmAudits.length > 0 ? '0.0' : '85.0');
         const perf = evaluatePerformanceTier(dials, connRate, qaScore, fatalCount);
 
+        const isCoached = (coachingLogs || []).some(
+          (c) => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase() && c.status === 'Completed'
+        );
+
         return {
           rm_name: rm.rm_name,
           captain_name: rm.captain_name,
@@ -310,11 +320,12 @@ export default function ManagerHub() {
           qaScore,
           fatalCount,
           badge: perf.tier,
-          badgeColor: perf.color
+          badgeColor: perf.color,
+          isCoached
         };
       })
       .sort((a, b) => b.dials - a.dials);
-  }, [activeManagerName, isPhysicalManager, rmDirectory, baseTelephony, baseQa]);
+  }, [activeManagerName, isPhysicalManager, rmDirectory, baseTelephony, baseQa, coachingLogs]);
 
   // -------------------------------------------------------------
   // B. POD CAPTAIN COMMAND DASHBOARD COMPUTATIONS
@@ -326,7 +337,7 @@ export default function ManagerHub() {
   const podTelephony = useMemo(() => {
     return baseTelephony.filter((r) => {
       const cMatch = r.c?.toLowerCase() === activePodConfig.captain.toLowerCase();
-      const tMatch = r.c?.toLowerCase().includes(activePodConfig.team.toLowerCase());
+      const tMatch = r.a?.toLowerCase() === activePodConfig.team.toLowerCase();
       return cMatch || tMatch;
     });
   }, [baseTelephony, activePodConfig]);
@@ -386,7 +397,9 @@ export default function ManagerHub() {
           : (rmAudits.length > 0 ? '0.0' : '85.0');
         const perf = evaluatePerformanceTier(dials, connRate, qaScore, fatalCount);
 
-        const isCoached = (coachingLogs || []).some(c => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase());
+        const isCoached = (coachingLogs || []).some(
+          (c) => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase() && c.status === 'Completed'
+        );
 
         return {
           rm_name: rm.rm_name,
@@ -417,7 +430,7 @@ export default function ManagerHub() {
     // 2. Pod MoM (Oct baseline)
     const octPodTele = (telephony || []).filter(r => {
       const cMatch = r.c?.toLowerCase() === activePodConfig.captain.toLowerCase();
-      const tMatch = r.c?.toLowerCase().includes((activePodConfig.team || '').toLowerCase());
+      const tMatch = r.a?.toLowerCase() === (activePodConfig.team || '').toLowerCase();
       return (cMatch || tMatch) && (r.d || '').startsWith('2026-10');
     });
     const octPodDials = octPodTele.reduce((s, r) => s + (r.t || 0), 0);
@@ -562,8 +575,62 @@ export default function ManagerHub() {
     setCoachingTarget(rm);
     setCoachingDate(new Date().toISOString().split("T")[0]);
     setCoachingStatus("Completed");
-    setCoachingFocus(rm.fatalCount > 0 ? "GTM Adherence & Product Guidelines" : "Call Opening & Objection Handling");
-    setCoachingNotes("");
+
+    // 1. Locate RM's fatal audit from active baseQa or full qaAudits corpus
+    const rmFatalAudits = (baseQa || qaAudits || []).filter(
+      (a) => (a.rm_name || '').toLowerCase() === (rm.rm_name || '').toLowerCase() && a.is_fatal
+    );
+    const latestFatal = [...rmFatalAudits].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
+
+    // Auto-detect designated Quality Auditor who evaluated the fatal call
+    const detectedAuditor = latestFatal?.auditor_name || "Nabonita Roy";
+    setCoachingTargetAuditor(detectedAuditor);
+
+    // 2. Auto-select Coaching Focus Area based on specific fatal parameter failure
+    let autoFocus = "Call Opening & Introduction Pitch";
+    if (latestFatal) {
+      const reasonText = `${latestFatal.fatal_reason || ''} ${latestFatal.feedback || ''} ${latestFatal.observation || ''}`.toLowerCase();
+      if (latestFatal.redemption === 0 || reasonText.includes('redemption') || reasonText.includes('gratitude') || reasonText.includes('points')) {
+        autoFocus = "Redemption & Gratitude Points Process";
+      } else if (latestFatal.crm_update === 0 || reasonText.includes('crm') || reasonText.includes('meeting')) {
+        autoFocus = "CRM Meeting Notes & Documentation";
+      } else if (latestFatal.gtm_adherence === 0 || reasonText.includes('gtm') || reasonText.includes('misinformation') || reasonText.includes('rude') || reasonText.includes('pricing') || reasonText.includes('misleading')) {
+        autoFocus = "GTM Adherence & Product Guidelines";
+      } else {
+        autoFocus = "GTM Adherence & Product Guidelines";
+      }
+    } else if (rm.fatalCount > 0) {
+      autoFocus = "GTM Adherence & Product Guidelines";
+    } else if (Number(rm.qaScore) < 85) {
+      autoFocus = "Product Pricing & Objection Handling";
+    } else if (Number(rm.connRate) < 50) {
+      autoFocus = "Call Opening & Introduction Pitch";
+    }
+
+    // 3. Multi-tier delegation rule:
+    // When RM gets 3 or more fatals (>= 3): Request must be sent by Senior Manager to the QA who gave the fatal
+    // When RM gets less than 3 fatals (< 3): Request can be sent by the Pod Captain to the QA who gave the fatal
+    const isEscalation = (rm.fatalCount || 0) >= 3;
+    const senderRole = isEscalation ? 'Senior Manager' : 'Pod Captain';
+    const senderName = isEscalation 
+      ? (activeManagerName || rm.manager_name || currentUser?.name || 'Senior Manager')
+      : (rm.captain_name || activeCaptainName || currentUser?.name || 'Pod Captain');
+
+    setCoachingDelegation({ isEscalation, senderRole, senderName });
+
+    // 4. Pre-fill existing note if already coached, otherwise load auto-focus
+    const existingLog = (coachingLogs || []).find(
+      (c) => c.rmName?.toLowerCase() === rm.rm_name?.toLowerCase()
+    );
+    if (existingLog) {
+      setCoachingFocus(existingLog.focus || autoFocus);
+      setCoachingNotes(existingLog.notes || "");
+      setCoachingDate(existingLog.date || new Date().toISOString().split("T")[0]);
+      setCoachingStatus(existingLog.status || "Completed");
+    } else {
+      setCoachingFocus(autoFocus);
+      setCoachingNotes("");
+    }
   };
 
   const handleSaveCoaching = (e) => {
@@ -576,7 +643,13 @@ export default function ManagerHub() {
         teamName: coachingTarget.team_name || activePodConfig.team,
         captainName: coachingTarget.captain_name || activeCaptainName,
         managerName: activeManagerName,
-        supervisor: currentUser?.name || activeCaptainName,
+        supervisor: coachingDelegation.senderName,
+        senderRole: coachingDelegation.senderRole,
+        senderName: coachingDelegation.senderName,
+        targetAuditor: coachingTargetAuditor,
+        delegationLevel: coachingDelegation.isEscalation 
+          ? 'Senior Manager Escalation (≥3 Fatals)' 
+          : 'Pod Captain Coaching (<3 Fatals)',
         date: coachingDate,
         focus: coachingFocus,
         notes: coachingNotes,
@@ -992,14 +1065,25 @@ export default function ManagerHub() {
                             )}
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <button
-                              onClick={() => handleOpenCoachingModal(rm)}
-                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
-                              title="Log coaching session"
-                            >
-                              <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
-                              <span>Coach</span>
-                            </button>
+                            {rm.isCoached ? (
+                              <button
+                                onClick={() => handleOpenCoachingModal(rm)}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
+                                title="Coaching completed • Click to view or update notes"
+                              >
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Coaching Done</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleOpenCoachingModal(rm)}
+                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                                title="Log coaching session"
+                              >
+                                <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
+                                <span>Coach</span>
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -1240,14 +1324,25 @@ export default function ManagerHub() {
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => handleOpenCoachingModal(rm)}
-                            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
-                            title="Log coaching session"
-                          >
-                            <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>Coach</span>
-                          </button>
+                          {rm.isCoached ? (
+                            <button
+                              onClick={() => handleOpenCoachingModal(rm)}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
+                              title="Coaching completed • Click to view or update notes"
+                            >
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>Coaching Done</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenCoachingModal(rm)}
+                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                              title="Log coaching session"
+                            >
+                              <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>Coach</span>
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -1308,6 +1403,30 @@ export default function ManagerHub() {
               </div>
             </div>
 
+            {/* Multi-Tier Delegation Dispatch Routing Banner */}
+            <div className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between gap-3 ${
+              coachingDelegation.isEscalation 
+                ? 'bg-rose-950/60 border-rose-800/80 text-rose-200' 
+                : 'bg-indigo-950/60 border-indigo-800/80 text-indigo-200'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-xl ${coachingDelegation.isEscalation ? 'bg-rose-900/80 text-rose-300' : 'bg-indigo-900/80 text-indigo-300'}`}>
+                  {coachingDelegation.isEscalation ? <Building2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                </div>
+                <div>
+                  <div className="font-bold flex items-center gap-2">
+                    <span>{coachingDelegation.isEscalation ? '🏢 Senior Manager Escalation' : '⚡ Pod Captain Action'}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-900/80 border border-slate-700 font-bold">
+                      {coachingTarget.fatalCount} {coachingTarget.fatalCount === 1 ? 'Fatal' : 'Fatals'} ({coachingDelegation.isEscalation ? '≥ 3 Rule' : '< 3 Rule'})
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-300 mt-0.5">
+                    Dispatched by <strong className="text-white">{coachingDelegation.senderRole} ({coachingDelegation.senderName})</strong> to Quality Auditor <strong className="text-white font-mono">{coachingTargetAuditor}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Coaching Form */}
             <form onSubmit={handleSaveCoaching} className="space-y-4 text-xs">
               
@@ -1323,13 +1442,28 @@ export default function ManagerHub() {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1 text-slate-300">Supervisor / Coach</label>
+                  <label className="block font-semibold mb-1 text-slate-300">
+                    Dispatched By ({coachingDelegation.senderRole})
+                  </label>
                   <input
                     type="text"
-                    value={currentUser?.name || activeCaptainName}
+                    value={coachingDelegation.senderName}
                     readOnly
-                    className="w-full p-2 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-400 font-medium cursor-not-allowed"
+                    className="w-full p-2 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-300 font-medium cursor-not-allowed"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300 flex items-center justify-between">
+                  <span>Target Quality Auditor</span>
+                  <span className="text-[10px] text-slate-400">Audited Fatal Call</span>
+                </label>
+                <div className="p-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 font-mono font-bold flex items-center justify-between text-xs">
+                  <span>{coachingTargetAuditor}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-sans font-semibold">
+                    QA Recipient
+                  </span>
                 </div>
               </div>
 
