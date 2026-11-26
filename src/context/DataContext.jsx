@@ -118,12 +118,12 @@ export function DataProvider({ children }) {
     // Evaluate viewport height in CSS pixels (at 100% browser zoom)
     const h = window.innerHeight;
 
-    // Standard 1080p desktop (1920x1080) with browser chrome typically has innerHeight ~900-960px.
-    // To fit the complete dashboard (banner + 3 KPI cards + subordinate pods + table), 75% scale is optimal.
+    // Standard 1080p desktop (1920x1080) with browser chrome typically has innerHeight ~900-1080px.
+    // 75% scale fits the complete dashboard (banner + 3 KPI cards + subordinate pods + table) with 0 overflow!
     if (h <= 740) return 0.70;       // Small 720p / 768p displays or 125% laptop
-    if (h <= 1020) return 0.75;      // Standard 1080p desktop / laptop (h ~900-980) -> 75% Auto-Fit!
-    if (h <= 1180) return 0.80;      // Mid-height displays
-    if (h <= 1350) return 0.90;      // 1200p / 1440p displays
+    if (h <= 1090) return 0.75;      // Standard 1080p desktop / laptop (h ~900-1080) -> 75% Auto-Fit!
+    if (h <= 1250) return 0.85;      // Mid-height displays
+    if (h <= 1400) return 0.90;      // 1200p / 1440p displays
     return 1.0;                      // 1440p / 4K monitors
   };
 

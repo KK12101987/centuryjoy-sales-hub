@@ -889,7 +889,7 @@ export default function ManagerHub() {
           {/* Subordinate Pods Comparison Grid (Digital Managers Only) */}
           {!isPhysicalManager && divisionPods.length > 0 && (
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-bold text-white">
+              <div className="flex items-center space-x-2 text-xs font-bold text-slate-800 dark:text-white">
                 <Layers className="w-3.5 h-3.5 text-brand-400" />
                 <span>Subordinate Digital Pods in {activeManagerName} Division</span>
               </div>
