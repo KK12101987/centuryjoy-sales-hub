@@ -431,6 +431,65 @@ export const DEV_DEVICE_STORAGE_KEY = 'century_authorized_dev_device_v1';
 export const DEV_PREVIEW_PUBLIC_KEY = 'century_preview_public_mode_v1';
 export const DEV_UNLOCK_SECRET = 'CP-DEV-2026';
 
+// =========================================================================
+// DEVELOPER PUBLIC MODULE RELEASE GATES & CONFIGURATION
+// =========================================================================
+export const DEFAULT_PUBLIC_MODULES = {
+  consolidated: false,
+  divisions: false,
+  l2: true,           // L2 Approvals is ON by default
+  productivity: false,
+  qa: false
+};
+
+export const PUBLIC_MODULES_STORAGE_KEY = 'century_public_modules_config_v2';
+
+/**
+ * Retrieves the active public module release configuration.
+ * Checked in order:
+ * 1. URL Query Parameter: ?public=l2,qa,consolidated or ?public_modules=l2,qa
+ * 2. Local browser storage (century_public_modules_config_v2)
+ * 3. Default Staging Configuration (L2 Only)
+ */
+export function getPublicModulesConfig() {
+  if (typeof window === 'undefined') return { ...DEFAULT_PUBLIC_MODULES };
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const query = searchParams.get('public_modules') || searchParams.get('public');
+    if (query) {
+      const parts = query.split(',').map(s => s.trim().toLowerCase());
+      const configFromQuery = {
+        consolidated: parts.includes('consolidated'),
+        divisions: parts.includes('divisions'),
+        l2: parts.includes('l2'),
+        productivity: parts.includes('productivity') || parts.includes('telephony'),
+        qa: parts.includes('qa') || parts.includes('qctools')
+      };
+      try {
+        localStorage.setItem(PUBLIC_MODULES_STORAGE_KEY, JSON.stringify(configFromQuery));
+      } catch (e) {}
+      return configFromQuery;
+    }
+
+    const saved = localStorage.getItem(PUBLIC_MODULES_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_PUBLIC_MODULES, ...parsed };
+    }
+  } catch (e) {}
+  return { ...DEFAULT_PUBLIC_MODULES };
+}
+
+/**
+ * Persists updated public module release flags
+ */
+export function savePublicModulesConfig(newConfig) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PUBLIC_MODULES_STORAGE_KEY, JSON.stringify(newConfig));
+  } catch (e) {}
+}
+
 /**
  * Validates whether the active device/browser has developer test authorization.
  * Web browsers execute inside a security sandbox where hardware MAC addresses are inaccessible.
@@ -490,69 +549,69 @@ export function setPreviewPublicMode(active = true) {
 }
 
 /**
+ * Resolves full standard role modules without staging restrictions
+ */
+export function getRoleStandardModules(user) {
+  if (!user) return ['l2'];
+  if (Array.isArray(user.permittedModules) && user.permittedModules.length > 0) {
+    return user.permittedModules;
+  }
+  const email = (user.email || '').toLowerCase().trim();
+  if (email === 'kushal.centuryply@gmail.com' || isDeveloperUser(user)) {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
+  }
+  if (email.includes('tanmoy')) {
+    return ['l2', 'consolidated', 'divisions'];
+  }
+  if (email === 'nabonita.roy@centuryply.com' || email.includes('nabonita')) {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
+  }
+  if (email === 'admin@centuryply.com') {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
+  }
+  if (user.role === ROLES.AUDITOR) {
+    return ['qa'];
+  }
+  if (user.role === ROLES.MANAGER || user.role === ROLES.CAPTAIN) {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
+  }
+  if (user.role === ROLES.ADMIN) {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
+  }
+  return ['consolidated'];
+}
+
+/**
  * Resolves the array of module keys permitted for the authenticated user.
  * Available modules: 'consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'
  *
  * Staging Lock Policy:
  * On Public / Outside Devices (or when Developer toggles "Public Preview"):
- * - ONLY 'l2' (L2 Approvals) is permitted. All other in-development views are strictly locked and hidden.
+ * - Only modules toggled ON in the Developer Public Module Release Controller are permitted!
+ * - Other modules are strictly locked and hidden from navigation and DOM.
  *
  * Developer Device Mode:
- * - When the device is authorized, the developer can switch between user logins (Niladri, Arshi,
- *   Nabonita, etc.) and test the full role-specific permissions without restrictions.
+ * - When the device is authorized and not in Public Preview, all role-assigned modules are unlocked.
  */
 export function getPermittedModules(user) {
-  if (!user) return ['l2'];
-
-  // Staging / Public Device Gate:
+  const standardModules = getRoleStandardModules(user);
   const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
-  if (!isDevActive) {
-    return ['l2'];
+
+  // In Developer Unlocked mode: full role permissions
+  if (isDevActive) {
+    return standardModules;
   }
+
+  // On Public / Outside Devices (or in Developer Public Preview Mode):
+  // Filter by developer-controlled public release flags
+  const publicConfig = getPublicModulesConfig();
+  const publicAllowed = Object.keys(publicConfig).filter(k => publicConfig[k]);
+
+  // Public users can only view modules that are both role-assigned AND toggled ON publicly
+  const permitted = standardModules.filter(mod => publicAllowed.includes(mod));
   
-  // Custom override if explicitly assigned on user profile
-  if (Array.isArray(user.permittedModules) && user.permittedModules.length > 0) {
-    return user.permittedModules;
-  }
-
-  const email = (user.email || '').toLowerCase().trim();
-
-  // Developer & Super Admin
-  if (email === 'kushal.centuryply@gmail.com' || isDeveloperUser(user)) {
-    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
-  }
-
-  // Tanmoy Kar: L2 Approvals, Consolidated & Divisions View
-  if (email.includes('tanmoy')) {
-    return ['l2', 'consolidated', 'divisions'];
-  }
-
-  // Nabonita Roy: Backend Team Lead (Executive Leadership View) + QA Tools & Ingestion
-  if (email === 'nabonita.roy@centuryply.com' || email.includes('nabonita')) {
-    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
-  }
-
-  // Executive Leadership (admin@centuryply.com): Executive Leadership View across all teams
-  if (email === 'admin@centuryply.com') {
-    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
-  }
-
-  // Quality Auditors: Strictly QA & 7 QC Tools only
-  if (user.role === ROLES.AUDITOR) {
-    return ['qa'];
-  }
-
-  // Senior Managers & Pod Captains: Consolidated, Divisions & Pods, L2, RM Telephony, QA History & 7 QC Tools (Scoped)
-  if (user.role === ROLES.MANAGER || user.role === ROLES.CAPTAIN) {
-    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
-  }
-
-  // General Admin (if not Tanmoy)
-  if (user.role === ROLES.ADMIN) {
-    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'];
-  }
-
-  return ['consolidated'];
+  // 'users' management console is strictly admin/dev-only, never public
+  return permitted.filter(mod => mod !== 'users');
 }
 
 /**
@@ -561,8 +620,7 @@ export function getPermittedModules(user) {
  *
  * Staging Lock Policy:
  * On Public / Outside Devices:
- * - Only 'l2' upload is permitted (if user has canUploadL2, is admin, or Tanmoy).
- * - Telephony, QA, and Dialer uploads are locked.
+ * - Only allowed upload tabs for modules that are toggled ON publicly.
  */
 export function getAllowedUploadTabs(user) {
   if (!user) return [];
@@ -570,47 +628,34 @@ export function getAllowedUploadTabs(user) {
   const email = (user.email || '').toLowerCase().trim();
   const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
 
-  // Staging / Public Device Gate: strictly L2 upload only
-  if (!isDevActive) {
+  if (isDevActive) {
     if (
       email === 'kushal.centuryply@gmail.com' ||
       email.includes('tanmoy') ||
       user.role === ROLES.ADMIN ||
-      user.canUploadL2
+      isDeveloperUser(user)
     ) {
-      return ['l2'];
+      return ['l2', 'telephony', 'qa', 'dialer'];
     }
-    return [];
+    const tabs = [];
+    if (user.canUploadL2) tabs.push('l2');
+    if (user.canUploadQA) tabs.push('qa', 'dialer');
+    return tabs;
   }
 
-  // Super Admin / Developer
-  if (email === 'kushal.centuryply@gmail.com' || (isDeveloperUser(user) && !email.includes('tanmoy'))) {
-    return ['l2', 'telephony', 'qa', 'dialer'];
+  // On Public / Outside Devices:
+  const publicConfig = getPublicModulesConfig();
+  const allowed = [];
+  if (publicConfig.l2 && (email === 'kushal.centuryply@gmail.com' || email.includes('tanmoy') || user.role === ROLES.ADMIN || user.canUploadL2)) {
+    allowed.push('l2');
   }
-
-  // Tanmoy Kar: L2 Financial Approvals Upload only
-  if (email.includes('tanmoy')) {
-    return ['l2'];
+  if (publicConfig.productivity && (user.role === ROLES.ADMIN || isDeveloperUser(user) || user.canUploadTelephony)) {
+    allowed.push('telephony');
   }
-
-  const tabs = [];
-
-  // Check explicit or role-based L2 upload permission
-  if (user.canUploadL2) {
-    tabs.push('l2');
+  if (publicConfig.qa && (user.role === ROLES.ADMIN || user.canUploadQA || isDeveloperUser(user))) {
+    allowed.push('qa', 'dialer');
   }
-
-  // Check explicit or designated QA/Dialer/Telephony upload permission
-  const isDesignatedQaUploader = 
-    email === 'arindam.centuryply@gmail.com' ||
-    email === 'nabonita.roy@centuryply.com' ||
-    user.canUploadQA === true;
-
-  if (isDesignatedQaUploader) {
-    tabs.push('dialer', 'telephony', 'qa');
-  }
-
-  return tabs;
+  return allowed;
 }
 
 /**

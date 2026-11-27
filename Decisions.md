@@ -789,3 +789,37 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Navigating to "QA & QC Tools" from the Navbar or Consolidated Dashboard opens the 7 QC Statistical Dashboard directly.
   - QA metrics, statistical process control, and defect distributions are immediately visible at the executive level without extra clicks.
+
+
+---
+
+### Decision 058: Granular Developer Mode Public Module Release Controller & Staging Gates
+* **Date:** 2026-11-27
+* **Status:** Implemented & Verified Live
+* **Context:**
+  - The developer requested: *"what i want is that i want a section in developer mode from where I can control these 'Consolidated | Divisions & Pods | L2 Approvals 2688 | RM Telephony 1291 | QA & QC Tools' i.e. when to turn them on or off publicly"*.
+  - Instead of an all-or-nothing switch, the system now provides full granular control over each of the 5 operational modules.
+* **Decision & Implementation:**
+  1. *Granular Public Staging Configuration (`src/utils/auth.js`):*
+     - Created `DEFAULT_PUBLIC_MODULES`:
+       - `consolidated`: `false` (Dev only by default)
+       - `divisions`: `false` (Dev only by default)
+       - `l2`: `true` (Publicly enabled by default)
+       - `productivity`: `false` (Dev only by default)
+       - `qa`: `false` (Dev only by default)
+     - Implemented `getPublicModulesConfig()` and `savePublicModulesConfig()`.
+     - Filtered `getPermittedModules(user)` so outside/public devices strictly see only the modules toggled ON by the developer.
+  2. *Developer Mode Controller Modal (`src/components/Common/DevModuleControlModal.jsx`):*
+     - Added a **`Public Gates`** trigger button with `<Sliders className="w-3.5 h-3.5" />` in `Navbar.jsx` (accessible in Developer Mode).
+     - Built an executive control modal featuring:
+       - 5 interactive toggle switches with live state indicators (`Publicly Active` vs `Dev Locked`).
+       - Quick action presets: `L2 Only (Staging)`, `Turn All ON`, `Turn All OFF`.
+       - One-click `Test as Public User` mode to preview outside visitor experience.
+       - `Copy Public Share Link` generator (`?public=l2,qa`) for direct tester sharing.
+  3. *Integrated into Admin Governance Suite (`src/components/UserManagement/UserManagement.jsx`):*
+     - Added a dedicated `Public Module Gates` tab in the User & Supervisory Scope Governance Console.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements.
+     - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).
+* **Consequences:**
+  - The developer has complete visual, granular control over public staging gates from both the top navigation bar and the admin console.

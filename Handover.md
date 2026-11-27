@@ -669,3 +669,21 @@ The application will automatically detect Vite and the serverless functions unde
   6. *Anti-Slop Audit (Rule 21b):*
      - 0 unused imports, 0 console.log statements.
      - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).
+
+
+---
+
+## 45. Developer Mode Granular Public Module Release Controller
+- **Developer Request:**
+  - *"what i want is that i want a section in developer mode from where I can control these 'Consolidated | Divisions & Pods | L2 Approvals 2688 | RM Telephony 1291 | QA & QC Tools' i.e. when to turn them on or off publicly"*
+- **Implementation:**
+  1. *Granular Gate Engine (`src/utils/auth.js`):*
+     - Configured independent public flags: `consolidated`, `divisions`, `l2`, `productivity`, `qa`.
+     - `getPermittedModules()` restricts outside visitors to developer-enabled modules.
+  2. *Quick-Access Controller Modal (`src/components/Common/DevModuleControlModal.jsx`):*
+     - Accessible via `Public Gates` button in `Navbar.jsx`.
+     - Features 5 animated toggle switches, status badges, presets (`L2 Only`, `Turn All ON`, `Turn All OFF`), `Test as Public User`, and `Copy Shareable Public Link`.
+  3. *Admin Suite Tab (`src/components/UserManagement/UserManagement.jsx`):*
+     - Embedded `Public Module Gates` tab in the User & Scope console.
+  4. *Anti-Slop Audit (Rule 21b):*
+     - Zero console.log statements, clean production build, coupled DRM watermark.

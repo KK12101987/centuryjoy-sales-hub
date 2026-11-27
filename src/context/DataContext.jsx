@@ -14,7 +14,9 @@ import {
   isDevDeviceAuthorized,
   setDevDeviceAuthorized,
   isPreviewPublicMode,
-  setPreviewPublicMode 
+  setPreviewPublicMode,
+  getPublicModulesConfig,
+  savePublicModulesConfig
 } from '../utils/auth';
 import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
 
@@ -70,6 +72,23 @@ export function DataProvider({ children }) {
   const [isDevDevice, setIsDevDevice] = useState(() => isDevDeviceAuthorized());
   const [previewPublicMode, setPreviewPublicModeState] = useState(() => isPreviewPublicMode());
 
+  // Developer Mode: Public Module Release Controls
+  const [publicModulesConfig, setPublicModulesConfig] = useState(() => getPublicModulesConfig());
+  const [isDevModuleModalOpen, setIsDevModuleModalOpen] = useState(false);
+
+  const updatePublicModuleToggle = (moduleKey, enabled) => {
+    setPublicModulesConfig(prev => {
+      const next = { ...prev, [moduleKey]: !!enabled };
+      savePublicModulesConfig(next);
+      return next;
+    });
+  };
+
+  const setAllPublicModules = (newConfig) => {
+    setPublicModulesConfig(newConfig);
+    savePublicModulesConfig(newConfig);
+  };
+
   // Keep dev device state strictly synced with authoritative device authorization
   useEffect(() => {
     setIsDevDevice(isDevDeviceAuthorized());
@@ -79,7 +98,10 @@ export function DataProvider({ children }) {
   const [activeModule, setActiveModule] = useState(() => {
     try {
       const isDev = isDevDeviceAuthorized() && !isPreviewPublicMode();
-      if (!isDev) return 'l2';
+      if (!isDev) {
+        const permitted = getPermittedModules(currentUser);
+        return permitted[0] || 'l2';
+      }
       return localStorage.getItem('century_active_module_v2') || 'consolidated';
     } catch (e) {
       return 'l2';
@@ -88,9 +110,8 @@ export function DataProvider({ children }) {
 
   const switchModule = (mod) => {
     verifyWatermarkIntegrity();
-    const isDev = isDevDeviceAuthorized() && !isPreviewPublicMode();
     const permitted = getPermittedModules(currentUser);
-    const target = (isDev && permitted.includes(mod)) ? mod : 'l2';
+    const target = permitted.includes(mod) ? mod : (permitted[0] || 'l2');
     setActiveModule(target);
     try {
       localStorage.setItem('century_active_module_v2', target);
@@ -101,11 +122,13 @@ export function DataProvider({ children }) {
     const nextState = !previewPublicMode;
     setPreviewPublicModeState(nextState);
     setPreviewPublicMode(nextState);
-    if (nextState) {
-      // Switching to public preview: strictly force active module to 'l2'
-      setActiveModule('l2');
+    // If entering public preview, ensure activeModule is permitted under public rules
+    const permitted = getPermittedModules(currentUser);
+    if (!permitted.includes(activeModule)) {
+      const fallback = permitted[0] || 'l2';
+      setActiveModule(fallback);
       try {
-        localStorage.setItem('century_active_module_v2', 'l2');
+        localStorage.setItem('century_active_module_v2', fallback);
       } catch (e) {}
     }
   };
@@ -2023,6 +2046,11 @@ export function DataProvider({ children }) {
     isDevDevice,
     previewPublicMode,
     togglePreviewPublicMode,
+    publicModulesConfig,
+    updatePublicModuleToggle,
+    setAllPublicModules,
+    isDevModuleModalOpen,
+    setIsDevModuleModalOpen,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

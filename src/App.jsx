@@ -4,6 +4,7 @@ import Navbar from './components/Common/Navbar';
 import LoginPage from './components/Common/LoginPage';
 import Watermark from './components/Common/Watermark';
 import UploadCenterModal from './components/Common/UploadCenterModal';
+import DevModuleControlModal from './components/Common/DevModuleControlModal';
 import ErrorBoundary from './components/Common/ErrorBoundary';
 
 // Route-Based Code Splitting (React.lazy) for Optimal Bundle Delivery
@@ -34,7 +35,9 @@ function AppContent() {
     uploadModalTab, 
     effectiveZoom,
     isDevDevice,
-    previewPublicMode 
+    previewPublicMode,
+    isDevModuleModalOpen,
+    setIsDevModuleModalOpen
   } = useData();
 
   if (!currentUser) {
@@ -70,6 +73,12 @@ function AppContent() {
         isOpen={isUploadModalOpen} 
         onClose={closeUploadModal} 
         initialTab={uploadModalTab} 
+      />
+
+      {/* Developer Mode: Public Module Release Controller Modal */}
+      <DevModuleControlModal
+        isOpen={isDevModuleModalOpen}
+        onClose={() => setIsDevModuleModalOpen(false)}
       />
 
       {/* Main Content Viewport with Suspense Code Splitting */}

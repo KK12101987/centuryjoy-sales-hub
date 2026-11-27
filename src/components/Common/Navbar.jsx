@@ -18,7 +18,8 @@ import {
   RefreshCw,
   Layers,
   Monitor,
-  Laptop 
+  Laptop,
+  Sliders
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -51,6 +52,8 @@ export default function Navbar() {
     isDevDevice,
     previewPublicMode,
     togglePreviewPublicMode,
+    setIsDevModuleModalOpen,
+    publicModulesConfig,
   } = useData();
 
   // Close dropdowns when clicking outside or pressing Escape
@@ -356,8 +359,8 @@ export default function Navbar() {
                 onClick={togglePreviewPublicMode}
                 title={
                   previewPublicMode
-                    ? 'Public Preview Mode Active (Only L2 Approvals visible to outside users). Click to restore Developer Unlocked Mode.'
-                    : 'Authorized Developer Computer (All views unlocked). Click to preview Public Mode (L2 Only).'
+                    ? 'Public Preview Mode Active (Only permitted public modules visible). Click to restore Developer Unlocked Mode.'
+                    : 'Authorized Developer Computer (All views unlocked). Click to preview Public Mode.'
                 }
                 className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
                   previewPublicMode
@@ -369,6 +372,21 @@ export default function Navbar() {
                 <Laptop className={`w-3.5 h-3.5 shrink-0 ${previewPublicMode ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
                 <span className="hidden 2xl:inline font-bold text-[11px]">
                   {previewPublicMode ? 'Public Mode' : 'Dev Unlocked'}
+                </span>
+              </button>
+            )}
+
+            {/* Developer Mode: Public Module Release Controls */}
+            {isDevDevice && (
+              <button
+                type="button"
+                onClick={() => setIsDevModuleModalOpen(true)}
+                title="Developer Mode: Control Public Module Visibility (Turn individual modules ON / OFF for outside devices)"
+                className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              >
+                <Sliders className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="hidden 2xl:inline font-bold text-[11px]">
+                  Public Gates
                 </span>
               </button>
             )}

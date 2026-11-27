@@ -35,7 +35,18 @@ import {
   History,
   Database,
   AlertTriangle,
-  Plus
+  Plus,
+  Sliders,
+  LayoutDashboard,
+  CreditCard,
+  PhoneCall,
+  Laptop,
+  Lock,
+  Unlock,
+  Copy,
+  Check,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function UserManagement() {
@@ -56,8 +67,17 @@ export default function UserManagement() {
     addNewTeam,
     addNewMemberToTeam,
     removeTeam,
-    qaAudits
+    qaAudits,
+    tickets,
+    telephony,
+    publicModulesConfig,
+    updatePublicModuleToggle,
+    setAllPublicModules,
+    previewPublicMode,
+    togglePreviewPublicMode
   } = useData();
+
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles' | 'scope' | 'offboard'
   const [searchQuery, setSearchQuery] = useState('');
@@ -783,6 +803,15 @@ export default function UserManagement() {
             }`}
           >
             Role Matrix
+          </button>
+          <button
+            onClick={() => setActiveTab('public-modules')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
+              activeTab === 'public-modules' ? 'bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Public Module Gates</span>
           </button>
         </div>
       </div>
@@ -2164,7 +2193,195 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* CREATE / EDIT USER MODAL */}
+      {/* TAB 4: PUBLIC MODULE GATES & RELEASE CONTROLLER */}
+      {activeTab === 'public-modules' && (
+        <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                  <Sliders className="w-4 h-4" />
+                </span>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  Developer Mode · Public Module Release Gates
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Control the public visibility of each operational module. Outside devices and unauthorized computers strictly see ONLY the modules switched ON below.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setAllPublicModules({ consolidated: false, divisions: false, l2: true, productivity: false, qa: false })}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+                <span>L2 Only (Staging)</span>
+              </button>
+              <button
+                onClick={() => setAllPublicModules({ consolidated: true, divisions: true, l2: true, productivity: true, qa: true })}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                <span>Turn All ON</span>
+              </button>
+              <button
+                onClick={() => setAllPublicModules({ consolidated: false, divisions: false, l2: false, productivity: false, qa: false })}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Turn All OFF</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Module Control Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                key: 'consolidated',
+                name: 'Consolidated Command Center',
+                icon: LayoutDashboard,
+                iconColor: 'text-indigo-500',
+                badge: 'Executive Synthesis',
+                desc: 'Reconciles financial disbursements, agent dials, and call quality compliance into executive metrics.'
+              },
+              {
+                key: 'divisions',
+                name: 'Divisions & Pods Operations',
+                icon: Layers,
+                iconColor: 'text-blue-500',
+                badge: 'Division & Pod Hubs',
+                desc: 'Detailed supervisory views for Senior Managers (Niladri, Surajit, Arijit, Amit Singal) and Pods.'
+              },
+              {
+                key: 'l2',
+                name: 'L2 Financial Reconciliation',
+                icon: CreditCard,
+                iconColor: 'text-emerald-500',
+                badge: `${(tickets || []).length.toLocaleString()} Tickets`,
+                desc: 'Reconciliation velocity timeline, monetary bifurcation matrix, and RM disbursement roster.'
+              },
+              {
+                key: 'productivity',
+                name: 'RM Telephony & Productivity',
+                icon: PhoneCall,
+                iconColor: 'text-purple-500',
+                badge: `${(telephony || []).length.toLocaleString()} Calls`,
+                desc: 'Relationship Manager dialer logs, connectivity rate, total talk time, and agent performance tiers.'
+              },
+              {
+                key: 'qa',
+                name: 'QA Auditing & 7 QC Analytics',
+                icon: CheckCircle2,
+                iconColor: 'text-amber-500',
+                badge: `${(qaAudits || []).length.toLocaleString()} Audits`,
+                desc: '7 QC Statistical Quality Dashboard (Scatter, Pareto, Fishbone, Histogram, SPC) & 41-parameter evaluator.'
+              }
+            ].map((m) => {
+              const isPublic = !!(publicModulesConfig && publicModulesConfig[m.key]);
+              const Icon = m.icon;
+
+              return (
+                <div 
+                  key={m.key}
+                  className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                        <Icon className={`w-4 h-4 ${m.iconColor}`} />
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        {m.badge}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-xs text-slate-900 dark:text-white">
+                        {m.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        {m.desc}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                    <span 
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${
+                        isPublic 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${isPublic ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                      <span>{isPublic ? 'Publicly Visible' : 'Dev Locked'}</span>
+                    </span>
+
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isPublic}
+                      onClick={() => updatePublicModuleToggle(m.key, !isPublic)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                        isPublic ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                      title={`Turn ${m.name} ${isPublic ? 'OFF' : 'ON'} for outside users`}
+                    >
+                      <span 
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          isPublic ? 'translate-x-5' : 'translate-x-0'
+                        }`} 
+                      />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Test & Share Actions */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={togglePreviewPublicMode}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold transition-all border cursor-pointer ${
+                  previewPublicMode
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                    : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                }`}
+              >
+                {previewPublicMode ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-amber-500" />}
+                <span>{previewPublicMode ? 'Exit Public Preview Mode' : 'Preview as Outside User'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const activeKeys = Object.keys(publicModulesConfig || {}).filter(k => publicModulesConfig[k]);
+                  const baseUrl = window.location.origin + window.location.pathname;
+                  const shareUrl = `${baseUrl}?public=${activeKeys.join(',')}`;
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2500);
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+              >
+                {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-indigo-500" />}
+                <span>{copiedLink ? 'Link Copied to Clipboard!' : 'Copy Shareable Public Link'}</span>
+              </button>
+            </div>
+
+            <div className="text-slate-500 dark:text-slate-400 text-[11px]">
+              Active Configuration: <strong className="text-slate-700 dark:text-slate-300">{Object.values(publicModulesConfig || {}).filter(Boolean).length} modules</strong> live publicly
+            </div>
+          </div>
+        </div>
+      )}
       {modalMode !== 'none' && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
