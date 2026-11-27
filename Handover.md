@@ -687,3 +687,17 @@ The application will automatically detect Vite and the serverless functions unde
      - Embedded `Public Module Gates` tab in the User & Scope console.
   4. *Anti-Slop Audit (Rule 21b):*
      - Zero console.log statements, clean production build, coupled DRM watermark.
+
+
+---
+
+## 46. Dynamic "Updated till : dd/mm/yyyy" Tag in L2 Reconciliation Header
+- **Developer Request:**
+  - *"in this ribbon state the last date of the upload as 'Updated till : dd/mm/yyyy' Did you understand this ?"*
+  - Screenshot: `media_1795780735906_afbb9116.png`
+- **Implementation:**
+  1. *L2 Header Toolbar Update (`src/components/L2Dashboard/L2DashboardMain.jsx`):*
+     - Added dynamic `latestUploadDateFormatted` calculation extracting max `l2ApprovedDate` across scoped tickets.
+     - Displays formatted `Updated till : dd/mm/yyyy` badge alongside `November 2026 Live`.
+  2. *Anti-Slop Audit (Rule 21b):*
+     - Verified 0 console.log statements, clean Vite production build.

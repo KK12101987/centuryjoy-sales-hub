@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { getAllowedUploadTabs } from '../../utils/auth';
 import KPICards from './KPICards';
@@ -8,13 +8,14 @@ import DigitalPodsSection from './DigitalPodsSection';
 import PhysicalTeamsSection from './PhysicalTeamsSection';
 import AnalyticsCharts from './AnalyticsCharts';
 import MonetaryBifurcationSection from './MonetaryBifurcationSection';
-import { UploadCloud, Search, RotateCcw, Calendar } from 'lucide-react';
+import { UploadCloud, Search, RotateCcw, Calendar, Clock } from 'lucide-react';
 
 export default function L2DashboardMain() {
   const { 
     currentUser, 
     openUploadModal, 
     activeDatasetMeta, 
+    scopedTickets,
     searchQuery, 
     setSearchQuery,
     resetFilters,
@@ -24,6 +25,39 @@ export default function L2DashboardMain() {
     selectedCaptain,
     selectedL2Assign
   } = useData();
+
+  // Dynamically calculate latest approval/transaction date from active dataset
+  const latestUploadDateFormatted = useMemo(() => {
+    const list = scopedTickets || [];
+    if (list.length === 0) return '';
+    
+    let maxDate = '';
+    for (let i = 0; i < list.length; i++) {
+      const d = list[i].l2ApprovedDate || list[i].date;
+      if (d && (!maxDate || d > maxDate)) {
+        maxDate = d;
+      }
+    }
+    
+    if (!maxDate) return '';
+    
+    // Strict format DD/MM/YYYY
+    const parts = maxDate.split('-');
+    if (parts.length === 3) {
+      const [yyyy, mm, dd] = parts;
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    
+    const parsed = new Date(maxDate);
+    if (!isNaN(parsed.getTime())) {
+      const dd = String(parsed.getDate()).padStart(2, '0');
+      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+      const yyyy = parsed.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    
+    return maxDate;
+  }, [scopedTickets]);
 
   const isFiltered = 
     streamFilter !== 'all' ||
@@ -43,7 +77,7 @@ export default function L2DashboardMain() {
       {/* L2 Action & Ingestion Toolbar */}
       <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-extrabold text-sm text-slate-900 dark:text-white">
               L2 Financial Reconciliation
             </span>
@@ -51,6 +85,12 @@ export default function L2DashboardMain() {
               <Calendar className="w-3 h-3" />
               <span>{activeDatasetMeta?.badgeText || 'October 2026 Live'}</span>
             </span>
+            {latestUploadDateFormatted && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800/90 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <Clock className="w-3 h-3 text-slate-400" />
+                <span>Updated till : {latestUploadDateFormatted}</span>
+              </span>
+            )}
           </div>
         </div>
 

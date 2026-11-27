@@ -823,3 +823,25 @@ eplace mode preserving tickets from other months.
      - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).
 * **Consequences:**
   - The developer has complete visual, granular control over public staging gates from both the top navigation bar and the admin console.
+
+
+---
+
+### Decision 059: Dynamic Last Upload Date Tag in L2 Financial Reconciliation Header Ribbon
+* **Date:** 2026-11-27
+* **Status:** Implemented & Verified Live
+* **Context:**
+  - The developer provided screenshot `media_1795780735906_afbb9116.png` showing the L2 Financial Reconciliation header toolbar and asked:
+    *"in this ribbon state the last date of the upload as 'Updated till : dd/mm/yyyy' Did you understand this ?"*.
+* **Decision & Implementation:**
+  1. *Dynamic Upload Date Extraction (`src/components/L2Dashboard/L2DashboardMain.jsx`):*
+     - Evaluates `scopedTickets` in the active dataset to extract the maximum transaction / approval date (`l2ApprovedDate` / `date`).
+     - Dynamically formats the date into strict `dd/mm/yyyy` format (e.g. `16/11/2026` for November, `31/10/2026` for October, or latest date of any newly ingested file).
+  2. *Toolbar Ribbon Display:*
+     - Embedded directly in the title cluster beside the month live badge:
+       `Updated till : dd/mm/yyyy` with `<Clock className="w-3 h-3 text-slate-400" />`.
+  3. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements.
+     - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).
+* **Consequences:**
+  - Users and leadership immediately see the precise transaction cutoff date of the reconciliation data without needing to search through individual tickets.
