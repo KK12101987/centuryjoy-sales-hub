@@ -420,20 +420,86 @@ export function getAuditorScope(user) {
   return user.role === ROLES.AUDITOR ? 'self' : 'none';
 }
 
+// =========================================================================
+// DEVELOPER STAGING DEVICE AUTHORIZATION & PUBLIC L2-ONLY GATING
+// =========================================================================
+export const DEV_DEVICE_STORAGE_KEY = 'century_authorized_dev_device_v1';
+export const DEV_PREVIEW_PUBLIC_KEY = 'century_preview_public_mode_v1';
+export const DEV_UNLOCK_SECRET = 'CP-DEV-2026';
+
+/**
+ * Validates whether the active device/browser has developer test authorization.
+ * Web browsers execute inside a security sandbox where hardware MAC addresses are inaccessible.
+ * Device authorization is persisted locally in browser localStorage, and can be activated via:
+ * 1. URL Query parameter ?dev_unlock=CP-DEV-2026 (or ?dev_key=CP-DEV-2026)
+ * 2. Automatic enrollment upon successful login as Developer & Super Admin Kushal Kar
+ */
+export function isDevDeviceAuthorized() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const unlockParam = searchParams.get('dev_unlock') || searchParams.get('dev_key');
+    if (unlockParam === DEV_UNLOCK_SECRET) {
+      localStorage.setItem(DEV_DEVICE_STORAGE_KEY, 'true');
+      return true;
+    }
+    return localStorage.getItem(DEV_DEVICE_STORAGE_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+export function setDevDeviceAuthorized(authorized = true) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (authorized) {
+      localStorage.setItem(DEV_DEVICE_STORAGE_KEY, 'true');
+    } else {
+      localStorage.removeItem(DEV_DEVICE_STORAGE_KEY);
+    }
+  } catch (e) {}
+}
+
+export function isPreviewPublicMode() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(DEV_PREVIEW_PUBLIC_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+export function setPreviewPublicMode(active = true) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (active) {
+      localStorage.setItem(DEV_PREVIEW_PUBLIC_KEY, 'true');
+    } else {
+      localStorage.removeItem(DEV_PREVIEW_PUBLIC_KEY);
+    }
+  } catch (e) {}
+}
+
 /**
  * Resolves the array of module keys permitted for the authenticated user.
- * Available modules: 'consolidated', 'l2', 'productivity', 'qa', 'users'
+ * Available modules: 'consolidated', 'divisions', 'l2', 'productivity', 'qa', 'users'
  *
- * Scoping rules:
- * - Developer & Super Admin (Kushal Kar): All modules ['consolidated', 'l2', 'productivity', 'qa', 'users']
- * - Tanmoy Kar: ['l2', 'consolidated'] (L2 Financial Reconciliation & Executive View)
- * - Quality Auditors (Arindam, Nabonita, Sayan, Arnab, and future auditors): ['qa'] (QA Tools & statistics only)
- * - Senior Managers (Niladri, Surajit, Arijit, Amit): ['consolidated', 'l2', 'productivity', 'qa'] (Scoped division data)
- * - Pod Captains (Arshi, Mousumi, Nasima, Pallabi, Ranjana, Shiuli, Silpa): ['consolidated', 'l2', 'productivity', 'qa'] (Scoped pod data)
- * - Executive Viewers: ['consolidated']
+ * Staging Lock Policy:
+ * On Public / Outside Devices (or when Developer toggles "Public Preview"):
+ * - ONLY 'l2' (L2 Approvals) is permitted. All other in-development views are strictly locked and hidden.
+ *
+ * Developer Device Mode:
+ * - When the device is authorized, the developer can switch between user logins (Niladri, Arshi,
+ *   Nabonita, etc.) and test the full role-specific permissions without restrictions.
  */
 export function getPermittedModules(user) {
-  if (!user) return ['consolidated'];
+  if (!user) return ['l2'];
+
+  // Staging / Public Device Gate:
+  const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
+  if (!isDevActive) {
+    return ['l2'];
+  }
   
   // Custom override if explicitly assigned on user profile
   if (Array.isArray(user.permittedModules) && user.permittedModules.length > 0) {
@@ -474,17 +540,29 @@ export function getPermittedModules(user) {
  * Resolves the array of upload tabs permitted in the Universal Ingestion Center.
  * Available tabs: 'l2', 'telephony', 'qa', 'dialer'
  *
- * Rules:
- * - Super Admin / Developer (Kushal Kar): ['l2', 'telephony', 'qa', 'dialer']
- * - Tanmoy Kar (or canUploadL2): ['l2']
- * - Arindam Mitra & Nabonita Roy (or canUploadQA): ['dialer', 'telephony', 'qa']
- * - Senior Managers & Pod Captains: [] (Denied all upload functions)
- * - General Auditors (Sayan Banik, Arnab Chakladaar without canUploadQA): [] (No upload access)
+ * Staging Lock Policy:
+ * On Public / Outside Devices:
+ * - Only 'l2' upload is permitted (if user has canUploadL2, is admin, or Tanmoy).
+ * - Telephony, QA, and Dialer uploads are locked.
  */
 export function getAllowedUploadTabs(user) {
   if (!user) return [];
 
   const email = (user.email || '').toLowerCase().trim();
+  const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
+
+  // Staging / Public Device Gate: strictly L2 upload only
+  if (!isDevActive) {
+    if (
+      email === 'kushal.centuryply@gmail.com' ||
+      email.includes('tanmoy') ||
+      user.role === ROLES.ADMIN ||
+      user.canUploadL2
+    ) {
+      return ['l2'];
+    }
+    return [];
+  }
 
   // Super Admin / Developer
   if (email === 'kushal.centuryply@gmail.com' || (isDeveloperUser(user) && !email.includes('tanmoy'))) {
@@ -504,7 +582,6 @@ export function getAllowedUploadTabs(user) {
   }
 
   // Check explicit or designated QA/Dialer/Telephony upload permission
-  // Arindam Mitra and Nabonita Roy are designated QA uploaders by default
   const isDesignatedQaUploader = 
     email === 'arindam.centuryply@gmail.com' ||
     email === 'nabonita.roy@centuryply.com' ||

@@ -26,11 +26,23 @@ function ModuleLoadingFallback() {
 }
 
 function AppContent() {
-  const { currentUser, activeModule, isUploadModalOpen, closeUploadModal, uploadModalTab, effectiveZoom } = useData();
+  const { 
+    currentUser, 
+    activeModule, 
+    isUploadModalOpen, 
+    closeUploadModal, 
+    uploadModalTab, 
+    effectiveZoom,
+    isDevDevice,
+    previewPublicMode 
+  } = useData();
 
   if (!currentUser) {
     return <LoginPage />;
   }
+
+  // Staging / Public Lock Gate: Outside devices (and developer preview mode) can strictly ONLY view L2 Approvals
+  const isPublicDeviceLocked = !isDevDevice || previewPublicMode;
 
   return (
     <div 
@@ -63,12 +75,12 @@ function AppContent() {
       {/* Main Content Viewport with Suspense Code Splitting */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <Suspense fallback={<ModuleLoadingFallback />}>
-          {activeModule === 'consolidated' && <ConsolidatedDashboard />}
-          {activeModule === 'divisions' && <ManagerHub />}
-          {activeModule === 'l2' && <L2DashboardMain />}
-          {activeModule === 'productivity' && <RMProductivity />}
-          {activeModule === 'qa' && <QaDashboard />}
-          {activeModule === 'users' && <UserManagement />}
+          {(isPublicDeviceLocked || activeModule === 'l2') && <L2DashboardMain />}
+          {!isPublicDeviceLocked && activeModule === 'consolidated' && <ConsolidatedDashboard />}
+          {!isPublicDeviceLocked && activeModule === 'divisions' && <ManagerHub />}
+          {!isPublicDeviceLocked && activeModule === 'productivity' && <RMProductivity />}
+          {!isPublicDeviceLocked && activeModule === 'qa' && <QaDashboard />}
+          {!isPublicDeviceLocked && activeModule === 'users' && <UserManagement />}
         </Suspense>
       </main>
 

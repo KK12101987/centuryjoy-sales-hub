@@ -17,7 +17,8 @@ import {
   UploadCloud, 
   RefreshCw,
   Layers,
-  Monitor 
+  Monitor,
+  Laptop 
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -47,6 +48,9 @@ export default function Navbar() {
     displayScale,
     setDisplayScale,
     effectiveZoom,
+    isDevDevice,
+    previewPublicMode,
+    togglePreviewPublicMode,
   } = useData();
 
   // Close dropdowns when clicking outside or pressing Escape
@@ -347,6 +351,30 @@ export default function Navbar() {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
+
+            {/* Developer Device Staging Indicator & Public Preview Toggle */}
+            {isDevDevice && (
+              <button
+                type="button"
+                onClick={togglePreviewPublicMode}
+                title={
+                  previewPublicMode
+                    ? 'Public Preview Mode Active (Only L2 Approvals visible to outside users). Click to restore Developer Unlocked Mode.'
+                    : 'Authorized Developer Computer (All views unlocked). Click to preview Public Mode (L2 Only).'
+                }
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  previewPublicMode
+                    ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                    : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full shrink-0 ${previewPublicMode ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+                <Laptop className={`w-3.5 h-3.5 shrink-0 ${previewPublicMode ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
+                <span className="hidden sm:inline font-bold text-[11px]">
+                  {previewPublicMode ? 'Public Mode (L2 Only)' : 'Dev Device: Unlocked'}
+                </span>
+              </button>
+            )}
 
             {/* Resolution / Viewport Scale Controller */}
             <div className="relative inline-block shrink-0" ref={scaleDropdownRef}>

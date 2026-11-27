@@ -6,7 +6,16 @@ import rawTelephony from '../data/seedTelephony.json';
 import rawQaAudits from '../data/seedQaAudits.json';
 import rawRMs from '../data/rmDirectory.json';
 import rawDialerCalls from '../data/seedDialerData.json';
-import { getAllUsers, SEED_USERS, ROLES, getPermittedModules } from '../utils/auth';
+import { 
+  getAllUsers, 
+  SEED_USERS, 
+  ROLES, 
+  getPermittedModules,
+  isDevDeviceAuthorized,
+  setDevDeviceAuthorized,
+  isPreviewPublicMode,
+  setPreviewPublicMode 
+} from '../utils/auth';
 import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
 
 // Default ticket corpus combining baseline October (2,688) & November (326)
@@ -54,21 +63,54 @@ export function DataProvider({ children }) {
 
   const [users, setUsers] = useState(() => getAllUsers());
 
+  // Staging / Public Device Lock & Dev Preview Mode
+  const [isDevDevice, setIsDevDevice] = useState(() => isDevDeviceAuthorized());
+  const [previewPublicMode, setPreviewPublicModeState] = useState(() => isPreviewPublicMode());
+
+  // Auto-enroll device authorization if Kushal is logged in or if dev secret query param is present
+  useEffect(() => {
+    if (isDevDeviceAuthorized()) {
+      setIsDevDevice(true);
+    }
+    if (currentUser?.email === 'kushal.centuryply@gmail.com') {
+      setDevDeviceAuthorized(true);
+      setIsDevDevice(true);
+    }
+  }, [currentUser]);
+
   // 3. Active Module
   const [activeModule, setActiveModule] = useState(() => {
     try {
+      const isDev = isDevDeviceAuthorized() && !isPreviewPublicMode();
+      if (!isDev) return 'l2';
       return localStorage.getItem('century_active_module_v2') || 'consolidated';
     } catch (e) {
-      return 'consolidated';
+      return 'l2';
     }
   });
 
   const switchModule = (mod) => {
     verifyWatermarkIntegrity();
-    setActiveModule(mod);
+    const isDev = isDevDeviceAuthorized() && !isPreviewPublicMode();
+    const permitted = getPermittedModules(currentUser);
+    const target = (isDev && permitted.includes(mod)) ? mod : 'l2';
+    setActiveModule(target);
     try {
-      localStorage.setItem('century_active_module_v2', mod);
+      localStorage.setItem('century_active_module_v2', target);
     } catch (e) {}
+  };
+
+  const togglePreviewPublicMode = () => {
+    const nextState = !previewPublicMode;
+    setPreviewPublicModeState(nextState);
+    setPreviewPublicMode(nextState);
+    if (nextState) {
+      // Switching to public preview: strictly force active module to 'l2'
+      setActiveModule('l2');
+      try {
+        localStorage.setItem('century_active_module_v2', 'l2');
+      } catch (e) {}
+    }
   };
 
   // 4. Theme State
@@ -1852,6 +1894,10 @@ export function DataProvider({ children }) {
   const login = (user) => {
     verifyWatermarkIntegrity();
     setCurrentUser(user);
+    if (user?.email === 'kushal.centuryply@gmail.com') {
+      setDevDeviceAuthorized(true);
+      setIsDevDevice(true);
+    }
     try {
       localStorage.setItem('century_joy_auth_user_v2', JSON.stringify(user));
     } catch (e) {}
@@ -1891,7 +1937,8 @@ export function DataProvider({ children }) {
     setSelectedManager('all');
     setSelectedCaptain('all');
     setScopeFilter({ manager: 'all', captain: 'all', stream: 'all' });
-    setActiveModule('consolidated');
+    const isDev = isDevDeviceAuthorized() && !isPreviewPublicMode();
+    setActiveModule(isDev ? 'consolidated' : 'l2');
     resetFilters();
   };
 
@@ -1975,6 +2022,9 @@ export function DataProvider({ children }) {
     displayScale,
     setDisplayScale: updateDisplayScale,
     effectiveZoom,
+    isDevDevice,
+    previewPublicMode,
+    togglePreviewPublicMode,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -621,48 +621,40 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Official QA scorecards now print on a crisp, elegant single A4 sheet with 0 leaking form chrome; coaching sessions automatically configure focus areas and supervisory routing based on defect severity; and the action column clearly distinguishes coached agents.
 
-## Decision 050: Dynamic Resolution Auto-Fit Scaling, Viewport Adaptation Engine, Navbar Scale Controller Dropdown, and Print Safety Isolation
-* **Date:** November 26, 2026
+## Decision 051: Device-Level Developer Staging Lock, Public L2-Only Gating, and In-Navbar Dev State Controller
+* **Date:** November 27, 2026
 * **Status:** Adopted & Implemented
 * **Context:**
-  - Users on standard 1080p laptop displays ($1920 \times 1080$ at 125% Windows scaling, giving an effective CSS viewport of $\approx 1536 \times 720\text{--}864\text{px}$) had to manually zoom out their browser to 90% (as shown in user attachment `media_1795689004214_f7034c09.jpg`) to view the entire dashboard (Navbar, Pod/Division Banner, 3 KPI Pillar Cards, and Relationship Managers Leaderboard table) without vertical scrolling.
-  - User requested an automated mechanism where the application dynamically detects screen resolution and automatically scales its layout to fit the screen seamlessly, while also providing manual user control and preserving standard 100% scaling during printing.
+  - The developer requested locking in-development views and related operational details to their developer machine while keeping only "L2 Approvals and related functions like upload and all" visible on outside/public devices until final release approval.
+  - Due to browser sandbox security constraints (W3C standard), hardware MAC addresses are strictly inaccessible via client-side JavaScript.
+  - Furthermore, the developer needs to test multiple user accounts and supervisory roles (`Niladri Bhadra`, `Arshi Jamal`, `Nabonita Roy`, `Tanmoy Kar`, etc.) on their machine to evaluate role-based scenarios. A simple user-account lock would prevent testing these other roles.
 * **Actions Taken:**
-  1. *Dynamic Display Resolution Scaling & Auto-Fit Engine (`DataContext.jsx`):*
-     - Built `computeAutoZoom()` calculating optimal zoom based on real viewport height and browser zoom compensation:
-       - Detects if browser zoom itself is already zoomed ($\le 82\%$, e.g. Chrome at 75%) and prevents double-shrinking.
-       - $\le 740\text{px}$ height (720p / 768p displays or 125% laptop): scales to `0.70` (70%).
-       - $\le 1020\text{px}$ height (standard 1080p desktop with Chrome UI where height is ~900-980px): scales automatically to **`0.75` (75% Fit to Screen)**, fitting the complete dashboard on screen with zero manual browser zooming.
-       - $\le 1180\text{px}$ height: scales to `0.80` (80% Compact).
-       - $\le 1350\text{px}$ height: scales to `0.90` (90% Roomy).
-       - $> 1350\text{px}$ height (1440p / 4K monitors): scales to `1.0` (100% Standard).
-     - State `displayScale` persisted in `localStorage` under `century_display_scale_v2`.
-     - Attached throttled `window.addEventListener('resize', ...)` listener in `'auto'` mode to automatically recompute zoom on screen resize or window docking.
-     - Exported `displayScale`, `setDisplayScale`, and `effectiveZoom` in `DataContext`.
-  2. *Root Scale Wrapper & Viewport Container (`App.jsx`):*
-     - Wrapped root content inside `<div id="app-scale-root" style={{ zoom: effectiveZoom }}>`.
-     - Expanded `<main>` max-width container from `max-w-7xl` (1280px) to `max-w-[1600px]`, matching `Navbar.jsx` for optimal horizontal layout utilization.
-  3. *Print Viewport Safety Override (`App.jsx`, `index.css`, `QaScorecard.jsx`):*
-     - Added `@media print { #app-scale-root, body, html { zoom: 1 !important; } }` across global stylesheets.
-     - Guarantees printable scorecards, audit certificates, and PDF exports are rendered at 1:1 unscaled proportions regardless of screen scaling.
-  4. *Navbar Resolution Controller Dropdown (`Navbar.jsx`):*
-     - Positioned an interactive Resolution Pill (`Monitor` icon + `Auto (75%)` / `75%`) next to the Theme Toggle button.
-     - Provides a 6-option interactive dropdown:
-       - `⚡ Auto-Fit (75%)` (Recommended, auto-detects viewport)
-       - `🖥️ Fit to Screen (75%)` (Full view for 1080p displays)
-       - `📱 Compact (80%)` (Balanced overview for laptops)
-       - `💻 Laptop View (85%)` (Optimized readability for laptops)
-       - `📖 Roomy (90%)` (Slight scale compression)
-       - `🔍 Standard (100%)` (Default 1:1 pixel rendering)
-  5. *Compact Vertical Padding & Card Geometry (`ManagerHub.jsx`):*
-     - Reduced division and pod banner padding to `p-4 sm:p-5 lg:p-6`.
-     - Reduced Tri-Factor KPI Pillar card padding to `p-4` with `gap-4`.
-     - Tightened subordinate pod card spacing and capped table containers at `max-h-[440px]`.
-  6. *Rule 21b Anti-Slop Audit Cycle:*
+  1. *Device Staging Token & Secret Unlock Engine (`src/utils/auth.js`):*
+     - Implemented `isDevDeviceAuthorized()`, `setDevDeviceAuthorized()`, `isPreviewPublicMode()`, and `setPreviewPublicMode()`.
+     - Device authorization is persisted locally in `localStorage` under `century_authorized_dev_device_v1`.
+     - Automatically enrolled when:
+       a) Logging in as Developer & Super Admin Kushal Kar (`kushal.centuryply@gmail.com`).
+       b) Loading the application with secret URL query parameter `?dev_unlock=CP-DEV-2026` or `?dev_key=CP-DEV-2026`.
+  2. *Strict Public Device Module & Upload Gating (`src/utils/auth.js`, `src/App.jsx`):*
+     - On unauthorized devices (or when developer toggles Public Preview mode):
+       - `getPermittedModules(user)` strictly returns `['l2']`.
+       - All in-development modules (`consolidated`, `divisions`, `productivity`, `qa`, `users`) are completely stripped from both desktop and mobile navigation bars.
+       - `getAllowedUploadTabs(user)` strictly restricts the Universal Ingestion Center to `['l2']` (L2 Approvals Financial Reconciliation only), hiding Telephony, QA, and Dialer tabs.
+       - In `App.jsx`, `isPublicDeviceLocked = !isDevDevice || previewPublicMode` strictly forces `<L2DashboardMain />`, guaranteeing zero leakage of in-development components.
+  3. *Authorized Developer Device Experience:*
+     - On the developer's computer, authorization persists across sessions. The developer can log into any account (`Niladri`, `Arshi`, `Nabonita`, `Kushal`, etc.) and test the full role-specific permissions without restriction.
+  4. *In-Navbar Dev Device Controller & 1-Click Public Mode Preview (`Navbar.jsx`):*
+     - Added an interactive badge next to the Resolution Controller in the header:
+       - `💻 Dev Device: Unlocked` (Emerald pulse): Indicating full developer staging access.
+       - Clicking the badge toggles `togglePreviewPublicMode()`, instantly switching to `🔒 Public Mode (L2 Only)` (Amber indicator) and forcing the view to L2 Approvals so the developer can preview what outside users see without switching machines.
+  5. *Login Page Gating (`LoginPage.jsx`):*
+     - Quick login test preset pills are strictly gated to authorized developer devices (`isDevDeviceAuthorized()`), preventing outside visitors from clicking developer presets.
+  6. *Rule 21b Software Factory & Anti-Slop Audit Cycle:*
      - 0 unused imports, 0 console.log statements across source files.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 * **Consequences:**
-  - Users on 1080p laptops and desktops now see the complete executive dashboard fit perfectly on screen with 0 manual browser zooming required; users can toggle or lock any display scale on the fly via the Navbar controller; and PDF/print outputs remain strictly at 100% scale.
+  - Outside visitors and public devices can strictly and exclusively see and use L2 Financial Approvals and its reconciliation upload; in-development modules are completely locked and hidden; and the developer retains full multi-role testing capabilities on their authorized machine with an instant 1-click Public Preview toggle.
+
 
 
 

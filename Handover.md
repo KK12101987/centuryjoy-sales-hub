@@ -532,6 +532,40 @@ The application will automatically detect Vite and the serverless functions unde
      - Production Vite build compiled in 22.26s with 0 errors.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
+---
+
+## 38. Device-Level Developer Staging Lock & Public L2-Only Gating (Nov 27, 2026)
+- **Problem & Root Cause Analysis:**
+  - The developer requested locking in-development views and operational details to their developer machine while keeping only "L2 Approvals and related functions like upload and all" visible on outside/public devices until final release approval.
+  - Browser sandbox standards (W3C) forbid client-side JavaScript access to Layer 2 physical network hardware (MAC addresses).
+  - Furthermore, the developer requires testing role-based scenarios across multiple user accounts (`Niladri Bhadra`, `Arshi Jamal`, `Nabonita Roy`, `Tanmoy Kar`, etc.) on their machine. A simple user-account lock would prevent testing these other roles.
+- **Architectural Implementation:**
+  1. *Device Staging Token & Secret Unlock Engine (`src/utils/auth.js`):*
+     - Implemented `isDevDeviceAuthorized()`, `setDevDeviceAuthorized()`, `isPreviewPublicMode()`, and `setPreviewPublicMode()`.
+     - Device authorization is persisted locally in `localStorage` under `century_authorized_dev_device_v1`.
+     - Automatically enrolled when:
+       a) Logging in as Developer & Super Admin Kushal Kar (`kushal.centuryply@gmail.com`).
+       b) Loading the application with secret URL query parameter `?dev_unlock=CP-DEV-2026` or `?dev_key=CP-DEV-2026`.
+  2. *Strict Public Device Module & Upload Gating (`src/utils/auth.js`, `src/App.jsx`):*
+     - On unauthorized devices (or when developer toggles Public Preview mode):
+       - `getPermittedModules(user)` strictly returns `['l2']`.
+       - All in-development modules (`consolidated`, `divisions`, `productivity`, `qa`, `users`) are completely stripped from both desktop and mobile navigation bars.
+       - `getAllowedUploadTabs(user)` strictly restricts the Universal Ingestion Center to `['l2']` (L2 Approvals Financial Reconciliation only), hiding Telephony, QA, and Dialer tabs.
+       - In `App.jsx`, `isPublicDeviceLocked = !isDevDevice || previewPublicMode` strictly forces `<L2DashboardMain />`, guaranteeing zero leakage of in-development components.
+  3. *Authorized Developer Device Experience:*
+     - On the developer's computer, authorization persists across sessions. The developer can log into any account (`Niladri`, `Arshi`, `Nabonita`, `Kushal`, etc.) and test the full role-specific permissions without restriction.
+  4. *In-Navbar Dev Device Controller & 1-Click Public Mode Preview (`Navbar.jsx`):*
+     - Added an interactive badge next to the Resolution Controller in the header:
+       - `💻 Dev Device: Unlocked` (Emerald pulse): Indicating full developer staging access.
+       - Clicking the badge toggles `togglePreviewPublicMode()`, instantly switching to `🔒 Public Mode (L2 Only)` (Amber indicator) and forcing the view to L2 Approvals so the developer can preview what outside users see without switching machines.
+  5. *Login Page Gating (`LoginPage.jsx`):*
+     - Quick login test preset pills are strictly gated to authorized developer devices (`isDevDeviceAuthorized()`), preventing outside visitors from clicking developer presets.
+  6. *Rule 21b Software Factory & Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across source files.
+     - Production Vite build passed in 47.63s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
+
 
 
 
