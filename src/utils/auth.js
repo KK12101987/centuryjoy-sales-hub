@@ -438,7 +438,7 @@ export function getAuditorScope(user) {
  *   see ONLY L2 Approvals. All other modules are locked until unlocked on an
  *   authorized developer device or via ?dev_unlock=CP-DEV-2026.
  */
-export const IS_PRODUCTION_RELEASE_ACTIVE = true;
+export const IS_PRODUCTION_RELEASE_ACTIVE = false;
 
 export const DEV_DEVICE_STORAGE_KEY = 'century_authorized_dev_device_v1';
 export const DEV_PREVIEW_PUBLIC_KEY = 'century_preview_public_mode_v1';
