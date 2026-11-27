@@ -48,7 +48,7 @@ function AppContent() {
     <div 
       id="app-scale-root"
       style={{ zoom: effectiveZoom }}
-      className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-800 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-150"
+      className="min-h-screen w-full bg-slate-50 dark:bg-[#070a12] text-slate-800 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-150"
     >
       {/* Print zoom reset stylesheet */}
       <style>{`
@@ -73,7 +73,7 @@ function AppContent() {
       />
 
       {/* Main Content Viewport with Suspense Code Splitting */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 2xl:px-10 py-5">
         <Suspense fallback={<ModuleLoadingFallback />}>
           {(isPublicDeviceLocked || activeModule === 'l2') && <L2DashboardMain />}
           {!isPublicDeviceLocked && activeModule === 'consolidated' && <ConsolidatedDashboard />}
@@ -86,7 +86,7 @@ function AppContent() {
 
       {/* Executive Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-4 text-center text-xs text-slate-500 transition-colors print:hidden">
-        <div className="max-w-[1600px] mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-10 flex flex-col sm:flex-row justify-between items-center gap-2">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">

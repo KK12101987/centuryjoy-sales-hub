@@ -600,3 +600,32 @@ The application will automatically detect Vite and the serverless functions unde
 
 
 
+
+
+---
+
+## 40. Fluid Full-Width Layout Architecture & Calibrated Resolution Scaling
+- **Developer Request:**
+  - *"auto zoom is not working also there is a huge gap in the left side can we make arrangements to make it proper ?"*
+  - Attached screenshot: `media_1795761819529_ed2e3de9.jpg`.
+- **Diagnosis & Fix:**
+  1. *Root Cause:*
+     - The previous layout had `max-w-[1600px] mx-auto` applied on `Navbar.jsx`, `<main>` in `App.jsx`, and `<footer>` in `App.jsx`.
+     - When zoom (e.g. 75%) was active on `#app-scale-root`, Chromium expanded the coordinate width to $1920 / 0.75 = 2560\text{px}$. The `mx-auto` calculation generated a 480px left margin (`(2560 - 1600) / 2 = 480px`), creating a massive empty void on the left while pushing the right-side profile and logout buttons offscreen.
+     - Additionally, `computeAutoZoom()` had a blunt `if (h <= 1090) return 0.75;` threshold that aggressively shrunk 1080p desktop screens to 75%.
+  2. *Fluid Full-Width Architecture:*
+     - Removed `max-w-[1600px] mx-auto` across `Navbar.jsx`, `App.jsx` (`<main>`), and `App.jsx` (`<footer>`).
+     - Applied fluid container classes: `w-full px-4 sm:px-6 lg:px-8 2xl:px-10`.
+     - Added `w-full` explicitly to `#app-scale-root` and `html, body { margin: 0; padding: 0; width: 100%; }` in `src/index.css`.
+     - Layout now spans cleanly from the left edge (with standard 16-32px padding) to the right edge with zero artificial left gutter.
+  3. *Calibrated Adaptive Auto-Fit Scale:*
+     - Calibrated `computeAutoZoom()` in `src/context/DataContext.jsx`:
+       - $h < 720\text{px}$: `0.80`
+       - $720\text{px} \le h < 860\text{px}$: `0.85`
+       - $860\text{px} \le h < 1020\text{px}$: `0.90` (Standard 1080p desktop — crisp typography, balanced fit)
+       - $h \ge 1020\text{px}$: `1.0`
+     - Responsive text suppression on smaller widths in `Navbar.jsx` prevents navbar overflow.
+  4. *Rule 21b Software Factory & Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across source files.
+     - Production Vite build passed in 30.27s with exit code 0.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.

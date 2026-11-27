@@ -149,21 +149,22 @@ export function DataProvider({ children }) {
       }
     } catch (e) {}
 
-    // If the browser itself is already zoomed out to <= 82% (like Chrome at 75%), do not double-scale
-    if (browserZoom <= 0.82) {
+    // If the browser itself is already zoomed out to <= 0.85 (like Chrome at 75% or 80%), do not double-scale
+    if (browserZoom <= 0.85) {
       return 1.0;
     }
 
-    // Evaluate viewport height in CSS pixels (at 100% browser zoom)
+    const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // Standard 1080p desktop (1920x1080) with browser chrome typically has innerHeight ~900-1080px.
-    // 75% scale fits the complete dashboard (banner + 3 KPI cards + subordinate pods + table) with 0 overflow!
-    if (h <= 740) return 0.70;       // Small 720p / 768p displays or 125% laptop
-    if (h <= 1090) return 0.75;      // Standard 1080p desktop / laptop (h ~900-1080) -> 75% Auto-Fit!
-    if (h <= 1250) return 0.85;      // Mid-height displays
-    if (h <= 1400) return 0.90;      // 1200p / 1440p displays
-    return 1.0;                      // 1440p / 4K monitors
+    // On narrow tablet or mobile viewports, maintain standard scale
+    if (w < 1024) return 1.0;
+
+    // Adaptive auto-fit calibrated for optimal screen fit and crisp readability
+    if (h < 720) return 0.80;       // Small 720p / 768p displays or compact laptops
+    if (h < 860) return 0.85;       // Standard 1080p laptop with 125% Windows DPI or browser toolbars
+    if (h < 1020) return 0.90;      // Standard 1080p desktop with taskbar & address bar (comfortable & crisp)
+    return 1.0;                     // 1080p maximized fullscreen, 1440p, 4K monitors
   };
 
   const [displayScale, setDisplayScaleState] = useState(() => {
