@@ -644,3 +644,28 @@ The application will automatically detect Vite and the serverless functions unde
   4. *Rule 21b Anti-Slop Audit:*
      - Pruned unused `CheckCircle2` named import.
      - Production build passed in 22.31s with code 0.
+
+
+---
+
+## 42. 7 QC Tools as Primary Quality Assurance Executive Dashboard
+- **Developer Request:**
+  - *"For "Quality Assurance & 7 QC Analytics Suite" make the "7QC tools" as dashboard"*
+- **Implementation:**
+  1. *Primary Dashboard Landing:*
+     - Updated `src/components/QaDashboard/QaDashboard.jsx` so `activeTab` defaults to `'qctools'`.
+  2. *Navigation Reordering:*
+     - Placed **`7 QC Dashboard`** as the first tab in the header navigation, visually anchored with `<BarChart3 className="w-3.5 h-3.5" />`.
+  3. *Executive KPI Summary Banner:*
+     - Added 4 high-level KPI cards at the top of the 7 QC dashboard:
+       - `Overall QA Compliance` ($85.3\%$)
+       - `Audits Logged` ($60$ audits)
+       - `Compliance Pass Rate` ($91.7\%$)
+       - `Critical Fatalities` ($0.0\%$ / Process Secure)
+  4. *Quick Action Ribbon:*
+     - Provided direct workflow access buttons to `New Audit Scorecard`, `Pending Calls Queue`, `Audit Records Log`, and `Export CSV`.
+  5. *Comprehensive 7 QC Suite:*
+     - Maintained all 7 interactive tools: Scatter Diagram, Pareto 80/20, Ishikawa Fishbone, Histogram, SPC Control Chart, Check Sheet Tally, and Stratification Matrix.
+  6. *Anti-Slop Audit (Rule 21b):*
+     - 0 unused imports, 0 console.log statements.
+     - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).

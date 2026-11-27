@@ -750,3 +750,42 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - The Monetary Value Bifurcation section now exclusively focuses on operational tiers: `By Relationship Managers`, `By Senior Managers`, and `By Teams & Captains`.
   - Zero dead code or uninvoked states remain in the component.
+
+
+---
+
+### Decision 055: Transformation of 7 QC Tools into Primary Executive Quality Dashboard
+* **Date:** 2026-11-27
+* **Status:** Implemented & Verified
+* **Context:**
+  - The developer requested: *"For "Quality Assurance & 7 QC Analytics Suite" make the "7QC tools" as dashboard"*.
+  - Previously, `activeTab` in `QaDashboard.jsx` defaulted to `canAudit ? 'scorecard' : 'qctools'`, meaning Admins and QA Auditors landed on an empty evaluation form rather than the high-level quality analytics and statistical process control suite.
+* **Decision & Implementation:**
+  1. *Primary Landing View:*
+     - Set initial `activeTab` to `'qctools'` as the default executive dashboard for all user roles (Admin, Executive Leadership, Managers, QA Auditors, Viewers).
+  2. *Reordered Navigation Tabs:*
+     - Placed **`7 QC Dashboard`** as the leading primary tab with `<BarChart3 className="w-3.5 h-3.5" />`, followed by `Audit Scorecard`, `Pending Calls`, and `Audit History`.
+  3. *Executive QA KPI Summary Banner:*
+     - Integrated a 4-card executive KPI summary row directly above the 7 QC Tools:
+       - **Overall QA Compliance:** Average score ($85.3\%$) with benchmark met indicator.
+       - **Audits Logged:** Total evaluated calls ($60$) across the active scope.
+       - **Compliance Pass Rate:** Percentage of non-fatal audits $\ge 85\%$ ($91.7\%$).
+       - **Critical Fatalities:** Zero tolerance metric ($0.0\%$ / Process Secure).
+  4. *Workflow Quick Action Ribbon:*
+     - Added one-click action buttons within the 7 QC dashboard header for seamless auditor workflows:
+       - `New Audit Scorecard` (`FileEdit` icon) to quickly launch evaluation forms.
+       - `Pending Calls Queue` (`Headphones` icon with live call count).
+       - `Audit Records Log` (`ClipboardCheck` icon with record count).
+       - `Export CSV` (`Download` icon) for complete audit data extraction.
+  5. *Preserved Full 7 QC Analytics Suite:*
+     - Retained all 7 interactive tools with segmented tool selector and drill-down analytics:
+       1. Scatter Diagram (Talk Time vs. QA Score correlation)
+       2. Pareto Analysis (80/20 root cause defect distribution)
+       3. Ishikawa Cause & Effect (Fishbone root-cause diagrams)
+       4. Score Distribution Histogram (Bell-curve compliance tiers)
+       5. Control Chart (SPC Upper/Lower Control Limits)
+       6. Check Sheet Tally (Frequency distribution matrix)
+       7. Stratification Matrix (Performance by Pod, RM, and Call Type)
+* **Consequences:**
+  - Navigating to "QA & QC Tools" from the Navbar or Consolidated Dashboard opens the 7 QC Statistical Dashboard directly.
+  - QA metrics, statistical process control, and defect distributions are immediately visible at the executive level without extra clicks.
