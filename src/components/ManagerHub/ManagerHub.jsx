@@ -98,7 +98,7 @@ export default function ManagerHub() {
   } = useData();
 
   // Role resolution
-  const isSuperAdmin = currentUser?.role === 'admin' || currentUser?.email?.includes('kushal') || currentUser?.email?.includes('tanmoy');
+  const isSuperAdmin = currentUser?.role === 'admin' || currentUser?.email?.includes('kushal') || currentUser?.email?.includes('tanmoy') || currentUser?.email?.includes('nabonita') || currentUser?.email?.includes('admin@centuryply.com');
   const isManager = currentUser?.role === 'manager';
   const isCaptain = currentUser?.role === 'captain';
 

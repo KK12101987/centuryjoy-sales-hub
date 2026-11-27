@@ -277,16 +277,20 @@ export const SEED_USERS = [
     createdAt: '2026-10-01T00:00:00.000Z',
   },
   // QA Auditors
+  // QA Auditors & Backend Leadership
   {
     name: 'Nabonita Roy',
     email: 'nabonita.roy@centuryply.com',
-    role: ROLES.AUDITOR,
+    role: ROLES.ADMIN,
     qaScope: 'all',
     managerKey: 'all',
-    designation: 'Lead Quality and Backend',
+    reportsTo: 'Executive Leadership',
+    designation: 'Backend Team Lead',
     isPhysicalOnly: false,
     canUploadQA: true,
-    canUploadL2: false,
+    canUploadL2: true,
+    canConductAudits: true,
+    permittedModules: ['consolidated', 'divisions', 'l2', 'productivity', 'qa'],
     initialPassword: 'Nabonita@2026',
     recoveryPin: 'CP-4001',
     status: 'active',
@@ -370,9 +374,9 @@ export const AUTHORIZED_AUDITORS = [
   {
     name: 'Nabonita Roy',
     email: 'nabonita.roy@centuryply.com',
-    designation: 'Lead Quality and Backend',
+    designation: 'Backend Team Lead',
     qaScope: 'all',
-    role: ROLES.AUDITOR,
+    role: ROLES.ADMIN,
     initialPassword: 'Nabonita@2026',
   },
   {
@@ -523,6 +527,16 @@ export function getPermittedModules(user) {
     return ['l2', 'consolidated', 'divisions'];
   }
 
+  // Nabonita Roy: Backend Team Lead (Executive Leadership View) + QA Tools & Ingestion
+  if (email === 'nabonita.roy@centuryply.com' || email.includes('nabonita')) {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
+  }
+
+  // Executive Leadership (admin@centuryply.com): Executive Leadership View across all teams
+  if (email === 'admin@centuryply.com') {
+    return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
+  }
+
   // Quality Auditors: Strictly QA & 7 QC Tools only
   if (user.role === ROLES.AUDITOR) {
     return ['qa'];
@@ -667,6 +681,19 @@ export function getAllUsers() {
         }
         if (parsed[idx].isPhysicalOnly === undefined && seed.isPhysicalOnly !== undefined) {
           parsed[idx].isPhysicalOnly = seed.isPhysicalOnly;
+          modified = true;
+        }
+        // Ensure Nabonita Roy profile is updated with Backend Team Lead & Executive Leadership View
+        if ((parsed[idx].email || '').toLowerCase() === 'nabonita.roy@centuryply.com') {
+          parsed[idx].designation = 'Backend Team Lead';
+          parsed[idx].reportsTo = 'Executive Leadership';
+          parsed[idx].managerKey = 'all';
+          parsed[idx].role = ROLES.ADMIN;
+          parsed[idx].canUploadQA = true;
+          parsed[idx].canUploadL2 = true;
+          parsed[idx].canConductAudits = true;
+          parsed[idx].qaScope = 'all';
+          parsed[idx].permittedModules = ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
           modified = true;
         }
         // One-time canonical name migration for Arindam CenturyPly -> Arindam Mitra

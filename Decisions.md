@@ -652,8 +652,43 @@ eplace mode preserving tickets from other months.
   6. *Rule 21b Software Factory & Anti-Slop Audit Cycle:*
      - 0 unused imports, 0 console.log statements across source files.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+## Decision 052: Nabonita Roy Profile Elevation to Backend Team Lead with Executive Leadership View
+* **Date:** November 27, 2026
+* **Status:** Adopted & Implemented
+* **Context:**
+  - The developer specified: "Nabonita Roy (nabonita.roy@centuryply.com) is backend team lead and her manager comes under Executive Leadership hence should have the Executive Leadership view".
+  - Previously, Nabonita Roy was configured as `role: ROLES.AUDITOR` with designation `Lead Quality and Backend`, restricting her views strictly to `['qa']` (QA & 7 QC Tools only).
+  - As Backend Team Lead reporting directly to Executive Leadership, she requires the complete cross-functional Executive Leadership perspective while preserving her call quality auditing and data ingestion authorities.
+* **Actions Taken:**
+  1. *Profile & Designation Elevation (`src/utils/auth.js`):*
+     - Elevated Nabonita Roy (`nabonita.roy@centuryply.com`) in `SEED_USERS` and `getAllUsers()`:
+       - `designation: 'Backend Team Lead'`
+       - `reportsTo: 'Executive Leadership'`
+       - `managerKey: 'all'` (Enterprise-wide scope across all 4 divisions)
+       - `role: ROLES.ADMIN` (Executive tier)
+       - `canUploadQA: true` (Dialer, Telephony, QA Audits upload)
+       - `canUploadL2: true` (L2 Financial spreadsheet upload)
+       - `canConductAudits: true` & `qaScope: 'all'` (Retains full QA auditing authority)
+       - `permittedModules: ['consolidated', 'divisions', 'l2', 'productivity', 'qa']`
+  2. *Executive Module Permitted Mapping (`getPermittedModules` in `auth.js`):*
+     - Explicitly mapped `email.includes('nabonita')` and `admin@centuryply.com` to `['consolidated', 'divisions', 'l2', 'productivity', 'qa']`, unlocking:
+       - **Consolidated Executive Dashboard:** Enterprise-wide KPI synthesis across all divisions.
+       - **Divisions & Pods Dashboard:** Full executive switcher to inspect any Senior Manager division or Pod Captain pod.
+       - **L2 Financial Approvals:** Full visibility into all ₹14.97+ Cr L2 financial reconciliation data.
+       - **RM Telephony Productivity:** Calling metrics across all digital pods and agents.
+       - **QA Auditing & 7 QC Tools:** Full audit history and active evaluation scorecard.
+  3. *ManagerHub & Dual Switcher (`ManagerHub.jsx`):*
+     - Included Nabonita Roy (`currentUser?.email?.includes('nabonita')`) in `isSuperAdmin` resolution, granting the executive dual switcher (`Division` vs `Pod`) and division selection dropdowns.
+  4. *Login Presets (`LoginPage.jsx`):*
+     - Updated quick login preset: `Nabonita Roy · Backend Team Lead (Executive Leadership View + QA)`.
+     - Added quick login pill for `Executive Leadership (Director)`.
+  5. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across source files.
+     - Production Vite build passed in 22.07s with code 0.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 * **Consequences:**
-  - Outside visitors and public devices can strictly and exclusively see and use L2 Financial Approvals and its reconciliation upload; in-development modules are completely locked and hidden; and the developer retains full multi-role testing capabilities on their authorized machine with an instant 1-click Public Preview toggle.
+  - Nabonita Roy now possesses the full Executive Leadership view across Consolidated, Divisions & Pods, L2 Approvals, RM Telephony, and QA Tools, while retaining her Backend Team Lead designation and full ingestion/auditing permissions.
+
 
 
 

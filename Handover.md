@@ -565,6 +565,37 @@ The application will automatically detect Vite and the serverless functions unde
      - Production Vite build passed in 47.63s with 0 errors.
      - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
 
+---
+
+## 39. Nabonita Roy Profile Elevation to Backend Team Lead with Executive Leadership View (Nov 27, 2026)
+- **Problem & Context:**
+  - Nabonita Roy was originally configured as a pure Quality Auditor with `role: ROLES.AUDITOR`, limiting her views strictly to `['qa']` (QA & 7 QC Tools only).
+  - The developer specified: *"Nabonita Roy (nabonita.roy@centuryply.com) is backend team lead and her manager comes under Executive Leadership hence should have the Executive Leadership view"*.
+- **Implementation:**
+  1. *Profile & Designation Elevation (`src/utils/auth.js`):*
+     - In `SEED_USERS`, `getAllUsers()` localStorage sync, and `AUTHORIZED_AUDITORS`:
+       - `name: 'Nabonita Roy'`
+       - `email: 'nabonita.roy@centuryply.com'`
+       - `designation: 'Backend Team Lead'`
+       - `reportsTo: 'Executive Leadership'`
+       - `managerKey: 'all'` (Enterprise-wide cross-division scope)
+       - `role: ROLES.ADMIN` (Executive leadership tier)
+       - `canUploadQA: true` & `canUploadL2: true` (Multi-domain ingestion)
+       - `canConductAudits: true` & `qaScope: 'all'` (Retains full QA auditing authority)
+       - `permittedModules: ['consolidated', 'divisions', 'l2', 'productivity', 'qa']`
+  2. *Executive Permitted Modules (`auth.js`):*
+     - Explicitly mapped `email === 'nabonita.roy@centuryply.com' || email.includes('nabonita')` and `admin@centuryply.com` to `['consolidated', 'divisions', 'l2', 'productivity', 'qa']`.
+  3. *Executive Dual Switcher Integration (`ManagerHub.jsx`):*
+     - Included `currentUser?.email?.includes('nabonita')` in `isSuperAdmin` resolution, providing the executive dual switcher (`Division` vs `Pod`) and division selection dropdowns.
+  4. *Login Presets (`LoginPage.jsx`):*
+     - Updated quick login preset: `Nabonita Roy · Backend Team Lead (Executive Leadership View + QA)`.
+     - Added quick login pill for `Executive Leadership (Director)`.
+  5. *Rule 21b Software Factory & Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements across source files.
+     - Production Vite build passed in 22.07s with 0 errors.
+     - Rule 22 Watermark Anti-Tamper protocol verified active and coupled.
+
+
 
 
 

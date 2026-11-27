@@ -192,17 +192,17 @@ export default function LoginPage() {
                   <div className="text-[10px] text-blue-600 dark:text-blue-400">L2 Financials &amp; Upload Only</div>
                 </button>
 
-                {/* Lead Quality & Backend */}
+                {/* Backend Team Lead - Nabonita Roy */}
                 <button
                   type="button"
                   onClick={() => handleQuickLogin(users.find((u) => u.email?.includes('nabonita')) || SEED_USERS.find((u) => u.email?.includes('nabonita')))}
                   className="p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 text-left transition-all"
                 >
                   <div className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center space-x-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                     <span>Nabonita Roy</span>
                   </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">QA Auditor + Dialer/Telephony/QA Upload</div>
+                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">Backend Team Lead (Executive Leadership View + QA)</div>
                 </button>
 
                 {/* Senior QA Auditor - Arindam Mitra */}
@@ -247,7 +247,14 @@ export default function LoginPage() {
 
               {/* Quick Pod Captain & Other Switch Pills */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-500">
-                <span className="font-semibold text-slate-400">Pod Captain &amp; Others:</span>
+                <span className="font-semibold text-slate-400">Executive &amp; Pod Captain:</span>
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin(users.find((u) => u.email === 'admin@centuryply.com') || SEED_USERS.find((u) => u.email === 'admin@centuryply.com'))}
+                  className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800"
+                >
+                  Executive Leadership (Director)
+                </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin(users.find((u) => u.email?.includes('arshi')) || SEED_USERS.find((u) => u.email?.includes('arshi')))}
