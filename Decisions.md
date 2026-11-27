@@ -789,3 +789,26 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Navigating to "QA & QC Tools" from the Navbar or Consolidated Dashboard opens the 7 QC Statistical Dashboard directly.
   - QA metrics, statistical process control, and defect distributions are immediately visible at the executive level without extra clicks.
+
+
+---
+
+### Decision 056: Dual-Tier Production Release Switch Architecture
+* **Date:** 2026-11-27
+* **Status:** Implemented & Documented
+* **Context:**
+  - The developer asked: *"from where i will 'flip the switch' to enable 'Consolidated Divisions & Pods L2 Approvals RM Telephony QA & QC Tools Users & Scope'"*.
+  - Previously, view gating was handled through device authorization checks, URL tokens, and localStorage. To ensure clear governance, developer control, and safe staging, the architecture now provides two clear mechanisms.
+* **Decision & Implementation:**
+  1. *Tier 1: Live Interactive Navbar Switch (Active During Development):*
+     - Located directly in the top right navbar (beside the resolution scale dropdown):
+       - **`Dev Unlocked`** (Pulsing green dot & laptop icon): Enables all permitted modules for role-testing.
+       - **`Public Mode`** (Amber dot): Simulates outside public devices (locks all views except L2 Approvals).
+       - Clicking the button toggles between development testing and public preview mode instantly.
+     - On any new or unauthorized device, visiting `?dev_unlock=CP-DEV-2026` or logging in as Developer Kushal Kar enrolls the device.
+  2. *Tier 2: Single-Line Code Release Switch (For Final Public Go-Ahead):*
+     - Located in `src/utils/auth.js`:
+       `export const IS_PRODUCTION_RELEASE_ACTIVE = false;`
+     - When set to `true`: The staging gate is lifted permanently for all devices and users worldwide. Everyone gets their full role-based views without needing device authentication.
+* **Consequences:**
+  - The developer has complete control over when modules are exposed, with both a live instant UI toggle and a permanent codebase master switch.

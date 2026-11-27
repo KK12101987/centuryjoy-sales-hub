@@ -427,6 +427,19 @@ export function getAuditorScope(user) {
 // =========================================================================
 // DEVELOPER STAGING DEVICE AUTHORIZATION & PUBLIC L2-ONLY GATING
 // =========================================================================
+/**
+ * -------------------------------------------------------------------------
+ * 🚀 PRODUCTION GO-AHEAD MASTER RELEASE SWITCH
+ * -------------------------------------------------------------------------
+ * • Set to `true`: Development is complete! Releases ALL modules (Consolidated,
+ *   Divisions & Pods, RM Telephony, QA & QC Tools, Users & Scope) to EVERY user
+ *   and device worldwide based on their standard role-based access.
+ * • Set to `false`: Active Development Mode. Public/outside devices strictly
+ *   see ONLY L2 Approvals. All other modules are locked until unlocked on an
+ *   authorized developer device or via ?dev_unlock=CP-DEV-2026.
+ */
+export const IS_PRODUCTION_RELEASE_ACTIVE = false;
+
 export const DEV_DEVICE_STORAGE_KEY = 'century_authorized_dev_device_v1';
 export const DEV_PREVIEW_PUBLIC_KEY = 'century_preview_public_mode_v1';
 export const DEV_UNLOCK_SECRET = 'CP-DEV-2026';
@@ -439,6 +452,7 @@ export const DEV_UNLOCK_SECRET = 'CP-DEV-2026';
  * 2. Automatic enrollment upon successful login as Developer & Super Admin Kushal Kar
  */
 export function isDevDeviceAuthorized() {
+  if (IS_PRODUCTION_RELEASE_ACTIVE) return true;
   if (typeof window === 'undefined') return false;
   try {
     const searchParams = new URLSearchParams(window.location.search);
@@ -505,7 +519,7 @@ export function getPermittedModules(user) {
   if (!user) return ['l2'];
 
   // Staging / Public Device Gate:
-  const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
+  const isDevActive = IS_PRODUCTION_RELEASE_ACTIVE || (isDevDeviceAuthorized() && !isPreviewPublicMode());
   if (!isDevActive) {
     return ['l2'];
   }
@@ -568,7 +582,7 @@ export function getAllowedUploadTabs(user) {
   if (!user) return [];
 
   const email = (user.email || '').toLowerCase().trim();
-  const isDevActive = isDevDeviceAuthorized() && !isPreviewPublicMode();
+  const isDevActive = IS_PRODUCTION_RELEASE_ACTIVE || (isDevDeviceAuthorized() && !isPreviewPublicMode());
 
   // Staging / Public Device Gate: strictly L2 upload only
   if (!isDevActive) {
