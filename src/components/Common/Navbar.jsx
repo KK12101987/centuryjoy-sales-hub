@@ -95,8 +95,8 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm print:hidden">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-2 xl:gap-3">
+      <div className="w-full px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16 gap-2">
           
           {/* Brand & Title */}
           <div className="flex items-center space-x-3 shrink-0">
@@ -206,7 +206,7 @@ export default function Navbar() {
             {permittedModules.includes('consolidated') && (
               <button
                 onClick={() => switchModule('consolidated')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'consolidated'
                     ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -221,7 +221,7 @@ export default function Navbar() {
             {permittedModules.includes('divisions') && (
               <button
                 onClick={() => switchModule('divisions')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'divisions'
                     ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -242,7 +242,7 @@ export default function Navbar() {
             {permittedModules.includes('l2') && (
               <button
                 onClick={() => switchModule('l2')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'l2'
                     ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -260,7 +260,7 @@ export default function Navbar() {
             {permittedModules.includes('productivity') && (
               <button
                 onClick={() => switchModule('productivity')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'productivity'
                     ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -278,7 +278,7 @@ export default function Navbar() {
             {permittedModules.includes('qa') && (
               <button
                 onClick={() => switchModule('qa')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'qa'
                     ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -296,7 +296,7 @@ export default function Navbar() {
             {permittedModules.includes('users') && (
               <button
                 onClick={() => switchModule('users')}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   activeModule === 'users'
                     ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -309,7 +309,7 @@ export default function Navbar() {
           </nav>
 
           {/* Right Action Bar */}
-          <div className="flex items-center space-x-2 sm:space-x-2.5 shrink-0">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
             
             {/* Upload Data Button */}
             {canUpload && (
@@ -325,11 +325,11 @@ export default function Navbar() {
                   }
                   openUploadModal(defaultTab);
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xs transition-all cursor-pointer whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xs transition-all cursor-pointer whitespace-nowrap shrink-0"
                 title="Open Universal Data Ingestion Center"
               >
                 <UploadCloud className="w-3.5 h-3.5 text-[#e31e24] shrink-0" />
-                <span className="hidden xl:inline">Upload Data</span>
+                <span className="hidden xl:inline">Upload</span>
               </button>
             )}
 
@@ -383,7 +383,7 @@ export default function Navbar() {
               >
                 <Monitor className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform shrink-0" />
                 <span className="font-mono text-[11px] font-bold">
-                  {displayScale === 'auto' ? `Auto (${Math.round(effectiveZoom * 100)}%)` : `${displayScale}%`}
+                  {Math.round(effectiveZoom * 100)}%
                 </span>
                 <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isScaleDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
