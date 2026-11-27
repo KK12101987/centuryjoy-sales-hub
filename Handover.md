@@ -669,19 +669,3 @@ The application will automatically detect Vite and the serverless functions unde
   6. *Anti-Slop Audit (Rule 21b):*
      - 0 unused imports, 0 console.log statements.
      - Verified DRM watermark integrity (`#antigravity-watermark-kushalkar`).
-
-
----
-
-## 43. Production Release & Staging Gate Master Switch
-- **Developer Inquiry:**
-  - *"from where i will 'flip the switch' to enable 'Consolidated Divisions & Pods L2 Approvals RM Telephony QA & QC Tools Users & Scope'"*
-- **Two Control Mechanisms:**
-  1. *Live Interactive Navbar Toggle (For Development & Testing):*
-     - Located in top right navbar: **`Dev Unlocked`** (green) vs **`Public Mode`** (amber).
-     - Clicking toggles between full module testing and previewing public lockdown mode.
-     - Secret URL key: `?dev_unlock=CP-DEV-2026`.
-  2. *Production Release Master Switch (For Final Public Go-Ahead):*
-     - Located in `src/utils/auth.js` line 439:
-       `export const IS_PRODUCTION_RELEASE_ACTIVE = false;`
-     - Changing this to `true` permanently removes the staging lock for every device and user.
