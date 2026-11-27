@@ -39,6 +39,16 @@ export default function LoginPage() {
         user = users.find((u) => (u.email || '').toLowerCase().includes('tanmoy') || (u.name || '').toLowerCase().includes('tanmoy'));
       } else if (cleanEmail.includes('kushal')) {
         user = users.find((u) => (u.email || '').toLowerCase().includes('kushal') || (u.name || '').toLowerCase().includes('kushal'));
+      } else if (cleanEmail.includes('niladri')) {
+        user = users.find((u) => (u.email || '').toLowerCase().includes('niladri') || (u.name || '').toLowerCase().includes('niladri'));
+      } else if (cleanEmail.includes('surajit')) {
+        user = users.find((u) => (u.email || '').toLowerCase().includes('surajit') || (u.name || '').toLowerCase().includes('surajit'));
+      } else if (cleanEmail.includes('arijit')) {
+        user = users.find((u) => (u.email || '').toLowerCase().includes('arijit') || (u.name || '').toLowerCase().includes('arijit'));
+      } else if (cleanEmail.includes('amit')) {
+        user = users.find((u) => (u.email || '').toLowerCase().includes('amit') || (u.name || '').toLowerCase().includes('amit'));
+      } else if (cleanEmail.includes('arshi')) {
+        user = users.find((u) => (u.email || '').toLowerCase().includes('arshi') || (u.name || '').toLowerCase().includes('arshi'));
       }
     }
 

@@ -438,6 +438,11 @@ export function isDevDeviceAuthorized() {
   if (typeof window === 'undefined') return false;
   try {
     const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('dev_lock') === 'true' || searchParams.get('dev_revoke') === 'true') {
+      localStorage.removeItem(DEV_DEVICE_STORAGE_KEY);
+      localStorage.removeItem(DEV_PREVIEW_PUBLIC_KEY);
+      return false;
+    }
     const unlockParam = searchParams.get('dev_unlock') || searchParams.get('dev_key');
     if (unlockParam === DEV_UNLOCK_SECRET) {
       localStorage.setItem(DEV_DEVICE_STORAGE_KEY, 'true');
