@@ -57,8 +57,11 @@ export function DataProvider({ children }) {
         }
       }
     } catch (e) {}
-    // Default to Developer & Super Admin Kushal Kar for immediate operational review
-    return SEED_USERS[0];
+    // Default to Developer & Super Admin Kushal Kar ONLY on authorized developer devices
+    if (isDevDeviceAuthorized()) {
+      return SEED_USERS[0];
+    }
+    return null;
   });
 
   const [users, setUsers] = useState(() => getAllUsers());
@@ -67,15 +70,9 @@ export function DataProvider({ children }) {
   const [isDevDevice, setIsDevDevice] = useState(() => isDevDeviceAuthorized());
   const [previewPublicMode, setPreviewPublicModeState] = useState(() => isPreviewPublicMode());
 
-  // Auto-enroll device authorization if Kushal is logged in or if dev secret query param is present
+  // Keep dev device state strictly synced with authoritative device authorization
   useEffect(() => {
-    if (isDevDeviceAuthorized()) {
-      setIsDevDevice(true);
-    }
-    if (currentUser?.email === 'kushal.centuryply@gmail.com') {
-      setDevDeviceAuthorized(true);
-      setIsDevDevice(true);
-    }
+    setIsDevDevice(isDevDeviceAuthorized());
   }, [currentUser]);
 
   // 3. Active Module
