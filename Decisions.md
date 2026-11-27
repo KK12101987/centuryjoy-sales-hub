@@ -732,3 +732,21 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - The left-side gap is 100% eliminated; the layout fills the screen fluidly.
   - Text, KPI cards, and tables render crisply at 90% auto-fit on 1080p monitors with zero distortion and zero horizontal overflow.
+
+
+---
+
+### Decision 054: Complete Decommissioning of "By L2 Approvers" Tab from Monetary Bifurcation Matrix
+* **Date:** 2026-11-27
+* **Status:** Implemented & Verified
+* **Context:**
+  - The developer provided screenshot `media_1795764113771_178dfcbe.png` showing the active `By L2 Approvers (10)` tab in `MonetaryBifurcationSection.jsx` and requested: *"completely remove the selected tab"*.
+  - The tab displayed individual L2 Level Approver metrics (`Total Signed`, `Tickets`, `Auditable Signed`, `Non-Auditable Signed`, `Auditable Share`, `Avg Ticket Size`).
+* **Decision & Implementation:**
+  1. *Removed Tab Navigation Pill:* Deleted the `{currentUser?.role === 'admin' && (<button onClick={() => setActiveTab('approvers')}>...By L2 Approvers...</button>)}` pill from the top filter bar.
+  2. *Removed Data Aggregation:* Pruned `apprMap` and `approversList` data structures from the useMemo aggregation loop, reducing CPU cycles during ticket filtration.
+  3. *Removed Matrix Table:* Fully excised the `{activeTab === 'approvers' && (<div className="overflow-x-auto"><table ...>...</table></div>)}` rendering block.
+  4. *Cleaned Unused Imports:* Pruned unused `CheckCircle2` from `lucide-react` import statement in adherence to Rule 21b.
+* **Consequences:**
+  - The Monetary Value Bifurcation section now exclusively focuses on operational tiers: `By Relationship Managers`, `By Senior Managers`, and `By Teams & Captains`.
+  - Zero dead code or uninvoked states remain in the component.

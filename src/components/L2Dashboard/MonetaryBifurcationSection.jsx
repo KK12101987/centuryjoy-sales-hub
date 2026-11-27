@@ -7,7 +7,6 @@ import {
   Download, 
   Layers, 
   Users, 
-  CheckCircle2, 
   Building2, 
   Smartphone,
   Search,
@@ -26,7 +25,7 @@ function formatINR(val) {
 
 export default function MonetaryBifurcationSection() {
   const { filteredTickets, currentUser } = useData();
-  const [activeTab, setActiveTab] = useState('rms'); // 'rms', 'managers', 'teams', 'approvers'
+  const [activeTab, setActiveTab] = useState('rms'); // 'rms', 'managers', 'teams'
   const [rmSearch, setRmSearch] = useState('');
   const [expandedManagers, setExpandedManagers] = useState({});
   const [expandedTeams, setExpandedTeams] = useState({});
@@ -42,7 +41,6 @@ export default function MonetaryBifurcationSection() {
 
     const mgrMap = {};
     const teamMap = {};
-    const apprMap = {};
     const rmMap = {};
     const streamMap = {
       Digital: { name: 'Digital Stream (CenturyJoy)', totalAmt: 0, audAmt: 0, nonAudAmt: 0, totalTix: 0, audTix: 0, nonAudTix: 0 },
@@ -56,7 +54,6 @@ export default function MonetaryBifurcationSection() {
       const isPhys = Boolean(t.isPhysical);
       const streamKey = isPhys ? 'Physical' : 'Digital';
       const teamName = isPhys ? `${mgr} - Physical Team` : (t.captain || 'Direct');
-      const appr = t.l2Assign || 'Unassigned';
       const rmName = (t.relationshipManager || 'Unknown RM').trim();
 
       // Totals
@@ -182,33 +179,10 @@ export default function MonetaryBifurcationSection() {
       teamMap[teamName].rms[rmName].totalTix += 1;
       if (isAud) teamMap[teamName].rms[rmName].audAmt += amt;
       else teamMap[teamName].rms[rmName].nonAudAmt += amt;
-
-      // Approvers
-      if (!apprMap[appr]) {
-        apprMap[appr] = {
-          name: appr,
-          totalAmt: 0,
-          audAmt: 0,
-          nonAudAmt: 0,
-          totalTix: 0,
-          audTix: 0,
-          nonAudTix: 0
-        };
-      }
-      apprMap[appr].totalAmt += amt;
-      apprMap[appr].totalTix += 1;
-      if (isAud) {
-        apprMap[appr].audAmt += amt;
-        apprMap[appr].audTix += 1;
-      } else {
-        apprMap[appr].nonAudAmt += amt;
-        apprMap[appr].nonAudTix += 1;
-      }
     }
 
     const managersList = Object.values(mgrMap).sort((a, b) => b.totalAmt - a.totalAmt);
     const teamsList = Object.values(teamMap).sort((a, b) => b.totalAmt - a.totalAmt);
-    const approversList = Object.values(apprMap).sort((a, b) => b.totalAmt - a.totalAmt);
     const rmsList = Object.values(rmMap).sort((a, b) => b.totalAmt - a.totalAmt);
 
     return {
@@ -223,7 +197,6 @@ export default function MonetaryBifurcationSection() {
       streamMap,
       managersList,
       teamsList,
-      approversList,
       rmsList
     };
   }, [filteredTickets]);
@@ -468,21 +441,6 @@ export default function MonetaryBifurcationSection() {
             <Layers className="w-3.5 h-3.5" />
             <span>By Teams & Captains ({bifurcationData.teamsList.length})</span>
           </button>
-
-          {/* TAB 4: L2 Approvers (Admin / Developer Only) */}
-          {currentUser?.role === 'admin' && (
-            <button
-              onClick={() => setActiveTab('approvers')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'approvers'
-                  ? 'bg-[#e31e24] text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>By L2 Approvers ({bifurcationData.approversList.length})</span>
-            </button>
-          )}
         </div>
 
         {/* RM Quick Filter Search */}
@@ -888,67 +846,6 @@ export default function MonetaryBifurcationSection() {
             </table>
           </div>
 
-        </div>
-      )}
-
-      {/* TAB 4: L2 APPROVERS MATRIX */}
-      {activeTab === 'approvers' && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold">
-                <th className="py-2.5 px-3">L2 Reviewer / Approver</th>
-                <th className="py-2.5 px-3">Total Signed (₹)</th>
-                <th className="py-2.5 px-3">Tickets</th>
-                <th className="py-2.5 px-3 text-emerald-700 dark:text-emerald-400">Auditable Signed (₹)</th>
-                <th className="py-2.5 px-3 text-amber-700 dark:text-amber-400">Non-Auditable Signed (₹)</th>
-                <th className="py-2.5 px-3">Auditable Share</th>
-                <th className="py-2.5 px-3">Avg Ticket Size</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium text-slate-800 dark:text-slate-200">
-              {bifurcationData.approversList.map((appr) => {
-                const audRatio = appr.totalAmt > 0 ? (appr.audAmt / appr.totalAmt) * 100 : 0;
-                const avgTicket = appr.totalTix > 0 ? appr.totalAmt / appr.totalTix : 0;
-                return (
-                  <tr key={appr.name} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-3">
-                      <span className="font-bold text-slate-900 dark:text-white block">{appr.name}</span>
-                      <span className="text-[10px] text-slate-500">L2 Level Approver</span>
-                    </td>
-                    <td className="py-3 px-3 font-extrabold text-slate-900 dark:text-white">
-                      {formatINR(appr.totalAmt)}
-                    </td>
-                    <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                      {appr.totalTix.toLocaleString()} tix
-                    </td>
-                    <td className="py-3 px-3 font-bold text-emerald-700 dark:text-emerald-400">
-                      <div>{formatINR(appr.audAmt)}</div>
-                      <div className="text-[10px] text-slate-400">{appr.audTix} tix</div>
-                    </td>
-                    <td className="py-3 px-3 font-bold text-amber-700 dark:text-amber-400">
-                      <div>{formatINR(appr.nonAudAmt)}</div>
-                      <div className="text-[10px] text-slate-400">{appr.nonAudTix} tix</div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-14 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
-                          <div style={{ width: `${audRatio}%` }} className="bg-emerald-500"></div>
-                          <div style={{ width: `${100 - audRatio}%` }} className="bg-amber-500"></div>
-                        </div>
-                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
-                          {audRatio.toFixed(1)}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3 text-slate-600 dark:text-slate-400 font-semibold">
-                      {formatINR(avgTicket)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       )}
 
