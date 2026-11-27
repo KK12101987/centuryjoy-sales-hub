@@ -95,7 +95,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm print:hidden">
-      <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-10">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 xl:gap-3">
           
           {/* Brand & Title */}
@@ -196,9 +196,6 @@ export default function Navbar() {
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden 2xl:block whitespace-nowrap">
-                Unified L2 Financials • RM Productivity • Quality Assurance
-              </p>
             </div>
           </div>
 
@@ -370,8 +367,8 @@ export default function Navbar() {
               >
                 <span className={`w-2 h-2 rounded-full shrink-0 ${previewPublicMode ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
                 <Laptop className={`w-3.5 h-3.5 shrink-0 ${previewPublicMode ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
-                <span className="hidden xl:inline font-bold text-[11px]">
-                  {previewPublicMode ? 'Public Mode (L2 Only)' : 'Dev Device: Unlocked'}
+                <span className="hidden 2xl:inline font-bold text-[11px]">
+                  {previewPublicMode ? 'Public Mode' : 'Dev Unlocked'}
                 </span>
               </button>
             )}
@@ -385,7 +382,7 @@ export default function Navbar() {
                 title="Display Resolution Scaling & Auto-Fit Control"
               >
                 <Monitor className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform shrink-0" />
-                <span className="hidden lg:inline font-mono text-[11px] font-bold">
+                <span className="font-mono text-[11px] font-bold">
                   {displayScale === 'auto' ? `Auto (${Math.round(effectiveZoom * 100)}%)` : `${displayScale}%`}
                 </span>
                 <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isScaleDropdownOpen ? 'rotate-180' : ''}`} />
