@@ -1048,3 +1048,32 @@ eplace mode preserving tickets from other months.
      - 0 unused imports, 0 `console.log` statements across all affected files.
      - Verified clean production build (`npm run build` in 11.66s with 0 errors).
      - Verified live on Vercel production: smooth transition between Light Mode and Dark Mode with pristine visual contrast and active Rule 22 author watermark.
+
+
+---
+
+### Decision 066: Comprehensive Light/Dark Theme Adaptation for Consolidated & Divisions Tabs, Hero Brand Presentation, and Standalone Login Theme Toggle
+* **Date:** 2026-11-28
+* **Model Version:** Gemini 3.8 Flash
+* **Status:** Implemented & Verified Live on Production
+* **Context:**
+  - User noted theme switching was broken/incomplete on Consolidated tab (Screenshot 2: hardcoded dark-blue banner) and Divisions & Pods tab (Screenshot 1: hardcoded dark ribbon, banner, KPI cards, subordinate pods, and roster table).
+  - User requested heroing the logo (Screenshot 3 in navbar, Screenshot 4 on login page).
+  - User requested removing 1-Click Role-Based Test Access from the login page.
+  - User requested providing a theme toggle button on the login page.
+* **Decision & Implementation:**
+  1. *Consolidated Tab Theme Support (`ConsolidatedDashboard.jsx`):*
+     - Converted top Executive Welcome & Filter Banner to dual-theme gradient (`bg-gradient-to-r from-slate-50 via-indigo-50/60 to-slate-100 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900`).
+     - Adapted stream filter buttons, selector dropdowns, and typography for crisp readability in Light Mode.
+  2. *Divisions & Pods Tab Theme Support (`ManagerHub.jsx`):*
+     - Converted governance ribbon, division header banner, 3 KPI cards (Financial, Telephony, QA), subordinate pods grid, RM roster table, filter pills, search input, and counseling modal to full dual-theme support.
+     - Replaced hardcoded `bg-[#0e1320]`, `bg-slate-900`, `text-white` with theme-adaptive Tailwind variants (`bg-white dark:bg-[#0e1320]`, `border-slate-200 dark:border-slate-800`, `text-slate-900 dark:text-white`).
+  3. *Hero Brand Logo Presentation (`CenturyJoyLogo.jsx`, `Navbar.jsx`, `LoginPage.jsx`):*
+     - Added `size="hero"` preset to `CenturyJoyLogo.jsx` (`h-11 sm:h-12`, `imgH: h-9 sm:h-9.5`, `px-3 py-1`) for prominent, bold executive navbar presence.
+     - Transformed the login page header into a hero centerpiece with ambient brand glow (`from-red-500/20 via-brand-500/15 to-indigo-500/20`), frosted glass card, and `size="xl"` logo.
+  4. *Clean Login Portal & Theme Toggle (`LoginPage.jsx`):*
+     - Removed 1-Click Role-Based Test Access section and associated helper functions.
+     - Added standalone Theme Toggle button (Sun / Moon) in the top-right corner of the login screen.
+  5. *Rule 21b Anti-Slop Audit & Rule 22 Compliance:*
+     - 0 unused imports, 0 console.log statements across all modified files.
+     - Clean production build: `vite build` completed in 36.42s with 0 errors.
