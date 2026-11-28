@@ -20,6 +20,7 @@ import {
 } from '../../utils/columnMatcher';
 import { useData } from '../../context/DataContext';
 import { getAllowedUploadTabs } from '../../utils/auth';
+import rosterSeed from '../../data/rosterSeed.json';
 
 export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }) {
   const { 
@@ -174,6 +175,49 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
     XLSX.writeFile(wb, "Agent_Performance_Template.xlsx");
   };
 
+  // Telephony helper parsers
+  const normalizeAgentKey = (str) => String(str || '').toLowerCase().trim().replace(/[\s_\-]+/g, '_');
+
+  const parseExcelDuration = (val) => {
+    if (val == null || val === '') return 0;
+    if (typeof val === 'number') {
+      if (val <= 1.0) return Math.round(val * 86400); // Excel fraction of day
+      return Math.round(val);
+    }
+    if (typeof val === 'string') {
+      if (val.includes(':')) {
+        const parts = val.split(':').map(Number);
+        if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+        if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0);
+      }
+      const num = Number(val);
+      if (!isNaN(num)) return num <= 1.0 ? Math.round(num * 86400) : Math.round(num);
+    }
+    return 0;
+  };
+
+  const parseExcelDate = (val) => {
+    if (!val) return new Date().toISOString().split('T')[0];
+    if (typeof val === 'number') {
+      try {
+        const d = XLSX.SSF.parse_date_code(val);
+        const p2 = (n) => String(n).padStart(2, '0');
+        return `${d.y}-${p2(d.m)}-${p2(d.d)}`;
+      } catch (e) {}
+    }
+    if (typeof val === 'string') {
+      if (val.match(/^\d{4}-\d{2}-\d{2}/)) return val.slice(0, 10);
+      if (val.includes('-')) {
+        const parts = val.split('-');
+        if (parts[0].length <= 2 && parts[2] && parts[2].length === 4) {
+          const p2 = (n) => String(n).padStart(2, '0');
+          return `${parts[2]}-${p2(parts[1])}-${p2(parts[0])}`;
+        }
+      }
+    }
+    return String(val);
+  };
+
   const processTelephonyFile = (uploadedFile) => {
     setStatusMsg({ type: '', text: '' });
     setFile(uploadedFile);
@@ -193,52 +237,116 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
           return;
         }
 
-        // Check for missing RMs against rmDirectory
-        const knownRMs = new Set((rmDirectory || []).map((r) => (r.rm_name || '').toLowerCase().trim()));
         const missing = [];
         const initialAssignments = {};
+        const parsedRows = [];
 
-        // Parse rows
-        const parsedRows = rawData.map((row, idx) => {
-          const rmRaw = row['FULL NAME'] || row['Full Name'] || row['RM Name'] || row['Agent Name'] || row['Agent ID'] || `Agent_${idx}`;
-          const rmClean = String(rmRaw).trim();
-          const rmKey = rmClean.toLowerCase();
+        rawData.forEach((row, idx) => {
+          const agentId = String(row['AGENT ID'] || row['Agent ID'] || '').trim();
+          const rawName = String(row['FULL NAME'] || row['Full Name'] || row['RM Name'] || row['Agent Name'] || '').trim();
+          const rawProcess = String(row['PROCESS'] || row['Process'] || '').trim();
+          const rawCaptain = String(row['RM CAPTAIN'] || row['RM Captain'] || row['Captain'] || '').trim();
+          const rawManager = String(row['MANAGER NAME'] || row['Manager Name'] || row['Manager'] || '').trim();
 
-          // If not in known directory, mark for assignment
-          if (rmClean && !knownRMs.has(rmKey) && !missing.includes(rmClean)) {
-            missing.push(rmClean);
-            initialAssignments[rmClean] = {
-              captain: 'Nasima Banu',
-              manager: 'Surajit Laha',
-              process: row['PROCESS'] || 'Telephony'
-            };
+          // Guard against empty rows, grand totals, and testing rows
+          if (!agentId && !rawName) return;
+          const isGrandTotal = [rawName, agentId, rawProcess, rawCaptain, rawManager].some((v) =>
+            String(v).toUpperCase().includes('GRAND TOTAL')
+          );
+          if (isGrandTotal) return;
+
+          const rawRm = rawName || agentId;
+          const lower = rawRm.toLowerCase();
+          if (lower.includes('test') || lower === 'total') return;
+
+          const k1 = normalizeAgentKey(agentId);
+          const k2 = normalizeAgentKey(rawName);
+          const seed =
+            rosterSeed[k1] ||
+            rosterSeed[k2] ||
+            rosterSeed[agentId.toLowerCase()] ||
+            rosterSeed[rawName.toLowerCase()];
+          const dirMatch = (rmDirectory || []).find(
+            (r) => normalizeAgentKey(r.rm_name) === k1 || normalizeAgentKey(r.rm_name) === k2
+          );
+
+          // Priority 1: In-row explicit hierarchy from the spreadsheet
+          const hasRowHierarchy =
+            rawCaptain &&
+            rawCaptain !== 'Unassigned' &&
+            rawCaptain !== 'Direct Team' &&
+            rawManager &&
+            rawManager !== 'Unassigned';
+
+          let captain = hasRowHierarchy
+            ? rawCaptain
+            : seed?.captain || dirMatch?.captain_name || rawCaptain || 'Direct Team';
+          let manager = hasRowHierarchy
+            ? rawManager
+            : seed?.manager || dirMatch?.manager_name || rawManager || 'Surajit Laha';
+          let fullName =
+            seed?.fullName ||
+            dirMatch?.rm_name ||
+            (rawName && !rawName.includes('_') ? rawName : seed?.fullName || rawRm);
+          let process = rawProcess || seed?.process || dirMatch?.team_name || 'Telephony';
+
+          // Flag as unmapped only if not in sheet and not in roster seed / directory
+          if (!hasRowHierarchy && !seed && !dirMatch && (!captain || captain === 'Direct Team' || !manager || manager === 'Surajit Laha')) {
+            if (!missing.includes(rawRm)) {
+              missing.push(rawRm);
+              initialAssignments[rawRm] = {
+                captain: 'Nasima Banu',
+                manager: 'Surajit Laha',
+                process: process
+              };
+            }
           }
 
-          // Extract standard numeric metrics
-          const dials = Number(row['TOTAL CALLS'] || row['Total Calls'] || row['TOTAL OUT CALLS'] || row['Dials'] || 0);
-          const conn = Number(row['CONNECTED'] || row['Answered'] || row['Total Answered'] || 0);
-          let dur = 0;
-          const talkRaw = row['TALK TIME'] || row['Talk Time'] || row['Duration'] || 0;
-          if (typeof talkRaw === 'number') {
-            dur = talkRaw > 1000 ? Math.round(talkRaw) : Math.round(talkRaw * 60);
-          } else if (typeof talkRaw === 'string' && talkRaw.includes(':')) {
-            const parts = talkRaw.split(':').map(Number);
-            dur = parts.length === 3 ? parts[0] * 3600 + parts[1] * 60 + parts[2] : (parts[0] || 0) * 60 + (parts[1] || 0);
-          }
+          // Numeric Call Metrics
+          const n = Number(row['TOTAL CALLS'] || row['Total Calls'] || row['TOTAL OUT CALLS'] || row['Dials'] || 0);
+          const k = Number(row['CONNECTED'] || row['Connected'] || row['Answered'] || row['Total Answered'] || 0);
+          const nc = Number(row['NOT CONNECTED'] || row['Not Connected'] || Math.max(0, n - k));
 
-          // Resolve captain & manager from directory
-          const matchedRM = (rmDirectory || []).find((r) => (r.rm_name || '').toLowerCase().trim() === rmKey);
+          // Durations & Productive Time
+          const l = parseExcelDuration(row['LOGGED IN DURATION'] || row['Logged In Duration'] || row['LOGGED IN TIME']);
+          const i = parseExcelDuration(row['IDLE TIME'] || row['Idle Time']);
+          const b = parseExcelDuration(row['BREAK TIME'] || row['Break Time']);
 
-          return {
-            r: rmClean,
-            c: matchedRM?.captain_name || row['Captain'] || 'Direct Team',
-            m: matchedRM?.manager_name || row['Manager'] || 'Surajit Laha',
-            a: row['PROCESS'] || matchedRM?.team_name || 'Telephony',
-            d: row['DATE'] || row['Date'] || new Date().toISOString().split('T')[0],
-            t: dials,
-            conn: conn,
-            dur: dur,
-          };
+          const talk = parseExcelDuration(row['TALK TIME'] || row['Talk Time'] || row['Duration']);
+          const hold = parseExcelDuration(row['HOLD TIME'] || row['Hold Time']);
+          const wrap = parseExcelDuration(row['WRAP UP'] || row['Wrap Up']);
+          const h = talk + hold + wrap;
+
+          const lunch = parseExcelDuration(row['LUNCH'] || row['Lunch']);
+          const bio = parseExcelDuration(row['BIOBREAK'] || row['Biobreak'] || row['BIO_BREAK']);
+          const tea = parseExcelDuration(row['TEA_BREAK'] || row['Tea Break']);
+          const lunchBrk = parseExcelDuration(row['LUNCH_BREAK'] || row['Lunch Break']);
+          const bnp = lunch + bio + tea + lunchBrk;
+          const bp = Math.max(0, b - bnp);
+          const tp = h + bp;
+          const x = l > 16 * 3600 ? 1 : 0;
+
+          parsedRows.push({
+            d: parseExcelDate(row['DATE'] || row['Date']),
+            r: fullName,
+            c: captain,
+            m: manager,
+            a: process,
+            n,
+            k,
+            nc,
+            l,
+            i,
+            b,
+            bp,
+            bnp,
+            h,
+            tp,
+            x,
+            t: n,
+            conn: k,
+            dur: h
+          });
         });
 
         setTelRows(parsedRows);
@@ -263,9 +371,9 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
       });
     }
 
-    // 2. Ingest rows into DataContext
+    // 2. Ingest rows into DataContext with chosen mode
     try {
-      addTelephonyRows(telRows);
+      addTelephonyRows(telRows, telMode);
       setStatusMsg({
         type: 'success',
         text: `Successfully ingested ${telRows.length.toLocaleString()} telephony records${missingRMs.length > 0 ? ` and registered ${missingRMs.length} new RMs` : ''}.`
@@ -821,11 +929,12 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
                                 }))}
                                 className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white"
                               >
+                                <option value="Pallabi Chura">Capt. Pallabi Chura</option>
                                 <option value="Nasima Banu">Capt. Nasima Banu</option>
-                                <option value="Priyanka Sen">Capt. Priyanka Sen</option>
-                                <option value="Sanjay Roy">Capt. Sanjay Roy</option>
-                                <option value="Pooja Kumari">Capt. Pooja Kumari</option>
-                                <option value="Amit Kumar">Capt. Amit Kumar</option>
+                                <option value="Shiuli Bhattacharjee">Capt. Shiuli Bhattacharjee</option>
+                                <option value="Ranjana Mohajan">Capt. Ranjana Mohajan</option>
+                                <option value="Arshi Afreen Jamal">Capt. Arshi Afreen Jamal</option>
+                                <option value="Mousumi Chakraborty">Capt. Mousumi Chakraborty</option>
                               </select>
 
                               <select
@@ -847,6 +956,42 @@ export default function UploadCenterModal({ isOpen, onClose, initialTab = 'l2' }
                       </div>
                     </div>
                   )}
+
+                  {/* Telephony Ingestion Mode */}
+                  <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div>
+                      <span className="font-bold text-white">Ingestion Mode:</span>
+                      <p className="text-[11px] text-slate-400">
+                        {telMode === 'append'
+                          ? 'Safely update matching agent-date records and append new daily rows.'
+                          : 'Overwrite all existing records for the dates present in the uploaded sheet.'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setTelMode('append')}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          telMode === 'append'
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        Append Mode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTelMode('replace')}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          telMode === 'replace'
+                            ? 'bg-rose-600 text-white shadow-sm'
+                            : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        Replace Dates
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Actions */}
                   <div className="flex justify-end gap-3 pt-2">

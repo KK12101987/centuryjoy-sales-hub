@@ -617,10 +617,17 @@ export function DataProvider({ children }) {
     return rawTelephony;
   });
 
-  const addTelephonyRows = (newRows) => {
+  const addTelephonyRows = (newRows, mode = 'append') => {
     verifyWatermarkIntegrity();
     setTelephony((prev) => {
-      const updated = [...newRows, ...prev];
+      let updated;
+      if (mode === 'replace') {
+        const uploadDates = new Set(newRows.map((r) => r.d));
+        updated = [...newRows, ...(prev || []).filter((r) => !uploadDates.has(r.d))];
+      } else {
+        const newKeys = new Set(newRows.map((r) => `${r.r}__${r.d}`));
+        updated = [...newRows, ...(prev || []).filter((r) => !newKeys.has(`${r.r}__${r.d}`))];
+      }
       try {
         localStorage.setItem('century_telephony_data_v3', JSON.stringify(updated));
       } catch (e) {}

@@ -1,0 +1,662 @@
+{
+  "debopriya_basu": {
+    "fullName": "Debapriya Basu",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "debapriya basu": {
+    "fullName": "Debapriya Basu",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "pritha_b": {
+    "fullName": "Pritha Bhattacharya",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "pritha bhattacharya": {
+    "fullName": "Pritha Bhattacharya",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "suvra_sen": {
+    "fullName": "Suvra Sen",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "suvra sen": {
+    "fullName": "Suvra Sen",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "arshi_afreen_j": {
+    "fullName": "Arshi Afreen Jamal",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "arshi afreen jamal": {
+    "fullName": "Arshi Afreen Jamal",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "md_sadik": {
+    "fullName": "Md Sadik",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "md sadik": {
+    "fullName": "Md Sadik",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "shalini_b": {
+    "fullName": "Shalini Bose",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "shalini bose": {
+    "fullName": "Shalini Bose",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "ronika_b": {
+    "fullName": "Ronika Banerjee",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Vibrant"
+  },
+  "ronika banerjee": {
+    "fullName": "Ronika Banerjee",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Vibrant"
+  },
+  "i_dey": {
+    "fullName": "Ishani Dey",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Vibrant"
+  },
+  "ishani dey": {
+    "fullName": "Ishani Dey",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Vibrant"
+  },
+  "s_hazra": {
+    "fullName": "Sujita Hazra",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "sujita hazra": {
+    "fullName": "Sujita Hazra",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "s_dhar": {
+    "fullName": "Sholanki Dhar",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "sholanki dhar": {
+    "fullName": "Sholanki Dhar",
+    "captain": "Arshi Afreen Jamal",
+    "manager": "Arijit Nath",
+    "process": "Unity-II"
+  },
+  "srabonich": {
+    "fullName": "Srabani Chakraborti",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "srabani chakraborti": {
+    "fullName": "Srabani Chakraborti",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "sk_shamsher_ali": {
+    "fullName": "Sk Shamsher Ali",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "sk shamsher ali": {
+    "fullName": "Sk Shamsher Ali",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "apabiswas": {
+    "fullName": "Aparna Biswas",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "aparna biswas": {
+    "fullName": "Aparna Biswas",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "swastika_kolla": {
+    "fullName": "Swasitka Kolla",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "swasitka kolla": {
+    "fullName": "Swasitka Kolla",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "naga_ch": {
+    "fullName": "Naga Sindhuja",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "naga sindhuja": {
+    "fullName": "Naga Sindhuja",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "r_dey": {
+    "fullName": "Rajrupa Dey",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "rajrupa dey": {
+    "fullName": "Rajrupa Dey",
+    "captain": "Mousumi Chakraborty",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "anubha_arora": {
+    "fullName": "Anubha Arora",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "anubha arora": {
+    "fullName": "Anubha Arora",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "jyotirmayee_s": {
+    "fullName": "Jyotirmayee Sardar",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "jyotirmayee sardar": {
+    "fullName": "Jyotirmayee Sardar",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "ishika_shyamal": {
+    "fullName": "Ishika Shyamal",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "ishika shyamal": {
+    "fullName": "Ishika Shyamal",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "akash__shaw": {
+    "fullName": "Akash Kumar Shaw",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "akash kumar shaw": {
+    "fullName": "Akash Kumar Shaw",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "kaushani_saha": {
+    "fullName": "Kaushani Saha",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "kaushani saha": {
+    "fullName": "Kaushani Saha",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "nasima": {
+    "fullName": "Nasima Banu",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "nasima banu": {
+    "fullName": "Nasima Banu",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "p_bhattacharya": {
+    "fullName": "Payal Bhattacharya",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "payal bhattacharya": {
+    "fullName": "Payal Bhattacharya",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "anjali_sahani": {
+    "fullName": "Anjali Sahani",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "anjali sahani": {
+    "fullName": "Anjali Sahani",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "r_mondal": {
+    "fullName": "Rajeswari Mondal",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "rajeswari mondal": {
+    "fullName": "Rajeswari Mondal",
+    "captain": "Nasima Banu",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-II"
+  },
+  "abhishekch": {
+    "fullName": "Abhishek Chatterjee",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "abhishek chatterjee": {
+    "fullName": "Abhishek Chatterjee",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "md_essam": {
+    "fullName": "Md Essam",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "md essam": {
+    "fullName": "Md Essam",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "solanki_tapadar": {
+    "fullName": "Solanki Tapadar",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "solanki tapadar": {
+    "fullName": "Solanki Tapadar",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "saheli_roy": {
+    "fullName": "Saheli Roy",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "saheli roy": {
+    "fullName": "Saheli Roy",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "jerry_josh": {
+    "fullName": "Jerry Jose",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "jerry jose": {
+    "fullName": "Jerry Jose",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "pallabi_chura": {
+    "fullName": "Pallabi Chura",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "pallabi chura": {
+    "fullName": "Pallabi Chura",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "rishita_hazra": {
+    "fullName": "Rishita Hazra",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "rishita hazra": {
+    "fullName": "Rishita Hazra",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "sanjukta_biswas": {
+    "fullName": "Sanjukta Biswas",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "sanjukta biswas": {
+    "fullName": "Sanjukta Biswas",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "sanhitad": {
+    "fullName": "Sanhita Dutta",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "sanhita dutta": {
+    "fullName": "Sanhita Dutta",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "uma_b": {
+    "fullName": "Uma Beriwal",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "uma beriwal": {
+    "fullName": "Uma Beriwal",
+    "captain": "Pallabi Chura",
+    "manager": "Surajit Laha",
+    "process": "Catlyst-I"
+  },
+  "ranmahajan": {
+    "fullName": "Ranjana Mohajan",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "ranjana mohajan": {
+    "fullName": "Ranjana Mohajan",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "koybhandari": {
+    "fullName": "Koyel Bhandari",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "koyel bhandari": {
+    "fullName": "Koyel Bhandari",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "suddas": {
+    "fullName": "Sudeshna Das",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "sudeshna das": {
+    "fullName": "Sudeshna Das",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "hemsharma": {
+    "fullName": "Hemant Sharma",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "hemant sharma": {
+    "fullName": "Hemant Sharma",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "vinburman": {
+    "fullName": "Vinayak Burman",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "vinayak burman": {
+    "fullName": "Vinayak Burman",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "alisha": {
+    "fullName": "Alisha Jaiswal",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "alisha jaiswal": {
+    "fullName": "Alisha Jaiswal",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "bondita": {
+    "fullName": "Bondita Borkotoky",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "bondita borkotoky": {
+    "fullName": "Bondita Borkotoky",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "taniya": {
+    "fullName": "Taniya Bhattacharjee",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "taniya bhattacharjee": {
+    "fullName": "Taniya Bhattacharjee",
+    "captain": "Ranjana Mohajan",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-II"
+  },
+  "chandrima_b": {
+    "fullName": "Chandrima Bhattacharya",
+    "captain": "Shilpa Palchina",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "chandrima bhattacharya": {
+    "fullName": "Chandrima Bhattacharya",
+    "captain": "Shilpa Palchina",
+    "manager": "Arijit Nath",
+    "process": "Unity-I"
+  },
+  "laxsharma": {
+    "fullName": "Laxmi Sharma",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "laxmi sharma": {
+    "fullName": "Laxmi Sharma",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "anadhara": {
+    "fullName": "Ananya Dhara",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "ananya dhara": {
+    "fullName": "Ananya Dhara",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "snebiswas": {
+    "fullName": "Sneha Biswas Mukherjee",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "sneha biswas mukherjee": {
+    "fullName": "Sneha Biswas Mukherjee",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "riamojumder": {
+    "fullName": "Ria Majumdar",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "ria majumdar": {
+    "fullName": "Ria Majumdar",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "sraroy": {
+    "fullName": "Sraboni Roy",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "sraboni roy": {
+    "fullName": "Sraboni Roy",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "primondal": {
+    "fullName": "Pritam Mondal",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "pritam mondal": {
+    "fullName": "Pritam Mondal",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "arusingh": {
+    "fullName": "Arunraj Singh Rehal",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "arunraj singh rehal": {
+    "fullName": "Arunraj Singh Rehal",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "shiuli": {
+    "fullName": "Shiuli Bhattacharjee",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "shiuli bhattacharjee": {
+    "fullName": "Shiuli Bhattacharjee",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "krujoshi": {
+    "fullName": "Krupa Joshi",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "krupa joshi": {
+    "fullName": "Krupa Joshi",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "jutmojumder": {
+    "fullName": "Jutirmoy Mazumder",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "jutirmoy mazumder": {
+    "fullName": "Jutirmoy Mazumder",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "satroy": {
+    "fullName": "Satashri Roy",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  },
+  "satashri roy": {
+    "fullName": "Satashri Roy",
+    "captain": "Shiuli Bhattacharjee",
+    "manager": "Niladri Bhadra",
+    "process": "SoarZone-I"
+  }
+}

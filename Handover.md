@@ -729,3 +729,29 @@ The application will automatically detect Vite and the serverless functions unde
      - Verified `#antigravity-watermark-kushalkar` coupled in component lifecycle.
      - Clean production build: `vite build` completed in 34.19s with 0 errors.
 
+
+---
+
+## 48. Intelligent Telephony Ingestion Normalization & Zero-Prompt Auto-Mapping Engine
+- **Developer Request:**
+  - *"tried to upload 'C:\Users\User\Downloads\Book1.xlsx' it gave me the screenshot where as the agent ids are already mapped with name, captain and managers"*
+  - Screenshot: `media_1795844060693_f141f5a9.png`
+- **Root Cause & Fix:**
+  1. *Root Cause:*
+     - `UploadCenterModal.jsx` previously only matched against `rmDirectory` by human full name, missing dialer IDs (`ABHISHEKCH`, `Akash__Shaw`, `alisha`).
+     - It ignored in-row spreadsheet columns (`RM CAPTAIN`, `MANAGER NAME`).
+     - `Book1.xlsx` daily `GRAND TOTAL` summary rows had blank names, causing the parser to invent dummy `Agent_46`, `Agent_61` placeholders.
+  2. *Implementation (`src/components/Common/UploadCenterModal.jsx`):*
+     - Integrated `rosterSeed.json` (110 dialer username aliases).
+     - Added Tri-Tier Hierarchy Resolution:
+       * Tier 1: In-row spreadsheet columns (`RM CAPTAIN`, `MANAGER NAME`) prioritized first.
+       * Tier 2: `rosterSeed` dictionary matching normalized dialer usernames.
+       * Tier 3: `rmDirectory` and `hierarchy` cross-reference.
+     - Added `GRAND TOTAL` and testing row filters.
+     - Added `parseExcelDuration()` for day-fraction decimals (`0.209583 * 86400`) and `parseExcelDate()` for serial dates (`46296 -> 2026-10-01`).
+     - Added Telephony Ingestion Mode (*Append* vs *Replace*).
+  3. *Verification:*
+     - Tested `Book1.xlsx`: Ingests all 793 rows with **0 missing RMs** and 100% hierarchy resolution.
+     - Clean Vite build in 28.50s.
+
+

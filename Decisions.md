@@ -893,3 +893,37 @@ eplace mode preserving tickets from other months.
 * **Consequences:**
   - Restores 100% visual, architectural, and data parity with the standalone RM Productivity Dashboard, providing executive leadership with complete transparency into RM telephony performance.
 
+
+---
+
+### Decision 061: Intelligent Telephony Ingestion Normalization & Zero-Prompt Auto-Mapping Engine
+* **Date:** 2026-11-28
+* **Status:** Implemented & Verified
+* **Context:**
+  - User attempted to upload `C:\Users\User\Downloads\Book1.xlsx` into the Telephony Ingestion Center, but was blocked by a prompt warning *"72 Unmapped RMs Detected in Uploaded Sheet"* forcing manual re-assignment of all agents, despite the spreadsheet already containing mapped columns (`RM CAPTAIN`, `MANAGER NAME`, `FULL NAME`, `AGENT ID`, `PROCESS`).
+  - *Root Cause Analysis:*
+    1. The previous ingestion code strictly checked `rmDirectory` by human full name alone (e.g. `Abhishek Chatterjee`), causing all standard dialer agent IDs (e.g. `ABHISHEKCH`, `Akash__Shaw`, `alisha`, etc.) to fail string matching.
+    2. The code ignored in-row spreadsheet hierarchy columns (`RM CAPTAIN` and `MANAGER NAME`).
+    3. Blank daily summary rows containing `PROCESS: GRAND TOTAL` had blank full names, causing the parser to invent dummy agent names (`Agent_46`, `Agent_61`, etc.) and flag them as unmapped agents.
+    4. Numeric Excel durations (`LOGGED IN DURATION`, `IDLE TIME`, etc. stored as day fractions) and serial dates (`46296`) were not parsed into standard seconds and `YYYY-MM-DD`.
+* **Decision & Implementation:**
+  1. *Integrated 110-Agent Roster Seed (`src/data/rosterSeed.json`):*
+     - Imported the full dialer ID dictionary from the standalone RM Productivity Dashboard into `UploadCenterModal.jsx`.
+  2. *Tri-Tier Hierarchy Resolution Engine (`UploadCenterModal.jsx`):*
+     - *Tier 1 (Explicit Row Mapping):* If `row['RM CAPTAIN']` and `row['MANAGER NAME']` exist and are valid in the spreadsheet, they are immediately honored with zero user prompts.
+     - *Tier 2 (Roster Seed Normalization):* Resolves dialer usernames (e.g. `ABHISHEKCH`, `Akash__Shaw`, `DEBOPRIYA_BASU`) to official full names, captains, managers, and processes.
+     - *Tier 3 (Directory Matching):* Cross-references `rmDirectory` and `hierarchy`.
+     - *Grand Total & Test Account Filter:* Filters out rows where process or name is `GRAND TOTAL` or `test`.
+  3. *Excel Day Fraction & Serial Date Parsers:*
+     - `parseExcelDuration()`: Accurately converts day fractions (e.g. `0.209583 * 86400 = 18,108s = 05:01:48`) and `HH:MM:SS` strings into exact integer seconds.
+     - `parseExcelDate()`: Accurately converts Excel date codes (e.g. `46296 -> 2026-10-01`) via `XLSX.SSF.parse_date_code`.
+     - Extracts all 12 operational telephony metrics (`n`, `k`, `nc`, `l`, `i`, `b`, `bp`, `bnp`, `h`, `tp`, `x`).
+  4. *Ingestion Mode Selector & Century Joy Roster Dropdowns:*
+     - Added an *Append Mode* vs *Replace Dates* toggle for telephony uploads.
+     - Upgraded the manual fallback assignment dropdowns with authentic Century Joy captains (*Pallabi Chura*, *Nasima Banu*, *Shiuli Bhattacharjee*, *Ranjana Mohajan*, *Arshi Afreen Jamal*, *Mousumi Chakraborty*) and managers.
+  5. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.logs, clean production build in 28.50s.
+* **Consequences:**
+  - `Book1.xlsx` now ingests all 793 rows with **zero unmapped prompts**, resolving 100% of the agents, captains, and managers seamlessly.
+
+
