@@ -105,7 +105,7 @@ export default function Navbar() {
           {/* Brand & Title */}
           <div className="flex items-center space-x-2.5 shrink-0">
             <CenturyJoyLogo 
-              size="sm" 
+              size="hero" 
               onClick={() => permittedModules.includes('consolidated') ? switchModule('consolidated') : switchModule(permittedModules[0])} 
             />
             <div className="shrink-0 flex items-center space-x-2">

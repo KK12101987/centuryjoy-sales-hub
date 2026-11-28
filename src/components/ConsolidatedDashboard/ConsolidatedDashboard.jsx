@@ -177,12 +177,12 @@ export default function ConsolidatedDashboard() {
     <div className="space-y-6">
       
       {/* Executive Welcome & Filter Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-slate-50 via-indigo-50/60 to-slate-100 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 text-slate-900 dark:text-white shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors">
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-brand-500/10 dark:bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-semibold">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 dark:bg-brand-500/20 dark:border-brand-400/30 dark:text-brand-300 text-xs font-semibold">
               <Activity className="w-3.5 h-3.5" />
               <span>
                 {currentUser?.role === 'manager'
@@ -192,14 +192,14 @@ export default function ConsolidatedDashboard() {
                   : 'Consolidated Enterprise Command Center'}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {currentUser?.role === 'manager'
                 ? `${currentUser.managerKey} Operations Hub`
                 : currentUser?.role === 'captain'
                 ? `${currentUser.teamName || currentUser.captainKey} Operations Hub`
                 : 'Integrated Operational Performance'}
             </h1>
-            <p className="text-slate-300 text-sm max-w-2xl">
+            <p className="text-slate-600 dark:text-slate-300 text-sm max-w-2xl">
               {currentUser?.role === 'manager'
                 ? `Executive synthesis for ${currentUser.managerKey} Division, reconciling L2 financial disbursements, agent dialer productivity, and QA compliance.`
                 : currentUser?.role === 'captain'
@@ -211,11 +211,11 @@ export default function ConsolidatedDashboard() {
           {/* Quick Filters */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Stream Filter */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-1 flex items-center text-xs">
+            <div className="bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-1 flex items-center text-xs shadow-2xs">
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'all' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter?.stream === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 All Streams
@@ -223,7 +223,7 @@ export default function ConsolidatedDashboard() {
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'digital' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter?.stream === 'digital' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'digital' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Digital Pods
@@ -231,7 +231,7 @@ export default function ConsolidatedDashboard() {
               <button
                 onClick={() => setScopeFilter((prev) => ({ ...prev, stream: 'physical' }))}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  scopeFilter?.stream === 'physical' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                  scopeFilter?.stream === 'physical' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Physical Field
@@ -240,18 +240,18 @@ export default function ConsolidatedDashboard() {
 
             {/* Manager Filter / Badge */}
             {currentUser?.role === 'manager' ? (
-              <div className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-brand-300">
+              <div className="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-brand-700 dark:text-brand-300 shadow-2xs">
                 Division: {currentUser.managerKey}
               </div>
             ) : currentUser?.role === 'captain' ? (
-              <div className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-300">
+              <div className="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 shadow-2xs">
                 Pod: {currentUser.teamName || currentUser.captainKey}
               </div>
             ) : (
               <select
                 value={scopeFilter?.manager || 'all'}
                 onChange={(e) => setScopeFilter((prev) => ({ ...prev, manager: e.target.value }))}
-                className="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs"
               >
                 <option value="all">All Senior Managers</option>
                 {managers.map((m) => (

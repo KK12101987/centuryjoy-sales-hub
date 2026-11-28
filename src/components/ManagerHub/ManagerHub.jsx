@@ -669,22 +669,22 @@ export default function ManagerHub() {
 
       {/* Top Admin Selector Ribbon (Only for Super Admin / Leadership) */}
       {isSuperAdmin && (
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+        <div className="bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm dark:shadow-xl transition-colors">
           <div className="flex items-center space-x-3">
             <CenturyJoyLogo size="xs" interactive={false} />
             <div>
-              <div className="text-xs uppercase font-extrabold tracking-wider text-brand-400">Governance & Hierarchy Control</div>
-              <div className="text-sm font-bold text-white">Dedicated Division & Pod Dashboards</div>
+              <div className="text-xs uppercase font-extrabold tracking-wider text-brand-600 dark:text-brand-400">Governance & Hierarchy Control</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white">Dedicated Division & Pod Dashboards</div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* View Switcher: Divisions vs Pods */}
-            <div className="bg-slate-950/90 p-1 rounded-xl border border-slate-800 flex items-center text-xs">
+            <div className="bg-slate-100 dark:bg-slate-950/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center text-xs shadow-2xs">
               <button
                 onClick={() => setViewType('manager')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                  viewType === 'manager' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  viewType === 'manager' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
                 🏢 Senior Manager Divisions
@@ -692,7 +692,7 @@ export default function ManagerHub() {
               <button
                 onClick={() => setViewType('pod')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                  viewType === 'pod' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  viewType === 'pod' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
                 ⚡ Pod Captain Dashboards
@@ -701,7 +701,7 @@ export default function ManagerHub() {
 
             {/* Sub-Entity Selector */}
             {viewType === 'manager' ? (
-              <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs shadow-2xs">
                 {SENIOR_MANAGERS.map((m) => (
                   <button
                     key={m.id}
@@ -709,7 +709,7 @@ export default function ManagerHub() {
                     className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
                       selectedManager === m.id
                         ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
                     {m.name} {m.type === 'physical' ? '(Field)' : ''}
@@ -717,7 +717,7 @@ export default function ManagerHub() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs shadow-2xs">
                 {POD_CAPTAINS.map((p) => (
                   <button
                     key={p.team}
@@ -725,7 +725,7 @@ export default function ManagerHub() {
                     className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
                       selectedPodCaptain === p.captain
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
                     {p.team} ({p.captain.split(' ')[0]})
@@ -744,30 +744,30 @@ export default function ManagerHub() {
         <div className="space-y-4">
 
           {/* Executive Division Banner */}
-          <div className={`bg-gradient-to-r ${isPhysicalManager ? 'from-slate-900 via-purple-950 to-slate-900 border-purple-900/40' : 'from-slate-900 via-indigo-950 to-slate-900 border-indigo-900/40'} border rounded-3xl p-4 sm:p-5 lg:p-6 text-white shadow-2xl relative overflow-hidden`}>
+          <div className={`bg-gradient-to-r ${isPhysicalManager ? 'from-purple-50 via-white to-purple-50/50 border-purple-200 text-slate-900 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 dark:border-purple-900/40 dark:text-white' : 'from-slate-50 via-indigo-50/60 to-white border-slate-200 text-slate-900 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 dark:border-indigo-900/40 dark:text-white'} border rounded-3xl p-4 sm:p-5 lg:p-6 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors`}>
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
               <div className="space-y-1.5">
-                <div className={`inline-flex items-center space-x-2 px-3 py-0.5 rounded-full ${isPhysicalManager ? 'bg-purple-500/20 border-purple-400/30 text-purple-300' : 'bg-indigo-500/20 border-indigo-400/30 text-indigo-300'} text-[11px] font-bold`}>
+                <div className={`inline-flex items-center space-x-2 px-3 py-0.5 rounded-full ${isPhysicalManager ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:border-purple-400/30 dark:text-purple-300' : 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/20 dark:border-indigo-400/30 dark:text-indigo-300'} text-[11px] font-bold`}>
                   <Building2 className="w-3.5 h-3.5" />
                   <span>
                     {isPhysicalManager ? '🚚 PHYSICAL FIELD OPERATIONS DIVISION' : '🏢 SENIOR MANAGEMENT DIVISION DASHBOARD'}
                   </span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {activeManagerName} Division Dashboard {isPhysicalManager ? '(Physical Field Teams)' : ''}
                 </h1>
-                <p className="text-slate-300 text-xs sm:text-sm max-w-3xl">
+                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl">
                   {isPhysicalManager
                     ? 'Dedicated on-ground field distribution, dealer stock audits, and physical invoice reconciliations • Non-dialer operational stream.'
                     : `Operational synthesis for ${activeManagerName} Division • Overseeing ${divisionPods.length} Digital Calling Pods • ${divisionRms.length} Active Relationship Managers • ${formatINR(divisionFinancialVol)} in reconciled disbursements.`}
                 </p>
               </div>
 
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-xl px-4 py-2 text-xs text-right">
-                <div className="text-[10px] text-slate-400 uppercase font-semibold">Division Scope</div>
-                <div className="font-bold text-indigo-300">{activeManagerName} (Locked)</div>
+              <div className="bg-white/80 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2 text-xs text-right shadow-2xs">
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Division Scope</div>
+                <div className="font-bold text-indigo-700 dark:text-indigo-300">{activeManagerName} (Locked)</div>
                 {isPhysicalManager && (
-                  <div className="mt-0.5 text-[10px] font-semibold text-purple-300">Physical Stream • Active</div>
+                  <div className="mt-0.5 text-[10px] font-semibold text-purple-700 dark:text-purple-300">Physical Stream • Active</div>
                 )}
               </div>
             </div>
@@ -777,97 +777,97 @@ export default function ManagerHub() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             {/* Pillar 1: Financial Approvals */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-indigo-500/40 transition-all">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-indigo-500/40 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-950/60 border border-indigo-900/60 flex items-center justify-center text-indigo-400 font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-lg">
                   <CreditCard className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-semibold text-indigo-400">Division L2</span>
+                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Division L2</span>
               </div>
               <div className="space-y-0.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pillar 1 • Financial Volume</span>
-                <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                   {formatINR(divisionFinancialVol)}
                 </div>
-                <p className="text-xs text-slate-400">
-                  Across <span className="font-semibold text-slate-200">{nf.format(divisionTickets.length)}</span> approved transactions
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Across <span className="font-semibold text-slate-700 dark:text-slate-200">{nf.format(divisionTickets.length)}</span> approved transactions
                 </p>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Auditable Ratio</span>
-                <span className="font-bold text-emerald-400">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
                   {divisionTickets.length > 0 ? ((divisionAuditableCount / divisionTickets.length) * 100).toFixed(1) : '0.0'}% Share
                 </span>
               </div>
             </div>
 
             {/* Pillar 2: Calling Telephony */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-emerald-500/40 transition-all">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg">
                   <PhoneCall className="w-5 h-5" />
                 </div>
                 <div className="flex items-center gap-2">
                   {!isPhysicalManager && renderMomBadge(divisionDials, momAnalytics.octDivDials, '%', false)}
-                  <span className="text-xs font-semibold text-emerald-400">Division Calls</span>
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Division Calls</span>
                 </div>
               </div>
               <div className="space-y-0.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pillar 2 • Calling Telephony</span>
-                <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                   {isPhysicalManager ? (
                     <span className="text-xl text-slate-400 font-normal">— (Field Operations)</span>
                   ) : (
                     <>{nf.format(divisionDials)} <span className="text-base font-normal text-slate-400">Dials</span></>
                   )}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {isPhysicalManager ? (
                     'No outbound digital dialer utilization'
                   ) : (
-                    <><span className="font-semibold text-emerald-400">{divisionConnRate}%</span> Connected ({nf.format(divisionConnected)} calls)</>
+                    <><span className="font-semibold text-emerald-600 dark:text-emerald-400">{divisionConnRate}%</span> Connected ({nf.format(divisionConnected)} calls)</>
                   )}
                 </p>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Total Talk Time</span>
-                <span className="font-mono font-bold text-slate-300">
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
                   {isPhysicalManager ? '— (Field Stream)' : `${fmtDuration(divisionDuration)} (Avg ${fmtDuration(divisionAvgTalkSec)})`}
                 </span>
               </div>
             </div>
 
             {/* Pillar 3: Quality Assurance */}
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-amber-500/40 transition-all">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-amber-500/40 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/60 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-lg">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div className="flex items-center gap-2">
                   {!isPhysicalManager && renderMomBadge(divisionAvgQa, momAnalytics.octDivAvgQa, '%', true)}
-                  <span className="text-xs font-semibold text-amber-400">Division QA</span>
+                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Division QA</span>
                 </div>
               </div>
               <div className="space-y-0.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pillar 3 • Quality Assurance</span>
-                <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                   {isPhysicalManager ? (
                     <span className="text-xl text-slate-400 font-normal">— (Exempt from QA)</span>
                   ) : (
                     <>{divisionAvgQa}% <span className="text-base font-normal text-slate-400">Avg Score</span></>
                   )}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {isPhysicalManager ? (
                     'Physical invoices audited via on-site checklist'
                   ) : (
-                    <>Evaluated across <span className="font-semibold text-slate-200">{divisionQa.length} audited calls</span></>
+                    <>Evaluated across <span className="font-semibold text-slate-700 dark:text-slate-200">{divisionQa.length} audited calls</span></>
                   )}
                 </p>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Fatal Call Rate</span>
-                <span className={`font-bold ${divisionFatalities > 2 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                <span className={`font-bold ${divisionFatalities > 2 ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {isPhysicalManager ? '0.0% (Zero Fatalities)' : `${((divisionFatalities / Math.max(divisionQa.length, 1)) * 100).toFixed(1)}% (${divisionFatalities} Fatalities)`}
                 </span>
               </div>
@@ -889,33 +889,33 @@ export default function ManagerHub() {
           {!isPhysicalManager && divisionPods.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-xs font-bold text-slate-800 dark:text-white">
-                <Layers className="w-3.5 h-3.5 text-brand-400" />
+                <Layers className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400" />
                 <span>Subordinate Digital Pods in {activeManagerName} Division</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {divisionPods.map((pod) => (
-                  <div key={pod.teamName || pod.captain} className="bg-[#0e1320] border border-slate-800 rounded-2xl p-3.5 sm:p-4 hover:border-brand-500/40 transition-all">
+                  <div key={pod.teamName || pod.captain} className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 hover:border-brand-500/40 transition-all shadow-sm">
                     <div className="flex items-center justify-between mb-1.5">
-                      <h3 className="text-xs sm:text-sm font-bold text-white">{pod.teamName || pod.captain} Pod</h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">{pod.teamName || pod.captain} Pod</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800">
                         {pod.rmCount} RMs
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400 mb-2">
-                      Pod Captain: <span className="font-semibold text-slate-200">{pod.captain}</span>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                      Pod Captain: <span className="font-semibold text-slate-800 dark:text-slate-200">{pod.captain}</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 bg-slate-900/60 p-2 sm:p-2.5 rounded-xl border border-slate-800/60 text-center">
+                    <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-900/60 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800/60 text-center">
                       <div>
-                        <div className="text-[10px] text-slate-400">Dials</div>
-                        <div className="font-bold text-white text-xs">{nf.format(pod.dials)}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Dials</div>
+                        <div className="font-bold text-slate-900 dark:text-white text-xs">{nf.format(pod.dials)}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-400">Conn %</div>
-                        <div className="font-bold text-emerald-400 text-xs">{pod.connRate}%</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Conn %</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{pod.connRate}%</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-400">QA Score</div>
-                        <div className="font-bold text-indigo-300 text-xs">{pod.qaScore}%</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">QA Score</div>
+                        <div className="font-bold text-indigo-600 dark:text-indigo-300 text-xs">{pod.qaScore}%</div>
                       </div>
                     </div>
                   </div>
@@ -926,11 +926,11 @@ export default function ManagerHub() {
 
           {/* Division RM Roster Table */}
           {!isPhysicalManager && divisionRms.length > 0 && (
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Relationship Managers Roster ({activeManagerName} Division)</h3>
-                  <p className="text-[11px] text-slate-400">Reporting agents across all assigned digital pods • Click At-Risk badges to log coaching</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Relationship Managers Roster ({activeManagerName} Division)</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Reporting agents across all assigned digital pods • Click At-Risk badges to log coaching</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -942,12 +942,12 @@ export default function ManagerHub() {
                       value={managerSearch}
                       onChange={(e) => setManagerSearch(e.target.value)}
                       placeholder="Search RM, pod or captain..."
-                      className="pl-8 pr-3 py-1 bg-slate-900/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none w-48 sm:w-56"
+                      className="pl-8 pr-3 py-1 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none w-48 sm:w-56"
                     />
                     {managerSearch && (
                       <button 
                         onClick={() => setManagerSearch('')}
-                        className="absolute right-2.5 top-2 text-slate-400 hover:text-white"
+                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -957,22 +957,22 @@ export default function ManagerHub() {
                   {/* 1-Click CSV Export Button */}
                   <button
                     onClick={handleExportDivisionRoster}
-                    className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                    className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
                     title="Export filtered roster to Microsoft Excel / CSV"
                   >
-                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>Export CSV</span>
                   </button>
 
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                     {filteredDivisionRms.length} of {divisionRms.length} RMs
                   </span>
                 </div>
               </div>
 
               {/* Quick Filter Preset Pills */}
-              <div className="px-5 py-2 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-[11px] text-slate-400 font-semibold mr-1">Filter View:</span>
+              <div className="px-5 py-2 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mr-1">Filter View:</span>
                 {[
                   { key: 'all', label: `All RMs (${divisionRms.length})` },
                   { key: 'top', label: `🌟 Top Performers (${divisionRms.filter(r => r.badge.includes('Top Performer')).length})` },
@@ -987,7 +987,7 @@ export default function ManagerHub() {
                     className={`px-2 py-0.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                       managerFilter === pill.key
                         ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
                     }`}
                   >
                     {pill.label}
@@ -998,7 +998,7 @@ export default function ManagerHub() {
               {/* Table with Sticky Header */}
               <div className="overflow-x-auto max-h-[440px] overflow-y-auto">
                 <table className="w-full text-left border-collapse text-xs">
-                  <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                  <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
                     <tr>
                       <th className="py-3 px-4">RM Agent</th>
                       <th className="py-3 px-4">Pod Captain</th>
@@ -1013,40 +1013,40 @@ export default function ManagerHub() {
                       <th className="py-3 px-4 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {filteredDivisionRms.length === 0 ? (
                       <tr>
-                        <td colSpan="11" className="py-8 text-center text-slate-400">
+                        <td colSpan="11" className="py-8 text-center text-slate-500 dark:text-slate-400">
                           No relationship managers match the current search or filter criteria.
                         </td>
                       </tr>
                     ) : (
                       filteredDivisionRms.map((rm) => (
-                        <tr key={rm.rm_name} className="hover:bg-slate-800/40">
-                          <td className="py-3 px-4 font-bold text-white flex items-center gap-1.5">
+                        <tr key={rm.rm_name} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                             <span>{rm.rm_name}</span>
                             {rm.isCoached && (
-                              <span className="text-[10px] text-emerald-400" title="Coaching conducted">🎓</span>
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400" title="Coaching conducted">🎓</span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-slate-300">{rm.captain_name}</td>
-                          <td className="py-3 px-4 text-indigo-400">{rm.team_name}</td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{rm.captain_name}</td>
+                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-medium">{rm.team_name}</td>
                           <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.dials)}</td>
                           <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.connected)}</td>
-                          <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
-                          <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
-                          <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                          <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{rm.connRate}%</td>
+                          <td className="py-3 px-4 font-mono text-slate-600 dark:text-slate-300">{fmtDuration(rm.duration)}</td>
+                          <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{rm.qaScore}%</td>
                           <td className="py-3 px-4 font-mono">
                             {rm.fatalCount > 0 ? (
                               <button
                                 onClick={() => handleOpenCoachingModal(rm)}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70 hover:bg-rose-900/80 cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800/70 hover:bg-rose-100 dark:hover:bg-rose-900/80 cursor-pointer transition-colors"
                                 title="Click to log counseling/coaching session"
                               >
                                 🚨 {rm.fatalCount} Failed
                               </button>
                             ) : (
-                              <span className="text-slate-500 font-medium">0</span>
+                              <span className="text-slate-400 dark:text-slate-500 font-medium">0</span>
                             )}
                           </td>
                           <td className="py-3 px-4">
@@ -1058,7 +1058,7 @@ export default function ManagerHub() {
                               {rm.badge}
                             </button>
                             {rm.isCoached && (
-                              <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
+                              <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800/80">
                                 Coached
                               </span>
                             )}
@@ -1067,19 +1067,19 @@ export default function ManagerHub() {
                             {rm.isCoached ? (
                               <button
                                 onClick={() => handleOpenCoachingModal(rm)}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
+                                className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 dark:border-emerald-800 dark:text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
                                 title="Coaching completed • Click to view or update notes"
                               >
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                 <span>Coaching Done</span>
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleOpenCoachingModal(rm)}
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                                className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-2xs"
                                 title="Log coaching session"
                               >
-                                <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
+                                <GraduationCap className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                                 <span>Coach</span>
                               </button>
                             )}
@@ -1103,23 +1103,23 @@ export default function ManagerHub() {
         <div className="space-y-4">
 
           {/* Pod Captain Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-900/40 rounded-3xl p-4 sm:p-5 lg:p-6 text-white shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50/50 border-emerald-200 text-slate-900 dark:from-slate-900 dark:via-emerald-950 dark:to-slate-900 dark:border-emerald-900/40 dark:text-white border rounded-3xl p-4 sm:p-5 lg:p-6 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
               <div className="space-y-1.5">
-                <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold">
+                <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 text-[11px] font-bold">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>⚡ POD DASHBOARD • DIGITAL CALLING</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {activePodConfig.team} Pod Dashboard
                 </h1>
-                <p className="text-slate-300 text-xs sm:text-sm max-w-3xl">
-                  Pod Captain: <span className="font-bold text-white">{activePodConfig.captain}</span> • Senior Manager: <span className="font-bold text-white">{activePodConfig.manager}</span> • {podRms.length} Active Relationship Managers • High Productivity Cluster.
+                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl">
+                  Pod Captain: <span className="font-bold text-slate-900 dark:text-white">{activePodConfig.captain}</span> • Senior Manager: <span className="font-bold text-slate-900 dark:text-white">{activePodConfig.manager}</span> • {podRms.length} Active Relationship Managers • High Productivity Cluster.
                 </p>
               </div>
-              <div className="bg-emerald-900/40 border border-emerald-700/60 rounded-xl px-4 py-2 text-xs text-right">
-                <div className="text-[10px] text-emerald-300 uppercase font-semibold">Pod Performance Tier</div>
-                <div className="font-bold text-white">High Performer ({podConnRate}% Conn)</div>
+              <div className="bg-white/80 dark:bg-emerald-900/40 border border-slate-200 dark:border-emerald-700/60 rounded-xl px-4 py-2 text-xs text-right shadow-2xs">
+                <div className="text-[10px] text-slate-500 dark:text-emerald-300 uppercase font-semibold">Pod Performance Tier</div>
+                <div className="font-bold text-slate-900 dark:text-white">High Performer ({podConnRate}% Conn)</div>
               </div>
             </div>
           </div>
@@ -1127,60 +1127,60 @@ export default function ManagerHub() {
           {/* Pod Operational KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg">
                   <PhoneCall className="w-5 h-5" />
                 </div>
                 {renderMomBadge(podTotalDials, momAnalytics.octPodDials, '%', false)}
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pod Dials</span>
-              <div className="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-0.5">
                 {nf.format(podTotalDials)} <span className="text-base font-normal text-slate-400">Dials</span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                <span className="font-semibold text-emerald-400">{podConnRate}%</span> Connected ({nf.format(podTotalConnected)} calls)
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{podConnRate}%</span> Connected ({nf.format(podTotalConnected)} calls)
               </p>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Connected Calls</span>
-                <span className="font-bold text-emerald-400">{nf.format(podTotalConnected)} Successful</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">{nf.format(podTotalConnected)} Successful</span>
               </div>
             </div>
 
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-blue-950/60 border border-blue-900/60 flex items-center justify-center text-blue-400 font-bold text-lg mb-3">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-blue-500/40 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg mb-3">
                 <Users className="w-5 h-5" />
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Cumulative Talk Time</span>
-              <div className="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-0.5">
                 {fmtDuration(podTotalDuration)}
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Average handling time: <span className="font-semibold text-slate-200">{fmtDuration(podAvgTalkSec)}</span> per call
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Average handling time: <span className="font-semibold text-slate-700 dark:text-slate-200">{fmtDuration(podAvgTalkSec)}</span> per call
               </p>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Active Dialers</span>
-                <span className="font-bold text-blue-400">{podRms.length} of {podRms.length} RMs Dialing</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{podRms.length} of {podRms.length} RMs Dialing</span>
               </div>
             </div>
 
-            <div className="bg-[#0e1320] border border-slate-800 rounded-2xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:border-amber-500/40 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-900/60 flex items-center justify-center text-amber-400 font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/60 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-lg">
                   <Award className="w-5 h-5" />
                 </div>
                 {renderMomBadge(podAvgQaScore, momAnalytics.octPodAvgQa, '%', true)}
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pod QA Compliance</span>
-              <div className="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-0.5">
                 {podAvgQaScore}% <span className="text-base font-normal text-slate-400">Avg Score</span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Evaluated across <span className="font-semibold text-slate-200">{podQa.length} audited calls</span>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Evaluated across <span className="font-semibold text-slate-700 dark:text-slate-200">{podQa.length} audited calls</span>
               </p>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500">Fatal Call Rate</span>
-                <span className={`font-bold ${podFatalities > 2 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                <span className={`font-bold ${podFatalities > 2 ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {((podFatalities / Math.max(podQa.length, 1)) * 100).toFixed(1)}% ({podFatalities} Fatalities)
                 </span>
               </div>
@@ -1189,11 +1189,11 @@ export default function ManagerHub() {
           </div>
 
           {/* Pod RM Leaderboard Table */}
-          <div className="bg-[#0e1320] border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-white">{activePodConfig.team} Relationship Managers Leaderboard</h3>
-                <p className="text-xs text-slate-400">Live dialing volume, talk duration, and quality metrics • Click At-Risk badges to log coaching</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">{activePodConfig.team} Relationship Managers Leaderboard</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Live dialing volume, talk duration, and quality metrics • Click At-Risk badges to log coaching</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -1205,12 +1205,12 @@ export default function ManagerHub() {
                     value={podSearch}
                     onChange={(e) => setPodSearch(e.target.value)}
                     placeholder="Search RM agent..."
-                    className="pl-8 pr-3 py-1.5 bg-slate-900/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none w-44 sm:w-52"
+                    className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none w-44 sm:w-52"
                   />
                   {podSearch && (
                     <button 
                       onClick={() => setPodSearch('')}
-                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-white"
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1220,22 +1220,22 @@ export default function ManagerHub() {
                 {/* 1-Click CSV Export Button */}
                 <button
                   onClick={handleExportPodLeaderboard}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
                   title="Export filtered leaderboard to Microsoft Excel / CSV"
                 >
-                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Export CSV</span>
                 </button>
 
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60">
                   Captain: {activePodConfig.captain}
                 </span>
               </div>
             </div>
 
             {/* Quick Filter Preset Pills */}
-            <div className="px-6 py-2.5 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-slate-400 font-semibold mr-1">Filter View:</span>
+            <div className="px-6 py-2.5 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-semibold mr-1">Filter View:</span>
               {[
                 { key: 'all', label: `All RMs (${podRms.length})` },
                 { key: 'top', label: `🌟 Top Performers (${podRms.filter(r => r.badge.includes('Top Performer')).length})` },
@@ -1250,7 +1250,7 @@ export default function ManagerHub() {
                   className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                     podFilter === pill.key
                       ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   {pill.label}
@@ -1261,7 +1261,7 @@ export default function ManagerHub() {
             {/* Table with Sticky Header */}
             <div className="overflow-x-auto max-h-[440px] overflow-y-auto">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">RM Agent</th>
                     <th className="py-3 px-4">Outbound Dials</th>
@@ -1274,38 +1274,38 @@ export default function ManagerHub() {
                     <th className="py-3 px-4 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredPodRms.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="py-8 text-center text-slate-400">
+                      <td colSpan="9" className="py-8 text-center text-slate-500 dark:text-slate-400">
                         No relationship managers match the current search or filter criteria.
                       </td>
                     </tr>
                   ) : (
                     filteredPodRms.map((rm) => (
-                      <tr key={rm.rm_name} className="hover:bg-slate-800/40">
-                        <td className="py-3 px-4 font-bold text-white flex items-center gap-1.5">
+                      <tr key={rm.rm_name} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                           <span>{rm.rm_name}</span>
                           {rm.isCoached && (
-                            <span className="text-[10px] text-emerald-400" title="Coaching conducted">🎓</span>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400" title="Coaching conducted">🎓</span>
                           )}
                         </td>
                         <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.dials)}</td>
                         <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-100">{nf.format(rm.connected)}</td>
-                        <td className="py-3 px-4 font-bold text-emerald-400">{rm.connRate}%</td>
-                        <td className="py-3 px-4 font-mono text-slate-300">{fmtDuration(rm.duration)}</td>
-                        <td className="py-3 px-4 font-bold text-white">{rm.qaScore}%</td>
+                        <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{rm.connRate}%</td>
+                        <td className="py-3 px-4 font-mono text-slate-600 dark:text-slate-300">{fmtDuration(rm.duration)}</td>
+                        <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{rm.qaScore}%</td>
                         <td className="py-3 px-4 font-mono">
                           {rm.fatalCount > 0 ? (
                             <button
                               onClick={() => handleOpenCoachingModal(rm)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/70 text-rose-300 border border-rose-800/70 hover:bg-rose-900/80 cursor-pointer transition-colors"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800/70 hover:bg-rose-100 dark:hover:bg-rose-900/80 cursor-pointer transition-colors"
                               title="Click to log counseling/coaching session"
                             >
                               🚨 {rm.fatalCount} Failed
                             </button>
                           ) : (
-                            <span className="text-slate-500 font-medium">0</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-medium">0</span>
                           )}
                         </td>
                         <td className="py-3 px-4">
@@ -1317,7 +1317,7 @@ export default function ManagerHub() {
                             {rm.badge}
                           </button>
                           {rm.isCoached && (
-                            <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
+                            <span className="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800/80">
                               Coached
                             </span>
                           )}
@@ -1326,19 +1326,19 @@ export default function ManagerHub() {
                           {rm.isCoached ? (
                             <button
                               onClick={() => handleOpenCoachingModal(rm)}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 dark:border-emerald-800 dark:text-emerald-300 text-[10px] font-bold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-xs"
                               title="Coaching completed • Click to view or update notes"
                             >
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               <span>Coaching Done</span>
                             </button>
                           ) : (
                             <button
                               onClick={() => handleOpenCoachingModal(rm)}
-                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer"
+                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700 text-[10px] font-semibold flex items-center gap-1 mx-auto transition-colors cursor-pointer shadow-2xs"
                               title="Log coaching session"
                             >
-                              <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
+                              <GraduationCap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               <span>Coach</span>
                             </button>
                           )}
@@ -1358,20 +1358,20 @@ export default function ManagerHub() {
       {/* 3. LOG COUNSELING / COACHING SESSION MODAL                    */}
       {/* ============================================================= */}
       {coachingTarget && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-[#0e1320] border border-indigo-800/80 rounded-3xl max-w-lg w-full p-6 text-white shadow-2xl space-y-5 my-8">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-[#0e1320] border border-slate-200 dark:border-indigo-800/80 rounded-3xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-2xl space-y-5 my-8">
             
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-indigo-900/60 pb-4">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-indigo-900/60 pb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-950/80 border border-indigo-800 flex items-center justify-center text-indigo-400">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>Log Coaching Session</span>
                   </h3>
-                  <p className="text-xs text-indigo-300/80 mt-0.5">
+                  <p className="text-xs text-indigo-600 dark:text-indigo-300/80 mt-0.5">
                     Record supervisory feedback and corrective counseling for Relationship Manager.
                   </p>
                 </div>
@@ -1379,48 +1379,48 @@ export default function ManagerHub() {
               <button
                 type="button"
                 onClick={() => setCoachingTarget(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Target Agent Profile Card */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-xs space-y-1.5">
+            <div className="bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-white text-sm">{coachingTarget.rm_name}</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm">{coachingTarget.rm_name}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${coachingTarget.badgeColor}`}>
                   {coachingTarget.badge}
                 </span>
               </div>
-              <div className="text-slate-400 flex flex-wrap items-center gap-3">
-                <span>Team: <strong className="text-slate-200">{coachingTarget.team_name || activePodConfig.team}</strong></span>
+              <div className="text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-3">
+                <span>Team: <strong className="text-slate-700 dark:text-slate-200">{coachingTarget.team_name || activePodConfig.team}</strong></span>
                 <span>•</span>
-                <span>Captain: <strong className="text-slate-200">{coachingTarget.captain_name || activeCaptainName}</strong></span>
+                <span>Captain: <strong className="text-slate-700 dark:text-slate-200">{coachingTarget.captain_name || activeCaptainName}</strong></span>
                 <span>•</span>
-                <span>Fatals: <strong className={coachingTarget.fatalCount > 0 ? "text-rose-400 font-bold" : "text-emerald-400"}>{coachingTarget.fatalCount}</strong></span>
+                <span>Fatals: <strong className={coachingTarget.fatalCount > 0 ? "text-rose-500 dark:text-rose-400 font-bold" : "text-emerald-600 dark:text-emerald-400"}>{coachingTarget.fatalCount}</strong></span>
               </div>
             </div>
 
             {/* Multi-Tier Delegation Dispatch Routing Banner */}
             <div className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between gap-3 ${
               coachingDelegation.isEscalation 
-                ? 'bg-rose-950/60 border-rose-800/80 text-rose-200' 
-                : 'bg-indigo-950/60 border-indigo-800/80 text-indigo-200'
+                ? 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:border-rose-800/80 dark:text-rose-200' 
+                : 'bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/60 dark:border-indigo-800/80 dark:text-indigo-200'
             }`}>
               <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-xl ${coachingDelegation.isEscalation ? 'bg-rose-900/80 text-rose-300' : 'bg-indigo-900/80 text-indigo-300'}`}>
+                <div className={`p-2 rounded-xl ${coachingDelegation.isEscalation ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/80 dark:text-rose-300' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/80 dark:text-indigo-300'}`}>
                   {coachingDelegation.isEscalation ? <Building2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                 </div>
                 <div>
                   <div className="font-bold flex items-center gap-2">
                     <span>{coachingDelegation.isEscalation ? '🏢 Senior Manager Escalation' : '⚡ Pod Captain Action'}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-900/80 border border-slate-700 font-bold">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 font-bold">
                       {coachingTarget.fatalCount} {coachingTarget.fatalCount === 1 ? 'Fatal' : 'Fatals'} ({coachingDelegation.isEscalation ? '≥ 3 Rule' : '< 3 Rule'})
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-300 mt-0.5">
-                    Dispatched by <strong className="text-white">{coachingDelegation.senderRole} ({coachingDelegation.senderName})</strong> to Quality Auditor <strong className="text-white font-mono">{coachingTargetAuditor}</strong>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                    Dispatched by <strong className="text-slate-900 dark:text-white">{coachingDelegation.senderRole} ({coachingDelegation.senderName})</strong> to Quality Auditor <strong className="text-slate-900 dark:text-white font-mono">{coachingTargetAuditor}</strong>
                   </div>
                 </div>
               </div>
@@ -1431,47 +1431,47 @@ export default function ManagerHub() {
               
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold mb-1 text-slate-300">Coaching Date</label>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Coaching Date</label>
                   <input
                     type="date"
                     value={coachingDate}
                     onChange={(e) => setCoachingDate(e.target.value)}
                     required
-                    className="w-full p-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium focus:outline-none"
+                    className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1 text-slate-300">
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
                     Dispatched By ({coachingDelegation.senderRole})
                   </label>
                   <input
                     type="text"
                     value={coachingDelegation.senderName}
                     readOnly
-                    className="w-full p-2 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-300 font-medium cursor-not-allowed"
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-600 dark:text-slate-300 font-medium cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold mb-1 text-slate-300 flex items-center justify-between">
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300 flex items-center justify-between">
                   <span>Target Quality Auditor</span>
-                  <span className="text-[10px] text-slate-400">Audited Fatal Call</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Audited Fatal Call</span>
                 </label>
-                <div className="p-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 font-mono font-bold flex items-center justify-between text-xs">
+                <div className="p-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 font-mono font-bold flex items-center justify-between text-xs">
                   <span>{coachingTargetAuditor}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-sans font-semibold">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800 font-sans font-semibold">
                     QA Recipient
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold mb-1 text-slate-300">Coaching Focus Area</label>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Coaching Focus Area</label>
                 <select
                   value={coachingFocus}
                   onChange={(e) => setCoachingFocus(e.target.value)}
-                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium focus:outline-none"
+                  className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none"
                 >
                   <option value="GTM Adherence & Product Guidelines">GTM Adherence & Misinformation Prevention (Fatal)</option>
                   <option value="Redemption & Gratitude Points Process">Redemption & Joy Gratitude Points (Fatal)</option>
@@ -1484,21 +1484,21 @@ export default function ManagerHub() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-1 text-slate-300">Counseling Notes & Action Items</label>
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Counseling Notes & Action Items</label>
                 <textarea
                   value={coachingNotes}
                   onChange={(e) => setCoachingNotes(e.target.value)}
                   placeholder="Record observed defects, specific guidance shared, agreed turnaround timeline..."
                   rows={4}
                   required
-                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none text-xs"
+                  className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold mb-1 text-slate-300">Resolution Status</label>
-                <div className="flex items-center gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
-                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">Resolution Status</label>
+                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
                     <input
                       type="radio"
                       name="coachingStatus"
@@ -1507,9 +1507,9 @@ export default function ManagerHub() {
                       onChange={() => setCoachingStatus('Completed')}
                       className="text-emerald-500 focus:ring-0"
                     />
-                    <span className="font-semibold text-emerald-400">Coaching Completed</span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">Coaching Completed</span>
                   </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
                     <input
                       type="radio"
                       name="coachingStatus"
@@ -1518,17 +1518,17 @@ export default function ManagerHub() {
                       onChange={() => setCoachingStatus('In Progress')}
                       className="text-amber-500 focus:ring-0"
                     />
-                    <span className="font-semibold text-amber-400">In Progress / Follow-up Needed</span>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">In Progress / Follow-up Needed</span>
                   </label>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setCoachingTarget(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
