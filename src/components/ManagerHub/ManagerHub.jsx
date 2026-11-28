@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext';
 import { formatINR, nf, fmtDuration } from '../../utils/formatters';
 import { verifyWatermarkIntegrity } from '../../utils/integrity';
 import { exportToCsv } from '../../utils/exportCsv';
+import CenturyJoyLogo from '../Common/CenturyJoyLogo';
 import { 
   CreditCard, 
   PhoneCall, 
@@ -670,9 +671,7 @@ export default function ManagerHub() {
       {isSuperAdmin && (
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-indigo-600 to-blue-500 flex items-center justify-center font-bold text-white text-lg shadow-md">
-              CJ
-            </div>
+            <CenturyJoyLogo size="xs" interactive={false} />
             <div>
               <div className="text-xs uppercase font-extrabold tracking-wider text-brand-400">Governance & Hierarchy Control</div>
               <div className="text-sm font-bold text-white">Dedicated Division & Pod Dashboards</div>

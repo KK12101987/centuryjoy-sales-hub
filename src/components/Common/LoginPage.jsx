@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { SEED_USERS, isDevDeviceAuthorized } from '../../utils/auth';
+import CenturyJoyLogo from './CenturyJoyLogo';
 import { 
   ShieldCheck, 
   Lock, 
@@ -90,9 +91,9 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-700 via-indigo-600 to-blue-500 text-white font-black text-2xl shadow-xl shadow-brand-500/25 mb-2">
-            CJ
+        <div className="text-center space-y-3">
+          <div className="inline-flex justify-center mb-1">
+            <CenturyJoyLogo size="lg" interactive={false} badgeClassName="px-4 py-2.5 shadow-md" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Century Joy Enterprise

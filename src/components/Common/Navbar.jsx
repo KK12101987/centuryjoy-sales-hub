@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { ROLE_DEFINITIONS, ROLES, getPermittedModules, getAllowedUploadTabs } from '../../utils/auth';
+import CenturyJoyLogo from './CenturyJoyLogo';
 import { 
   LayoutDashboard, 
   CreditCard, 
@@ -102,20 +103,17 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 gap-2">
           
           {/* Brand & Title */}
-          <div className="flex items-center space-x-3 shrink-0">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-indigo-600 to-blue-500 text-white font-bold text-lg shadow-md shadow-brand-500/20 shrink-0">
-              CJ
-            </div>
-            <div className="shrink-0">
-              <div className="flex items-center space-x-2 shrink-0 whitespace-nowrap">
-                <span className="font-extrabold text-slate-900 dark:text-white tracking-tight text-base sm:text-lg whitespace-nowrap shrink-0">
-                  Century Joy
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 whitespace-nowrap shrink-0">
-                  Operations Suite
-                </span>
+          <div className="flex items-center space-x-2.5 shrink-0">
+            <CenturyJoyLogo 
+              size="sm" 
+              onClick={() => permittedModules.includes('consolidated') ? switchModule('consolidated') : switchModule(permittedModules[0])} 
+            />
+            <div className="shrink-0 flex items-center space-x-2">
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 whitespace-nowrap shrink-0">
+                Operations Suite
+              </span>
 
-                {/* Interactive Month Switcher in Header */}
+              {/* Interactive Month Switcher in Header */}
                 <div className="relative inline-block ml-1 shrink-0" ref={monthDropdownRef}>
                   <button
                     type="button"
@@ -199,7 +197,6 @@ export default function Navbar() {
                   )}
                 </div>
               </div>
-            </div>
           </div>
 
           {/* Module Switcher Tabs */}
