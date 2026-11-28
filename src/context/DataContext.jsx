@@ -606,8 +606,13 @@ export function DataProvider({ children }) {
   // B. Telephony Records State
   const [telephony, setTelephony] = useState(() => {
     try {
-      const saved = localStorage.getItem('century_telephony_data_v2');
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem('century_telephony_data_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].n !== undefined) {
+          return parsed;
+        }
+      }
     } catch (e) {}
     return rawTelephony;
   });
@@ -617,7 +622,7 @@ export function DataProvider({ children }) {
     setTelephony((prev) => {
       const updated = [...newRows, ...prev];
       try {
-        localStorage.setItem('century_telephony_data_v2', JSON.stringify(updated));
+        localStorage.setItem('century_telephony_data_v3', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });

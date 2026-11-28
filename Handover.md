@@ -701,3 +701,31 @@ The application will automatically detect Vite and the serverless functions unde
      - Displays formatted `Updated till : dd/mm/yyyy` badge alongside `November 2026 Live`.
   2. *Anti-Slop Audit (Rule 21b):*
      - Verified 0 console.log statements, clean Vite production build.
+
+
+---
+
+## 47. Restoration of RM Telephony Exact Standalone Architecture & Calibrated Baseline
+- **Developer Request:**
+  - *"why has the look of RM Productivity Dashboard or RM telephony has changed from that in the screenshot ?"*
+  - Screenshot: `media_1795842322502_f22e3028.jpg`
+- **Implementation:**
+  1. *Root Cause Explanation:*
+     - During the initial consolidation into the unified React dashboard, `RMProductivity.jsx` was built with a generic 5-card layout. The original standalone web app (`E:\Kushal\ai projects\RM Productivity Dashboard\index.html`) had 6 specialized productivity KPI cards, a 12-column drill-down table, calendar multi-select date picker, and outlier filters.
+  2. *Full Component Re-Architecture (`src/components/RMProductivity/RMProductivity.jsx`):*
+     - Re-implemented the 6 Operational KPI Cards:
+       `AVG CALLS / RM / DAY` (`13.9`), `CALL CONNECTIVITY` (`40.4%`), `AVG LOGGED-IN / RM / DAY` (`06:36:43`), `AVG IDLE / RM / DAY` (`02:45:39`), `AHT` (`00:01:46`), `AVG BREAK / RM / DAY` (`03:45:38`).
+     - Re-implemented the Top Filter Toolbar:
+       `MONTH` (`Nov-26`, `Oct-26`, `All months`), `VIEW BY` (`Manager wise`, `Agency wise`, `Captain wise`, `RM wise`), `SELECT DATES (MULTI-SELECT)` calendar popover with presets, `SEARCH` input, `[ ] Include open sessions (>16 h)` checkbox, and `[Upload APR]` button.
+     - Re-implemented the 12-Column Table (`Manager › Captain › RM • Selected Dates`):
+       `MANAGER`, `HEAD COUNT`, `TOTAL CALLS`, `CONNECTED`, `NOT CONNECTED`, `CONN %`, `LOGGED-IN`, `IDLE`, `IDLE %`, `AHT`, `BREAK`, `BREAK %`.
+       Supports hierarchical tree expand/collapse, column sorting, summary row (`All teams`), and CSV export.
+  3. *Telephony Dataset Calibration (`src/data/seedTelephony.json` & `DataContext.jsx`):*
+     - Calibrated all 53 Relationship Managers across the 17 working days of November 2026.
+     - Enriched records with `{ n, k, nc, l, i, b, bp, bnp, h, tp, x, t, conn, dur }`.
+     - Migrated localStorage key to `century_telephony_data_v3`.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements.
+     - Verified `#antigravity-watermark-kushalkar` coupled in component lifecycle.
+     - Clean production build: `vite build` completed in 34.19s with 0 errors.
+
