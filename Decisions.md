@@ -997,3 +997,25 @@ eplace mode preserving tickets from other months.
   4. *Rule 21b Anti-Slop Audit Cycle:*
      - 0 unused imports, 0 console.log statements.
      - Clean Vite production build verified (`vite build` succeeded in 25.56s).
+
+
+---
+
+### Decision 064: Permanent Executive Footer Mounting & False-Positive Elimination on Log Off
+* **Date:** 2026-11-28
+* **Status:** Implemented & Verified Live on Production
+* **Context:**
+  - When developer logged off, `currentUser` became `null`, unmounting the authenticated layout which previously contained the `<footer ...><Watermark /></footer>`.
+  - The `MutationObserver` observed the removal of `#antigravity-watermark-kushalkar` during component teardown and mistakenly identified it as an external tamper attempt, firing `triggerCatastrophicFailure()`.
+* **Decision & Implementation:**
+  1. *Permanent Footer Structure (`src/App.jsx`):*
+     - Restructured `App.jsx` so that the executive footer containing `<Watermark />` is permanently mounted at the bottom of the viewport across all authentication states (`currentUser` logged in or logged out).
+     - Swapped viewports inside `<main>` cleanly between `<LoginPage />` and authenticated dashboards without ever touching the footer.
+  2. *Reconciliation Grace Window (`src/utils/integrity.js`):*
+     - Wrapped the node removal check in `requestAnimationFrame` before verifying DOM presence. If an element is re-rendered or reconciled by React, the check validates its presence on the next paint cycle. Real deletions (via DevTools or script) still evaluate to `null` and trigger immediate failure.
+  3. *Eliminated Duplicate Element:*
+     - Cleaned up `<Watermark />` inside `LoginPage.jsx` so exactly one `#antigravity-watermark-kushalkar` exists in the entire document tree.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements.
+     - Clean production build: `vite build` completed in 23.18s with 0 errors.
+     - Verified live on Vercel production: Login -> Dashboard -> Sign Out transitions smoothly with 0 errors.
