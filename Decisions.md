@@ -1019,3 +1019,32 @@ eplace mode preserving tickets from other months.
      - 0 unused imports, 0 console.log statements.
      - Clean production build: `vite build` completed in 23.18s with 0 errors.
      - Verified live on Vercel production: Login -> Dashboard -> Sign Out transitions smoothly with 0 errors.
+
+
+---
+
+### Decision 065: Authentic Century Joy Brand Logo & Theme-Adaptive Container Migration
+* **Date:** 2026-11-28
+* **Model Version:** Gemini 3.8 Flash
+* **Status:** Implemented & Verified Live on Production
+* **Context:**
+  - User requested replacing the legacy navbar badge (`[CJ] Century Joy` gradient square badge) with the authentic official Century Joy logo mark (red five-petal emblem with centered white star on top, and `CENTURY Joy` text below).
+  - Required the logo and its container background to dynamically adapt according to the selected application theme (Light Mode vs Dark Mode).
+* **Decision & Implementation:**
+  1. *Subpixel Alpha Matting & Asset Generation:*
+     - Extracted brand mark from official asset with OpenCV signed distance field transform:
+       - `public/century-joy-logo-light.png`: Brand red petals + centered white star + red `CENTURY` + rich black `Joy` for light theme.
+       - `public/century-joy-logo-dark.png`: Brand red petals + centered white star + red `CENTURY` + crisp white `Joy` for high contrast against dark backgrounds.
+  2. *Theme-Adaptive Component (`src/components/Common/CenturyJoyLogo.jsx`):*
+     - Created reusable `CenturyJoyLogo` component with zero-lag CSS switching (`dark:hidden` / `hidden dark:block`).
+     - Wrapped in a responsive container badge:
+       - Light Mode: `bg-white/80 hover:bg-white border-slate-200/80 shadow-2xs`
+       - Dark Mode: `dark:bg-slate-900/80 dark:hover:bg-slate-900 dark:border-slate-800/80 shadow-2xs`
+  3. *Integration across Navigation & Authentication (`Navbar.jsx`, `LoginPage.jsx`, `ManagerHub.jsx`):*
+     - Replaced legacy `[CJ]` badge and text in `Navbar.jsx` with `<CenturyJoyLogo size="sm" />`, preserving the adjacent `Operations Suite` badge and `October 2026 Live` month switcher dropdown.
+     - Upgraded login portal header in `LoginPage.jsx` with `<CenturyJoyLogo size="lg" />`.
+     - Replaced governance ribbon badge in `ManagerHub.jsx` with `<CenturyJoyLogo size="xs" />`.
+  4. *Rule 21b Anti-Slop Audit & Rule 22 Compliance:*
+     - 0 unused imports, 0 `console.log` statements across all affected files.
+     - Verified clean production build (`npm run build` in 11.66s with 0 errors).
+     - Verified live on Vercel production: smooth transition between Light Mode and Dark Mode with pristine visual contrast and active Rule 22 author watermark.
