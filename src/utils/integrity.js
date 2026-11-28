@@ -154,22 +154,34 @@ export function initAntiTamperWatcher(onViolation) {
     // DOM Mutation Observer to detect immediate removal, text tampering or attribute modifications
     if (!observer && typeof MutationObserver !== 'undefined' && document.body) {
       observer = new MutationObserver((mutations) => {
+        let checkNeeded = false;
         for (const mutation of mutations) {
           if (mutation.type === 'childList') {
             for (const node of mutation.removedNodes) {
               if (node.id === WATERMARK_ID || (node.querySelector && node.querySelector(`#${WATERMARK_ID}`))) {
-                triggerCatastrophicFailure("Watermark removed from DOM tree");
+                checkNeeded = true;
               }
             }
           }
           if (mutation.type === 'attributes' && mutation.target.id === WATERMARK_ID) {
-            verifyWatermarkIntegrity();
+            checkNeeded = true;
           }
         }
-        try {
-          verifyWatermarkIntegrity();
-        } catch (err) {
-          if (onViolation) onViolation(err);
+
+        if (checkNeeded) {
+          // Defer check to next animation frame to allow clean React route/component state transitions
+          requestAnimationFrame(() => {
+            const el = document.getElementById(WATERMARK_ID);
+            if (!el) {
+              triggerCatastrophicFailure("Watermark removed from DOM tree");
+            } else {
+              try {
+                verifyWatermarkIntegrity();
+              } catch (err) {
+                if (onViolation) onViolation(err);
+              }
+            }
+          });
         }
       });
 

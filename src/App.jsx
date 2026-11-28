@@ -40,10 +40,6 @@ function AppContent() {
     setIsDevModuleModalOpen
   } = useData();
 
-  if (!currentUser) {
-    return <LoginPage />;
-  }
-
   // Staging / Public Lock Gate: Outside devices (and developer preview mode) can strictly ONLY view L2 Approvals
   const isPublicDeviceLocked = !isDevDevice || previewPublicMode;
 
@@ -62,36 +58,45 @@ function AppContent() {
         }
       `}</style>
 
-      {/* Global Navigation Header */}
-      <Navbar />
+      {/* Viewport Content: Login Page or Authenticated Dashboard */}
+      {!currentUser ? (
+        <main className="flex-1 w-full flex flex-col justify-center">
+          <LoginPage />
+        </main>
+      ) : (
+        <>
+          {/* Global Navigation Header */}
+          <Navbar />
 
-      {/* Universal Upload Center Modal */}
-      <UploadCenterModal 
-        isOpen={isUploadModalOpen} 
-        onClose={closeUploadModal} 
-        initialTab={uploadModalTab} 
-      />
+          {/* Universal Upload Center Modal */}
+          <UploadCenterModal 
+            isOpen={isUploadModalOpen} 
+            onClose={closeUploadModal} 
+            initialTab={uploadModalTab} 
+          />
 
-      {/* Developer Mode: Public Module Release Controller Modal */}
-      <DevModuleControlModal
-        isOpen={isDevModuleModalOpen}
-        onClose={() => setIsDevModuleModalOpen(false)}
-      />
+          {/* Developer Mode: Public Module Release Controller Modal */}
+          <DevModuleControlModal
+            isOpen={isDevModuleModalOpen}
+            onClose={() => setIsDevModuleModalOpen(false)}
+          />
 
-      {/* Main Content Viewport with Suspense Code Splitting */}
-      <main className="flex-1 w-full px-4 sm:px-6 py-5">
-        <Suspense fallback={<ModuleLoadingFallback />}>
-          {(isPublicDeviceLocked || activeModule === 'l2') && <L2DashboardMain />}
-          {!isPublicDeviceLocked && activeModule === 'consolidated' && <ConsolidatedDashboard />}
-          {!isPublicDeviceLocked && activeModule === 'divisions' && <ManagerHub />}
-          {!isPublicDeviceLocked && activeModule === 'productivity' && <RMProductivity />}
-          {!isPublicDeviceLocked && activeModule === 'qa' && <QaDashboard />}
-          {!isPublicDeviceLocked && activeModule === 'users' && <UserManagement />}
-        </Suspense>
-      </main>
+          {/* Main Content Viewport with Suspense Code Splitting */}
+          <main className="flex-1 w-full px-4 sm:px-6 py-5">
+            <Suspense fallback={<ModuleLoadingFallback />}>
+              {(isPublicDeviceLocked || activeModule === 'l2') && <L2DashboardMain />}
+              {!isPublicDeviceLocked && activeModule === 'consolidated' && <ConsolidatedDashboard />}
+              {!isPublicDeviceLocked && activeModule === 'divisions' && <ManagerHub />}
+              {!isPublicDeviceLocked && activeModule === 'productivity' && <RMProductivity />}
+              {!isPublicDeviceLocked && activeModule === 'qa' && <QaDashboard />}
+              {!isPublicDeviceLocked && activeModule === 'users' && <UserManagement />}
+            </Suspense>
+          </main>
+        </>
+      )}
 
-      {/* Executive Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-3.5 text-center text-xs text-slate-500 transition-colors print:hidden">
+      {/* Executive Footer - Permanently Mounted Across All Application Lifecycle States */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-3.5 text-center text-xs text-slate-500 transition-colors print:hidden shrink-0">
         <div className="w-full px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
           {/* Left: Enterprise Status */}
           <div className="flex items-center space-x-2 shrink-0">

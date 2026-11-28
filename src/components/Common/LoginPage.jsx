@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { SEED_USERS, isDevDeviceAuthorized } from '../../utils/auth';
-import Watermark from './Watermark';
 import { 
   ShieldCheck, 
   Lock, 
@@ -87,7 +86,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] flex items-center justify-center p-4 transition-colors font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="w-full flex-1 flex items-center justify-center p-4 py-8 transition-colors font-['Plus_Jakarta_Sans',sans-serif]">
       <div className="max-w-md w-full space-y-8">
         
         {/* Brand Header */}
@@ -282,9 +281,6 @@ export default function LoginPage() {
           )}
 
         </div>
-
-        {/* Footer Author Watermark */}
-        <Watermark />
 
       </div>
     </div>
