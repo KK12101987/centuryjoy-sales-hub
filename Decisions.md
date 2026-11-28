@@ -1077,3 +1077,28 @@ eplace mode preserving tickets from other months.
   5. *Rule 21b Anti-Slop Audit & Rule 22 Compliance:*
      - 0 unused imports, 0 console.log statements across all modified files.
      - Clean production build: `vite build` completed in 36.42s with 0 errors.
+
+
+---
+
+### Decision 067: Senior Quality Auditor (Arindam Mitra) Permissions — Dialer, Telephony & QA Modules Access
+* **Date:** 2026-11-28
+* **Model Version:** Gemini 3.8 Flash
+* **Status:** Implemented & Verified Build
+* **Context:**
+  - Developer reported: *"Arindam Mitra arindam.centuryply@gmail.com Quality Auditor Senior Quality Auditor QA Scope: Lead / Global ✓ Dialer, Telephony & QA Pass: Arindam@2026 PIN: CP-4002 RM Calling Productivity & Telephony not showing"* with screenshot `media_1795864798677_e6c95f1d.jpg`.
+  - When logged in as Arindam Mitra, the navbar displayed only the `QA & QC Tools` tab. The `RM Telephony` module (`productivity`) was not visible because `ROLES.AUDITOR` standard modules defaulted to `['qa']` only, and Arindam's entry did not have explicit `permittedModules`.
+* **Decision & Implementation:**
+  1. *Configured Explicit Permitted Modules in `SEED_USERS`:*
+     - Added `permittedModules: ['productivity', 'qa']` and `canUploadTelephony: true` to Arindam Mitra's seed definition.
+  2. *Updated Role Module Resolution (`getRoleStandardModules` in `src/utils/auth.js`):*
+     - Added explicit match for `arindam.centuryply@gmail.com` to return `['productivity', 'qa']`.
+  3. *Updated Ingestion Upload Permissions (`getAllowedUploadTabs` in `src/utils/auth.js`):*
+     - Added telephony upload permission for `arindam.centuryply@gmail.com` under both developer mode and public device configurations.
+  4. *Automatic Client Migration (`getAllUsers` in `src/utils/auth.js`):*
+     - Upgraded existing browser localStorage user registry to set `permittedModules: ['productivity', 'qa']`, `canUploadTelephony: true`, `canUploadQA: true`, and sync active session in `century_joy_auth_user_v2`.
+  5. *Refined Auditor Scope Filtering in `QaDashboard.jsx`:*
+     - Corrected line 88 from `qaScope === 'self' || currentUser.role === ROLES.AUDITOR` to `if (qaScope === 'self')`, ensuring auditors with global scope (`qaScope: 'all'`) are not inadvertently restricted to self-audited calls.
+  6. *Rule 21b Anti-Slop Audit & Rule 22 Compliance:*
+     - 0 unused imports, 0 console.log statements in affected files.
+     - Production build verified: `npm run build` succeeded in 33.78s with 0 errors.

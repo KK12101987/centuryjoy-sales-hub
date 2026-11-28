@@ -84,8 +84,8 @@ export default function QaDashboard() {
         return cMatch || nMatch || tMatch;
       });
     }
-    // Quality Auditor scope: self-scoped or matching
-    if (qaScope === 'self' || currentUser.role === ROLES.AUDITOR) {
+    // Quality Auditor scope: self-scoped only
+    if (qaScope === 'self') {
       const uName = (currentUser.name || '').toLowerCase().trim();
       const uEmail = (currentUser.email || '').toLowerCase().trim();
       return (qaAudits || []).filter((a) => {

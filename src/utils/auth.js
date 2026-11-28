@@ -306,7 +306,9 @@ export const SEED_USERS = [
     designation: 'Senior Quality Auditor',
     isPhysicalOnly: false,
     canUploadQA: true,
+    canUploadTelephony: true,
     canUploadL2: false,
+    permittedModules: ['productivity', 'qa'],
     initialPassword: 'Arindam@2026',
     recoveryPin: 'CP-4002',
     status: 'active',
@@ -569,6 +571,9 @@ export function getRoleStandardModules(user) {
   if (email === 'admin@centuryply.com') {
     return ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
   }
+  if (email === 'arindam.centuryply@gmail.com' || email.includes('arindam')) {
+    return ['productivity', 'qa'];
+  }
   if (user.role === ROLES.AUDITOR) {
     return ['qa'];
   }
@@ -639,6 +644,7 @@ export function getAllowedUploadTabs(user) {
     }
     const tabs = [];
     if (user.canUploadL2) tabs.push('l2');
+    if (user.canUploadTelephony || email === 'arindam.centuryply@gmail.com') tabs.push('telephony');
     if (user.canUploadQA) tabs.push('qa', 'dialer');
     return tabs;
   }
@@ -649,7 +655,7 @@ export function getAllowedUploadTabs(user) {
   if (publicConfig.l2 && (email === 'kushal.centuryply@gmail.com' || email.includes('tanmoy') || user.role === ROLES.ADMIN || user.canUploadL2)) {
     allowed.push('l2');
   }
-  if (publicConfig.productivity && (user.role === ROLES.ADMIN || isDeveloperUser(user) || user.canUploadTelephony)) {
+  if (publicConfig.productivity && (user.role === ROLES.ADMIN || isDeveloperUser(user) || user.canUploadTelephony || email === 'arindam.centuryply@gmail.com')) {
     allowed.push('telephony');
   }
   if (publicConfig.qa && (user.role === ROLES.ADMIN || user.canUploadQA || isDeveloperUser(user))) {
@@ -741,18 +747,36 @@ export function getAllUsers() {
           parsed[idx].permittedModules = ['consolidated', 'divisions', 'l2', 'productivity', 'qa'];
           modified = true;
         }
-        // One-time canonical name migration for Arindam CenturyPly -> Arindam Mitra
-        if (
-          (parsed[idx].email || '').toLowerCase() === 'arindam.centuryply@gmail.com' &&
-          parsed[idx].name === 'Arindam CenturyPly'
-        ) {
+        // Ensure Arindam Mitra profile has Senior Quality Auditor designation, global qaScope, dialer/telephony/qa permissions, and permittedModules ['productivity', 'qa']
+        if ((parsed[idx].email || '').toLowerCase() === 'arindam.centuryply@gmail.com') {
           parsed[idx].name = 'Arindam Mitra';
+          parsed[idx].designation = 'Senior Quality Auditor';
+          parsed[idx].qaScope = 'all';
+          parsed[idx].managerKey = 'all';
+          parsed[idx].canUploadQA = true;
+          parsed[idx].canUploadTelephony = true;
+          parsed[idx].permittedModules = ['productivity', 'qa'];
           modified = true;
         }
       }
     }
     if (modified) {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsed));
+      try {
+        const rawAuth = localStorage.getItem('century_joy_auth_user_v2');
+        if (rawAuth) {
+          const authUser = JSON.parse(rawAuth);
+          const matched = parsed.find(
+            (u) => (u.email || '').toLowerCase() === (authUser.email || '').toLowerCase()
+          );
+          if (matched) {
+            localStorage.setItem(
+              'century_joy_auth_user_v2',
+              JSON.stringify({ ...authUser, ...matched })
+            );
+          }
+        }
+      } catch (e) {}
     }
     return parsed;
   } catch (e) {

@@ -854,3 +854,21 @@ The application will automatically detect Vite and the serverless functions unde
   3. *Hero Brand Logo:* Added `size="hero"` to `CenturyJoyLogo.jsx` (`h-11 sm:h-12`) for prominent presence in navbar; transformed login screen into an executive hero showcase with glowing frosted glass card and `size="xl"` logo.
   4. *Login Page Enhancements:* Removed 1-Click Role-Based Test Access section completely; added top-right floating Theme Toggle button (Sun / Moon) for standalone theme switching on the login screen.
   5. *Quality & Guardrails:* Rule 21b Anti-Slop Audit verified (0 unused imports, 0 console.log), Vite build verified (`36.42s`), Rule 22 author watermark intact.
+
+
+---
+
+## 54. Senior Quality Auditor (Arindam Mitra) Permissions — Dialer, Telephony & QA Modules Access
+- **Developer Request:**
+  - *"Arindam Mitra arindam.centuryply@gmail.com Quality Auditor Senior Quality Auditor QA Scope: Lead / Global ✓ Dialer, Telephony & QA Pass: Arindam@2026 PIN: CP-4002 RM Calling Productivity & Telephony not showing"*
+  - Screenshot `media_1795864798677_e6c95f1d.jpg` showing only `QA & QC Tools` in navbar when logged in as Arindam Mitra.
+- **Root Cause:**
+  - `ROLES.AUDITOR` standard modules defaulted to `['qa']` only. Arindam Mitra's seed definition lacked `permittedModules`, and `getRoleStandardModules` had no explicit check for `arindam.centuryply@gmail.com`.
+- **Implementation:**
+  1. *Permitted Modules Definition:* Added `permittedModules: ['productivity', 'qa']` and `canUploadTelephony: true` in `SEED_USERS` in `src/utils/auth.js`.
+  2. *Standard Modules Fallback:* Updated `getRoleStandardModules` to return `['productivity', 'qa']` for `arindam.centuryply@gmail.com`.
+  3. *Upload Ingestion Tabs:* Added `telephony` upload permission for Arindam in `getAllowedUploadTabs` for both developer mode and public device modes.
+  4. *Active Session & Registry Migration:* In `getAllUsers()`, automatically updated stored registry and active session `century_joy_auth_user_v2` with `permittedModules: ['productivity', 'qa']`.
+  5. *Scope Clean-Up:* In `QaDashboard.jsx`, removed `|| currentUser.role === ROLES.AUDITOR` from line 88 so global auditors are not restricted to self-audits.
+  6. *Rule 21b & Rule 22 Compliance:* 0 unused imports, 0 console.log statements, clean build (`33.78s`).
+
