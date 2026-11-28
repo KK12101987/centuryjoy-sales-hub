@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { SEED_USERS, isDevDeviceAuthorized } from '../../utils/auth';
+import Watermark from './Watermark';
 import { 
   ShieldCheck, 
   Lock, 
@@ -281,6 +282,9 @@ export default function LoginPage() {
           )}
 
         </div>
+
+        {/* Footer Author Watermark */}
+        <Watermark />
 
       </div>
     </div>
