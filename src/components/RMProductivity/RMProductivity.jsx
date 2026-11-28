@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { getAllowedUploadTabs } from '../../utils/auth';
+import { verifyWatermarkIntegrity } from '../../utils/integrity';
 import { 
   Search, 
   ChevronRight, 
@@ -177,11 +178,7 @@ export default function RMProductivity() {
 
   // Rule 22 Watermark Integrity Verification
   useEffect(() => {
-    const wm = document.getElementById('antigravity-watermark-kushalkar');
-    if (!wm || !wm.textContent.includes('Crafted with ❤️ and Antigravity by KUSHAL KAR')) {
-      document.body.innerHTML = '';
-      throw new Error('Application integrity check failed: Watermark removed or tampered.');
-    }
+    verifyWatermarkIntegrity();
   }, []);
 
   const allowedUploadTabs = getAllowedUploadTabs(currentUser);

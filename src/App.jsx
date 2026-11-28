@@ -65,9 +65,6 @@ function AppContent() {
       {/* Global Navigation Header */}
       <Navbar />
 
-      {/* Mandatory Rule 19 DRM Watermark verification */}
-      <Watermark />
-
       {/* Universal Upload Center Modal */}
       <UploadCenterModal 
         isOpen={isUploadModalOpen} 
@@ -94,9 +91,10 @@ function AppContent() {
       </main>
 
       {/* Executive Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-4 text-center text-xs text-slate-500 transition-colors print:hidden">
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d16] py-3.5 text-center text-xs text-slate-500 transition-colors print:hidden">
         <div className="w-full px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <div className="flex items-center space-x-2">
+          {/* Left: Enterprise Status */}
+          <div className="flex items-center space-x-2 shrink-0">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
               Century Joy Enterprise System
@@ -104,7 +102,11 @@ function AppContent() {
             <span className="text-[10px] text-slate-400 font-mono">v5.0 Unified Release</span>
           </div>
 
-          <div className="text-[11px] text-slate-400">
+          {/* Center: Author Watermark & DRM Anti-Tamper with 10% baseline opacity */}
+          <Watermark />
+
+          {/* Right: Division Classification */}
+          <div className="text-[11px] text-slate-400 shrink-0">
             CenturyPly • Financial Reconciliation, Telephony & QA
           </div>
         </div>

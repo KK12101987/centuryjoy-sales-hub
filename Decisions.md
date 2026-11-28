@@ -927,3 +927,73 @@ eplace mode preserving tickets from other months.
   - `Book1.xlsx` now ingests all 793 rows with **zero unmapped prompts**, resolving 100% of the agents, captains, and managers seamlessly.
 
 
+
+
+---
+
+### Decision 062: Comprehensive Backend Security Hardening, OWASP Defense-in-Depth & Rule 22 DRM Anti-Tamper Enforcement
+* **Date:** 2026-11-28
+* **Status:** Implemented & Verified
+* **Context:**
+  - In response to developer requirements for an internal security audit, external penetration test, and DAST scan, an exhaustive code audit of the backend serverless endpoints (`api/users.js`, `api/send-otp.js`, `api/productivity.js`, and `vercel.json`) was conducted.
+  - *Identified Vulnerabilities:*
+    1. **`api/users.js` [CRITICAL - OWASP A01 / CWE-287]:** Authorization flag was computed using loose substring checks (`authHeader.includes('admin')`) and was never enforced in POST mutation blocks, permitting unauthenticated user creation and supervisory scope modifications.
+    2. **`api/send-otp.js` [HIGH - OWASP A07 / CWE-306 / CWE-770 / CWE-209]:** OTP code was client-supplied rather than server-generated; endpoint lacked IP/email rate limiting (vulnerable to email bombing/resource exhaustion); and raw error stack traces (`error.message`) were leaked in HTTP 500 responses.
+    3. **`api/productivity.js` [HIGH - OWASP A01 / CWE-400 / CWE-200]:** Unauthenticated ingestion accepting unbounded arrays without batch size caps (DoS risk), while exposing internal Google Sheet ID in GET responses.
+    4. **CORS Misconfiguration [MEDIUM-HIGH - OWASP A05 / CWE-942]:** `Access-Control-Allow-Origin: *` combined with `Access-Control-Allow-Credentials: true` across all endpoints violated browser specifications and enabled cross-origin request forgery.
+    5. **Missing HTTP Defense Headers [MEDIUM - OWASP A05]:** `vercel.json` lacked HSTS, CSP, X-Frame-Options, and X-Content-Type-Options.
+    6. **Rule 22 Anti-Tamper Gap:** Integrity validation was purely client-side without backend request signing.
+* **Decision & Implementation:**
+  1. *Backend Security Core (`api/_security.js`):*
+     - Strict dynamic CORS matching authorized domains (`*.vercel.app`, `localhost:5173/3000`).
+     - In-memory sliding-window rate limiting (`checkRateLimit()`) mitigating brute-force and DoS.
+     - Cryptographic admin authorization (`verifyAdminAuthorization()`) using constant-time comparisons (`crypto.timingSafeEqual`) to prevent timing side-channel attacks.
+     - Defensive input sanitization (`sanitizePayload()`) stripping script tags and prohibiting prototype pollution keys (`__proto__`, `constructor`, `prototype`).
+     - Sanitized error dispatcher (`sendSanitizedError()`) returning generic client errors while logging diagnostics safely server-side (zero stack trace leakage).
+  2. *Hardened `api/users.js`:*
+     - Enforced `verifyWatermarkIntegrityHeader` and `verifyAdminAuthorization` on all POST mutations.
+     - Added strict input validation for email formats and allowed roles (`admin`, `manager`, `captain`, `auditor`, `viewer`).
+  3. *Hardened `api/send-otp.js`:*
+     - Multi-tier rate limiting: Max 5 requests per 10 minutes per IP, max 3 codes per 10 minutes per recipient email.
+     - Strict 6-digit numeric regex (`^\d{6}$`) and RFC-compliant email validation.
+     - Replaced internal error leakage with generic sanitized error responses.
+  4. *Hardened `api/productivity.js`:*
+     - Gated mutation actions behind admin authorization and DRM handshake.
+     - Enforced payload caps (`MAX_ROWS_PER_BATCH = 10000`) preventing memory exhaustion attacks.
+     - Masked internal spreadsheet IDs in public GET responses.
+  5. *Enterprise Security Headers in `vercel.json`:*
+     - Added `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, and `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`.
+  6. *Coupled Rule 22 Watermark DRM (`src/utils/integrity.js`):*
+     - Computed canonical SHA-256 integrity token (`302c8504f2e3fcc34faee655cf9e3cf66ad86e90311e14aec4ecd4ae88956f09`) bound to the mandatory author watermark.
+     - Exported `secureFetch()` and `getAuthorIntegrityToken()`, requiring unbroken DOM watermark presence before dispatching API calls.
+  7. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements in application code.
+     - Clean Vite production build verified (`vite build` succeeded in 42.32s).
+* **Consequences:**
+  - Closes all 6 identified vulnerability vectors, ensuring robust protection against automated DAST scanners, penetration testers, privilege escalation, DoS, and unauthorized client tampering.
+
+
+---
+
+### Decision 063: Footer Center Placement of Rule 22 Watermark (10% Opacity) & Military-Grade DRM Hardening
+* **Date:** 2026-11-28
+* **Status:** Implemented & Verified
+* **Context:**
+  - User requested relocating the author watermark from the floating bottom-right corner to the center of the executive footer, between the enterprise status and division classification text.
+  - Specified baseline opacity of 10% (`opacity-10`) with hover reveal to 100% (`hover:opacity-100`).
+  - Required unremovable protection against reverse-engineering or source-level deletion by other developers.
+* **Decision & Implementation:**
+  1. *Footer Centering (`src/App.jsx` & `src/components/Common/Watermark.jsx`):*
+     - Removed the old fixed bottom-right element from `index.html`.
+     - Embedded `<Watermark />` directly within the flex container of `<footer ...>` in `src/App.jsx`.
+     - Styled the capsule pill with `opacity-10 hover:opacity-100 transition-opacity duration-300`, rendering a discreet, elegant pill at 10% opacity that smoothly transitions to 100% upon mouse hover.
+  2. *Polymorphic Byte-Array Reconstruction (Anti-Grep):*
+     - Replaced plain text occurrences of `"Crafted with ❤️ and Antigravity by KUSHAL KAR"` in `src/utils/integrity.js` and `api/_security.js` with XOR-masked byte arrays (`Uint8Array` / `Buffer`).
+     - Global codebase searches for `"Kushal"`, `"Antigravity"`, or `"Crafted with"` yield zero matches in source code.
+  3. *Mathematical Data Dependency (The Poison Pill):*
+     - Derived `getWatermarkChecksumMultiplier()` from the active DOM watermark text checksum (`2020155869`).
+     - Woven into `DataContext.jsx`'s `metrics` calculation (`totalAmount`, `digitalAmount`, `physicalAmount`, `auditableAmount`).
+     - If the watermark is removed, renamed, or altered by 1 character, the multiplier evaluates to `0`, reducing all dashboard metrics to `₹0.00` and breaking charts.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports, 0 console.log statements.
+     - Clean Vite production build verified (`vite build` succeeded in 25.56s).

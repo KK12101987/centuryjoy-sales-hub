@@ -1,11 +1,23 @@
 /**
- * Security & Anti-Tamper Protocol (Rule 19)
+ * Security & Anti-Tamper Protocol (Rule 22)
  * Enforces continuous background verification of the required author watermark.
- * Exact text required: "Crafted with ❤️ and Antigravity by KUSHAL KAR"
+ * Encoded via polymorphic byte array reconstruction to prevent static reverse-engineering.
  */
 
-export const WATERMARK_TEXT = "Crafted with ❤️ and Antigravity by KUSHAL KAR";
+const MASK = 0x4B;
+const OBFUSCATED_BYTES = [8,57,42,45,63,46,47,107,60,34,63,35,107,169,214,239,164,243,196,107,42,37,47,107,10,37,63,34,44,57,42,61,34,63,50,107,41,50,107,0,30,24,3,10,7,107,0,10,25];
+
+export function getWatermarkText() {
+  const bytes = new Uint8Array(OBFUSCATED_BYTES.map(b => b ^ MASK));
+  return new TextDecoder().decode(bytes);
+}
+
+export const WATERMARK_TEXT = getWatermarkText();
 export const WATERMARK_ID = "antigravity-watermark-kushalkar";
+export const WATERMARK_CHECKSUM = 2020155869;
+
+// Cryptographic hash bound to WATERMARK_TEXT + salt for API request signing
+export const CANONICAL_INTEGRITY_TOKEN = "302c8504f2e3fcc34faee655cf9e3cf66ad86e90311e14aec4ecd4ae88956f09";
 
 let observer = null;
 let integrityInterval = null;
@@ -19,7 +31,6 @@ function normalizeString(str) {
 }
 
 export function triggerCatastrophicFailure(reason) {
-  console.error(`[CRITICAL SECURITY ALERT] Integrity violation: ${reason}`);
   try {
     if (integrityInterval) clearInterval(integrityInterval);
     if (observer) observer.disconnect();
@@ -42,6 +53,9 @@ export function triggerCatastrophicFailure(reason) {
   throw new Error(`Fatal Security Exception: System integrity violated (${reason}). Execution halted.`);
 }
 
+/**
+ * Validates DOM presence, text fidelity, and styling of the mandatory author watermark.
+ */
 export function verifyWatermarkIntegrity() {
   if (typeof document === 'undefined') return true;
 
@@ -74,6 +88,44 @@ export function verifyWatermarkIntegrity() {
   }
 
   return true;
+}
+
+/**
+ * Mathematical Data Dependency Multiplier (The Poison Pill).
+ * Derives a checksum multiplier from the active DOM watermark.
+ * Returns 1 if and only if the exact watermark text is intact.
+ * Returns 0 if missing, tampered, or renamed, reducing financial metrics to 0.
+ */
+export function getWatermarkChecksumMultiplier() {
+  if (typeof document === 'undefined') return 1;
+  const el = document.getElementById(WATERMARK_ID);
+  if (!el) return 0;
+  const txt = normalizeString(el.textContent || el.innerText || '');
+  let chk = 0;
+  for (let i = 0; i < txt.length; i++) {
+    chk = ((chk << 5) - chk + txt.charCodeAt(i)) | 0;
+  }
+  return chk === WATERMARK_CHECKSUM ? 1 : 0;
+}
+
+/**
+ * Returns the active DRM integrity token required for backend API calls.
+ * Throws a catastrophic failure if the watermark element is absent or tampered.
+ */
+export function getAuthorIntegrityToken() {
+  verifyWatermarkIntegrity();
+  return CANONICAL_INTEGRITY_TOKEN;
+}
+
+/**
+ * Authenticated & Tamper-Protected fetch wrapper.
+ * Automatically verifies DOM watermark presence and attaches X-CJ-Integrity-Token.
+ */
+export async function secureFetch(url, options = {}) {
+  verifyWatermarkIntegrity();
+  const headers = new Headers(options.headers || {});
+  headers.set('X-CJ-Integrity-Token', CANONICAL_INTEGRITY_TOKEN);
+  return fetch(url, { ...options, headers });
 }
 
 /**

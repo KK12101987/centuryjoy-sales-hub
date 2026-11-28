@@ -1,84 +1,136 @@
 // api/users.js
 // Vercel Serverless Function for User Registry, RBAC & Supervisory Scope Management
+// Hardened with Strict Authorization, Input Validation & Rule 22 DRM Anti-Tamper Enforcement
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  applyCorsHeaders,
+  checkRateLimit,
+  verifyWatermarkIntegrityHeader,
+  verifyAdminAuthorization,
+  sanitizePayload,
+  sendSanitizedError
+} from './_security.js';
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const ALLOWED_ROLES = ['admin', 'manager', 'captain', 'auditor', 'viewer'];
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-Admin-Key'
-  );
+  // 1. Strict CORS & Security Headers
+  applyCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Security Check: Verify admin token or authorized header for mutations
-  const authHeader = req.headers.authorization || '';
-  const adminKey = req.headers['x-admin-key'] || '';
-  const isAuthorized = 
-    authHeader.includes('Kushal') || 
-    authHeader.includes('admin') || 
-    adminKey === 'kushal-superadmin' || 
-    process.env.NODE_ENV !== 'production';
+  // 2. Rate Limiting Check (Anti-DoS / Brute-Force Defense)
+  const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown-client';
+  const rateLimit = checkRateLimit(`users_api_${clientIp}`, 40, 60000);
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfter));
+    return sendSanitizedError(
+      res,
+      429,
+      `Too many requests. Please wait ${rateLimit.retryAfter} seconds before trying again.`
+    );
+  }
 
+  // 3. GET Method: Health and Metadata (Publicly Scoped)
   if (req.method === 'GET') {
     return res.status(200).json({
       success: true,
       service: 'Century Joy User & Supervisory Scope Governance API',
-      status: 'healthy',
-      version: '5.0.0',
+      status: 'active',
+      version: '5.2.0',
       roles: ALLOWED_ROLES,
+      timestamp: new Date().toISOString()
     });
   }
 
+  // 4. POST Method: State Mutations (Privilege Escalation Defense)
   if (req.method === 'POST') {
-    const { action, user, scopeMapping } = req.body || {};
-
-    if (!action) {
-      return res.status(400).json({ error: 'Action parameter is required.' });
+    // 4a. Rule 22 DRM Anti-Tamper Verification
+    // Mutation endpoints require cryptographic author watermark handshake
+    const hasValidIntegrity = verifyWatermarkIntegrityHeader(req);
+    if (!hasValidIntegrity) {
+      return sendSanitizedError(
+        res,
+        403,
+        'Security Exception: Access denied. Digital rights anti-tamper signature missing or invalid.'
+      );
     }
 
-    if (action === 'assign_scope') {
-      if (!scopeMapping || !scopeMapping.agentName) {
-        return res.status(400).json({ error: 'Invalid scope assignment payload: agentName is required.' });
-      }
-      return res.status(200).json({
-        success: true,
-        message: `Supervisory scope for ${scopeMapping.agentName} successfully synchronized.`,
-        scope: scopeMapping,
-      });
+    // 4b. Strict Cryptographic Administrator Authorization (OWASP A01 / CWE-287)
+    const isAuthorized = verifyAdminAuthorization(req);
+    if (!isAuthorized) {
+      return sendSanitizedError(
+        res,
+        401,
+        'Authentication Failed: Valid administrator credentials or session token required.'
+      );
     }
 
-    if (action === 'create_user') {
-      if (!user || !user.email || !user.name) {
-        return res.status(400).json({ error: 'Name and valid email are required.' });
-      }
-      if (!EMAIL_REGEX.test(user.email)) {
-        return res.status(400).json({ error: 'Malformed email address.' });
-      }
-      if (user.role && !ALLOWED_ROLES.includes(user.role)) {
-        return res.status(400).json({ error: `Invalid role "${user.role}".` });
+    try {
+      const sanitizedBody = sanitizePayload(req.body || {});
+      const { action, user, scopeMapping } = sanitizedBody;
+
+      if (!action) {
+        return sendSanitizedError(res, 400, 'Parameter "action" is required.');
       }
 
-      return res.status(200).json({
-        success: true,
-        message: `User ${user.name} created successfully.`,
-        user: {
-          name: user.name,
-          email: user.email.toLowerCase(),
-          role: user.role || 'viewer',
-          status: 'active',
-        },
-      });
+      // Action: Assign Supervisory Scope
+      if (action === 'assign_scope') {
+        if (!scopeMapping || typeof scopeMapping !== 'object' || !scopeMapping.agentName) {
+          return sendSanitizedError(res, 400, 'Invalid scope assignment payload: agentName is required.');
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: `Supervisory scope for "${scopeMapping.agentName}" successfully synchronized.`,
+          scope: {
+            agentName: String(scopeMapping.agentName).slice(0, 100),
+            managerKey: scopeMapping.managerKey ? String(scopeMapping.managerKey).slice(0, 100) : null,
+            captainKey: scopeMapping.captainKey ? String(scopeMapping.captainKey).slice(0, 100) : null,
+            teamName: scopeMapping.teamName ? String(scopeMapping.teamName).slice(0, 100) : null,
+            updatedAt: new Date().toISOString()
+          }
+        });
+      }
+
+      // Action: Create User Account
+      if (action === 'create_user') {
+        if (!user || typeof user !== 'object' || !user.email || !user.name) {
+          return sendSanitizedError(res, 400, 'Valid user name and email address are required.');
+        }
+
+        const normalizedEmail = String(user.email).trim().toLowerCase();
+        if (!EMAIL_REGEX.test(normalizedEmail) || normalizedEmail.length > 254) {
+          return sendSanitizedError(res, 400, 'Malformed or invalid email address.');
+        }
+
+        const targetRole = user.role ? String(user.role).toLowerCase() : 'viewer';
+        if (!ALLOWED_ROLES.includes(targetRole)) {
+          return sendSanitizedError(res, 400, `Invalid role requested. Allowed roles: ${ALLOWED_ROLES.join(', ')}.`);
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: `User "${String(user.name).slice(0, 100)}" created successfully.`,
+          user: {
+            name: String(user.name).slice(0, 100),
+            email: normalizedEmail,
+            role: targetRole,
+            status: 'active',
+            createdAt: new Date().toISOString()
+          }
+        });
+      }
+
+      return sendSanitizedError(res, 400, 'Unrecognized action requested.');
+    } catch (err) {
+      return sendSanitizedError(res, 500, 'Internal server error processing user request.', err);
     }
-
-    return res.status(400).json({ error: 'Unrecognized action.' });
   }
 
-  return res.status(405).json({ error: 'Method not allowed.' });
+  // 5. Any other HTTP method rejected
+  return sendSanitizedError(res, 405, `Method ${req.method} not allowed.`);
 }

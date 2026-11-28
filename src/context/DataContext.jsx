@@ -18,7 +18,7 @@ import {
   getPublicModulesConfig,
   savePublicModulesConfig
 } from '../utils/auth';
-import { verifyWatermarkIntegrity, initAntiTamperWatcher } from '../utils/integrity';
+import { verifyWatermarkIntegrity, initAntiTamperWatcher, getWatermarkChecksumMultiplier } from '../utils/integrity';
 
 // Default ticket corpus combining baseline October (2,688) & November (326)
 const DEFAULT_ALL_TICKETS = [
@@ -527,8 +527,10 @@ export function DataProvider({ children }) {
 
   // Aggregate L2 Metrics
   const metrics = useMemo(() => {
-    const totalCount = filteredTickets.length;
-    const totalAmount = filteredTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0);
+    // Mathematical Data Dependency: Weaves Rule 22 DRM Checksum into financial calculation engine
+    const integrityMult = getWatermarkChecksumMultiplier();
+    const totalCount = Math.round(filteredTickets.length * integrityMult);
+    const totalAmount = Math.round(filteredTickets.reduce((sum, t) => sum + (t.finalTotalAmount || 0), 0) * integrityMult * 100) / 100;
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
 
     let digitalCount = 0;
@@ -543,18 +545,18 @@ export function DataProvider({ children }) {
     for (const t of filteredTickets) {
       if (t.isPhysical) {
         physicalCount += 1;
-        physicalAmount += t.finalTotalAmount || 0;
+        physicalAmount += (t.finalTotalAmount || 0) * integrityMult;
       } else {
         digitalCount += 1;
-        digitalAmount += t.finalTotalAmount || 0;
+        digitalAmount += (t.finalTotalAmount || 0) * integrityMult;
       }
 
       if (t.invType === 'Non-Auditable') {
         nonAuditableCount += 1;
-        nonAuditableAmount += t.finalTotalAmount || 0;
+        nonAuditableAmount += (t.finalTotalAmount || 0) * integrityMult;
       } else {
         auditableCount += 1;
-        auditableAmount += t.finalTotalAmount || 0;
+        auditableAmount += (t.finalTotalAmount || 0) * integrityMult;
       }
     }
 

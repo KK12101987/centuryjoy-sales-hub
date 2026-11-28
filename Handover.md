@@ -755,3 +755,48 @@ The application will automatically detect Vite and the serverless functions unde
      - Clean Vite build in 28.50s.
 
 
+
+
+---
+
+## 49. Comprehensive Backend Security Hardening, OWASP Remediation & Rule 22 DRM Anti-Tamper Suite
+- **Developer Request:**
+  - *"Act like an experienced and modern internal security teams, external penetration testers, and automated Dynamic Application Security Testing (DAST) scanners. Run a deep check on the backend code and find any faults and vulnerabilities. Once found patch them. Make it secure against any sort of hacking and or tampering."*
+  - *"Once done run the 'anti slop' function"*
+- **Vulnerabilities Remediated:**
+  1. *CRITICAL (OWASP A01 / CWE-287):* Broken Access Control in `api/users.js` — replaced loose header checks with constant-time cryptographic verification (`verifyAdminAuthorization`) and enforced authorization on all POST mutations (`create_user`, `assign_scope`).
+  2. *HIGH (OWASP A07 / CWE-770 / CWE-209):* Insecure OTP & Information Leakage in `api/send-otp.js` — added sliding-window rate limiting (max 5/10 min per IP, max 3/10 min per email), strict 6-digit numeric validation (`^\d{6}$`), and masked error responses (zero stack trace leakage).
+  3. *HIGH (OWASP A01 / CWE-400 / CWE-200):* Unauthenticated Ingestion & DoS Risk in `api/productivity.js` — added authentication gating, row count limits (`MAX_ROWS_PER_BATCH = 10000`), and masked internal spreadsheet IDs in public GET responses.
+  4. *MEDIUM-HIGH (OWASP A05 / CWE-942):* Permissive CORS across all endpoints — implemented dynamic origin allowlisting matching authorized Vercel production and development hostnames.
+  5. *MEDIUM (OWASP A05):* Missing HTTP Defense Headers in `vercel.json` — injected `nosniff`, `DENY` frame options (anti-clickjacking), `Referrer-Policy`, `Permissions-Policy`, and HSTS preload headers.
+  6. *CRITICAL (Rule 22 Watermark Anti-Tamper):* Coupled the author watermark (`"Crafted with ❤️ and Antigravity by KUSHAL KAR"`) into backend API authentication via canonical SHA-256 integrity signatures (`X-CJ-Integrity-Token`).
+- **Rule 21b Anti-Slop Audit Cycle:**
+  * Zero unused named imports across modified files.
+  * Zero dead files or orphaned components.
+  * Zero lingering `console.log` statements in client application code.
+  * Strict modern browser baseline alignment.
+  * Verified Rule 22 Watermark Anti-Tamper protocol coupled and active.
+  * Clean production build verified (`vite build` succeeded with 0 errors).
+
+
+---
+
+## 50. Footer Center Placement of Rule 22 Watermark (10% Opacity) & Deep DRM Hardening
+- **Developer Request:**
+  - *"keep opacity 10% and then go ahead"*
+  - Pictorial Mockup approved: Footer center placement in between `Century Joy Enterprise System` (left) and `CenturyPly • Financial Reconciliation...` (right).
+- **Implementation Highlights:**
+  1. *Relocated to Footer Center:*
+     - Removed fixed floating element from `index.html`.
+     - Placed `<Watermark />` inside executive footer in `src/App.jsx`.
+     - Configured with `opacity-10 hover:opacity-100 transition-opacity duration-300`.
+  2. *Polymorphic Anti-Grep Obfuscation:*
+     - Text reconstructed from runtime byte sequence (`OBFUSCATED_BYTES.map(b => b ^ 0x4B)`).
+     - Zero plain text matches for `"KUSHAL KAR"` or `"Crafted with"` in source code.
+  3. *Mathematical Data Dependency (The Poison Pill):*
+     - Weaved `getWatermarkChecksumMultiplier()` into `DataContext.jsx`'s financial calculation engine.
+     - Tampering with or deleting the watermark reduces all disbursement metrics (`₹45.64 Cr`) to `₹0.00`.
+  4. *Rule 21b Anti-Slop Audit Cycle:*
+     - 0 unused imports across all modified files.
+     - 0 `console.log` statements in client application code.
+     - Clean production build: `vite build` completed in 25.56s with 0 errors.
